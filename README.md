@@ -13,7 +13,7 @@ agents/
 ├── rules/                           # Regras globais injetadas em todas as mensagens
 │   └── AGENTS.md
 ├── scripts/                         # Utilitários de automação do repositório
-│   └── link-skill.ps1               # Helper para vincular skills a qualquer projeto
+│   └── configure_workspace.py       # Configurador declarativo automático (Windows e Linux)
 ├── skills/
 │   ├── global/                      # CORE GLOBAL (~800 tokens) - Carregado em todos os projetos
 │   │   ├── coding-standards/        # Qualidade técnica, Clean Code e padrões de engenharia
@@ -96,27 +96,33 @@ New-Item -ItemType Junction -Path "C:\Users\User\.gemini\config\skills" -Target 
 
 ## Como Selecionar e Ativar Skills por Projeto (Workspace Target)
 
-Você tem **três maneiras simples** de ativar skills específicas em um repositório de trabalho sem precisar sujar sua configuração global.
+Você pode escolher e ativar as skills, subagentes e regras de forma totalmente declarativa ou automática.
 
-### Método 1: Script Automático (Recomendado - Mais Rápido)
+### Método 1: Configurador Automático Multiplataforma (Recomendado)
 
-Utilize o script [`scripts/link-skill.ps1`](file:///d:/Bibliotecas/GitHub/agents/scripts/link-skill.ps1) fornecido neste repositório. Ele localiza a skill em qualquer categoria da biblioteca e cria o link simbólico na pasta `.agents/skills` do projeto alvo:
+O script [`scripts/configure_workspace.py`](file:///d:/Bibliotecas/GitHub/agents/scripts/configure_workspace.py) roda nativamente em **Windows e Linux**, sem precisar instalar nenhuma biblioteca adicional (usa a biblioteca padrão do Python):
 
-```powershell
-# Estando dentro do repositório 'agents', passe o caminho do seu projeto e as skills desejadas:
-.\scripts\link-skill.ps1 -ProjectPath "D:\Projetos\meu-app" -Skill svelte5, sveltekit, frontend-design-principles
-
-# Ou, se o PowerShell já estiver aberto na raiz do seu projeto:
-D:\Bibliotecas\GitHub\agents\scripts\link-skill.ps1 -Skill rust, salsa, writing-plans
+```bash
+# Execute no terminal:
+python scripts/configure_workspace.py
 ```
+
+#### O que o script faz:
+1. **Janela de Seleção:** Abre automaticamente uma janela gráfica nativa do sistema operacional para você selecionar a pasta do seu repositório alvo (ou aceita o argumento `-t /caminho/do/projeto`).
+2. **Escaneamento Dinâmico de Categorias:** Lê a pasta `skills/` e identifica automaticamente as categorias existentes com base no nome das pastas (`stacks`, `planning`, `docs`, `frontend`, `meta`, etc.), além dos `agents` e `rules`.
+3. **Seleção Interativa:** Exibe um menu numerado no terminal permitindo selecionar:
+   * Por números (ex.: `1, 4, 12`)
+   * Por categorias inteiras (ex.: `stacks, planning`)
+   * Ou selecionar tudo com `all`
+4. **Gera o Manifesto Declarativo:** Cria o arquivo `.agents/skills.json` no projeto alvo apontando para as categorias e skills escolhidas.
+5. **Copia Agentes e Regras:** Se você selecionou subagentes ou regras, copia os arquivos `.md` correspondentes para `.agents/agents/` e `.agents/rules/`.
+6. **Atualiza o `.gitignore`:** Verifica se o arquivo `.gitignore` do projeto alvo já ignora `.agents/`. Se não estiver ignorando, adiciona a linha automaticamente.
 
 ---
 
-### Método 2: Declarativo Nativo (`.agents/skills.json`)
+### Método 2: Declarativo Manual (`.agents/skills.json`)
 
-O Antigravity possui suporte nativo a arquivos de configuração JSON no workspace. Esse método é ideal caso você queira versionar no Git quais skills o seu projeto utiliza, sem depender de criar pastas ou Junctions no sistema de arquivos.
-
-Crie um arquivo chamado `.agents/skills.json` na raiz do seu projeto:
+Se preferir criar o arquivo na mão, basta adicionar o arquivo `.agents/skills.json` na raiz do seu projeto:
 
 ```json
 {
@@ -137,19 +143,9 @@ Crie um arquivo chamado `.agents/skills.json` na raiz do seu projeto:
 }
 ```
 
-O Antigravity lerá esse manifesto automaticamente ao abrir o projeto e carregará apenas as skills declaradas no `include_only`.
+E garantir que a pasta `.agents/` está no seu `.gitignore`:
 
----
-
-### Método 3: Junction Manual no PowerShell
-
-Se preferir rodar manualmente no terminal na raiz do projeto:
-
-```powershell
-# Cria a pasta .agents/skills no projeto
-New-Item -ItemType Directory -Path ".\.agents\skills" -Force
-
-# Conecta uma skill apontando o Target para a pasta correspondente
-New-Item -ItemType Junction -Path ".\.agents\skills\svelte5" -Target "D:\Bibliotecas\GitHub\agents\skills\stacks\svelte5"
-New-Item -ItemType Junction -Path ".\.agents\skills\writing-plans" -Target "D:\Bibliotecas\GitHub\agents\skills\planning\writing-plans"
+```text
+# .gitignore
+.agents/
 ```
