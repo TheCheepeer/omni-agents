@@ -18,6 +18,7 @@ Este arquivo define padroes e regras que devem ser seguidos pelos agentes em qua
 
 - Respostas diretas, claras e objetivas.
 - Manter consistencia de estilo com o codigo preexistente do projeto.
+- **Proibição Absoluta de Emojis:** Jamais utilizar emojis em nenhuma circunstância (seja em respostas, comentários de código, documentações, commits ou mensagens do sistema). Manter a comunicação estritamente textual, limpa e profissional.
 
 ## Frontend e Estilizacao (Tailwind CSS)
 
