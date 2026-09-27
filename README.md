@@ -61,14 +61,18 @@ agents/
 As habilidades são separadas estrategicamente entre **Globais** e **Específicas por Stack**:
 
 #### A. Skills Globais (`skills/global/`)
+
 Habilidades transversais e agnósticas de tecnologia. Estão conectadas à configuração global do Antigravity e disponíveis em qualquer conversa:
+
 - **Escrita & Comunicação:** `comunicacao-clara`, `writing`, `writing-plans`, `crafting-effective-readmes`, `writing-error-messages`, `diataxis`.
 - **Qualidade & Engenharia:** `coding-standards`, `reducing-entropy`, `improve`, `researching-codebases`, `frontend-design-principles`, `grug-brained-dev`.
 - **Planejamento & Roadmaps:** `strategic-roadmap`, `roadmap`, `roadmap-to-improve-plans`, `feature-planning-artifacts`.
 - **Visualização & Meta-Skills:** `html-artifacts`, `improving-prompts`, `writing-cli-skills`, `skill-authoring`.
 
 #### B. Skills por Stack / Ferramenta (`skills/stacks/`)
+
 Habilidades focadas em linguagens, frameworks ou ferramentas específicas. Não ficam ativas no escopo global para **economizar orçamento de tokens (customization budget)** e evitar poluição de contexto em projetos de outras tecnologias:
+
 - **Linguagens & Frameworks:** `rust`, `salsa`, `svelte5`, `sveltekit`.
 - **Ferramentas de Infra & VCS:** `coolify-compose`, `jj`.
 
@@ -109,6 +113,7 @@ New-Item -ItemType Junction -Path "C:\Users\User\.gemini\config\skills" -Target 
 ```
 
 > **Nota para atualização:** Se a junction `config\skills` já apontava para a pasta raiz anterior de `skills`, remova o link antigo e recrie apontando para `global`:
+>
 > ```powershell
 > cmd /c rmdir "C:\Users\User\.gemini\config\skills"
 > New-Item -ItemType Junction -Path "C:\Users\User\.gemini\config\skills" -Target "D:\Bibliotecas\GitHub\agents\skills\global"
