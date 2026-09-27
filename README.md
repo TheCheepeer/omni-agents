@@ -1,8 +1,8 @@
-# Repositorio de Agentes, Regras e Skills do Antigravity
+# Repositório de Agentes, Regras e Skills do Antigravity
 
-Repositorio centralizado para armazenar, versionar e gerenciar subagentes, regras globais e skills utilizados no Antigravity e VS Code.
+Repositório centralizado para armazenar, versionar e gerenciar subagentes, regras globais e skills utilizados no Antigravity e VS Code.
 
-## Estrutura do Repositorio
+## Estrutura do Repositório
 
 ```text
 agents/
@@ -13,60 +13,68 @@ agents/
 ├── rules/
 │   └── AGENTS.md
 ├── skills/
-│   ├── coding-standards/
-│   ├── comunicacao-clara/
-│   ├── coolify-compose/
-│   ├── crafting-effective-readmes/
-│   ├── diataxis/
-│   ├── feature-planning-artifacts/
-│   ├── frontend-design-principles/
-│   ├── grug-brained-dev/
-│   ├── html-artifacts/
-│   ├── improve/
-│   ├── improving-prompts/
-│   ├── jj/
-│   ├── reducing-entropy/
-│   ├── researching-codebases/
-│   ├── roadmap/
-│   ├── roadmap-to-improve-plans/
-│   ├── rust/
-│   ├── salsa/
-│   ├── skill-authoring/
-│   ├── strategic-roadmap/
-│   ├── svelte5/
-│   ├── sveltekit/
-│   ├── writing/
-│   ├── writing-cli-skills/
-│   ├── writing-error-messages/
-│   └── writing-plans/
+│   ├── global/                      # Skills transversais aplicadas em todos os projetos
+│   │   ├── coding-standards/
+│   │   ├── comunicacao-clara/
+│   │   ├── crafting-effective-readmes/
+│   │   ├── diataxis/
+│   │   ├── feature-planning-artifacts/
+│   │   ├── frontend-design-principles/
+│   │   ├── grug-brained-dev/
+│   │   ├── html-artifacts/
+│   │   ├── improve/
+│   │   ├── improving-prompts/
+│   │   ├── reducing-entropy/
+│   │   ├── researching-codebases/
+│   │   ├── roadmap/
+│   │   ├── roadmap-to-improve-plans/
+│   │   ├── skill-authoring/
+│   │   ├── strategic-roadmap/
+│   │   ├── writing/
+│   │   ├── writing-cli-skills/
+│   │   ├── writing-error-messages/
+│   │   └── writing-plans/
+│   └── stacks/                      # Skills específicas de tecnologias/ferramentas
+│       ├── coolify-compose/
+│       ├── jj/
+│       ├── rust/
+│       ├── salsa/
+│       ├── svelte5/
+│       └── sveltekit/
 └── README.md
 ```
 
-## Conteudo
+## Conteúdo
 
 ### 1. Subagentes (`agents/`)
 
-- `accessibility-reviewer.md`: Especialista em acessibilidade digital (a11y), diretrizes WCAG 2.1/2.2 (A, AA, AAA) e WAI-ARIA. Realiza auditoria estatica de interfaces/componentes, apresenta diagnostico com impacto assistivo, solicita autorizacao para correcoes e opera em loop iterativo controlado.
-- `code-reviewer.md`: Especialista em analise de codigo, padroes de design, Clean Code e melhorias de legibilidade.
-- `security-auditor.md`: Especialista em OWASP Top 10 e AppSec. Realiza auditoria estatica, emite diagnosticos prévios, pede autorizacao antes de aplicar correcoes e executa verificacao iterativa com parada controlada.
+- `accessibility-reviewer.md`: Especialista em acessibilidade digital (a11y), diretrizes WCAG 2.1/2.2 (A, AA, AAA) e WAI-ARIA. Realiza auditoria estática de interfaces/componentes, apresenta diagnóstico com impacto assistivo, solicita autorização para correções e opera em loop iterativo controlado.
+- `code-reviewer.md`: Especialista em análise de código, padrões de design, Clean Code e melhorias de legibilidade.
+- `security-auditor.md`: Especialista em OWASP Top 10 e AppSec. Realiza auditoria estática, emite diagnósticos prévios, pede autorização antes de aplicar correções e executa verificação iterativa com parada controlada.
 
 ### 2. Regras Globais (`rules/`)
 
-- `AGENTS.md`: Diretrizes e padroes de desenvolvimento, seguranca e comunicacao aplicados a todos os projetos.
+- `AGENTS.md`: Diretrizes e padrões de desenvolvimento, segurança, comunicação e padrão obrigatório de Tailwind CSS aplicados a todos os projetos.
 
 ### 3. Skills do Antigravity (`skills/`)
 
-Coleção com 26 skills modulares para capacitar os agentes em fluxos de trabalho avançados, incluindo:
+As habilidades são separadas estrategicamente entre **Globais** e **Específicas por Stack**:
 
+#### A. Skills Globais (`skills/global/`)
+Habilidades transversais e agnósticas de tecnologia. Estão conectadas à configuração global do Antigravity e disponíveis em qualquer conversa:
 - **Escrita & Comunicação:** `comunicacao-clara`, `writing`, `writing-plans`, `crafting-effective-readmes`, `writing-error-messages`, `diataxis`.
 - **Qualidade & Engenharia:** `coding-standards`, `reducing-entropy`, `improve`, `researching-codebases`, `frontend-design-principles`, `grug-brained-dev`.
 - **Planejamento & Roadmaps:** `strategic-roadmap`, `roadmap`, `roadmap-to-improve-plans`, `feature-planning-artifacts`.
-- **Tecnologias & Ferramentas:** `coolify-compose`, `html-artifacts`, `jj`, `rust`, `salsa`, `svelte5`, `sveltekit`.
-- **Meta-Skills & Prompts:** `improving-prompts`, `writing-cli-skills`, `skill-authoring`.
+- **Visualização & Meta-Skills:** `html-artifacts`, `improving-prompts`, `writing-cli-skills`, `skill-authoring`.
+
+#### B. Skills por Stack / Ferramenta (`skills/stacks/`)
+Habilidades focadas em linguagens, frameworks ou ferramentas específicas. Não ficam ativas no escopo global para **economizar orçamento de tokens (customization budget)** e evitar poluição de contexto em projetos de outras tecnologias:
+- **Linguagens & Frameworks:** `rust`, `salsa`, `svelte5`, `sveltekit`.
+- **Ferramentas de Infra & VCS:** `coolify-compose`, `jj`.
+
+---
 
 ## Como Usar: Rules, Skills e Agentes
-
-Entenda como o Antigravity consome cada componente e como interagir com eles no dia a dia:
 
 ### 1. Regras (Rules) — 100% Automáticas
 
@@ -80,24 +88,59 @@ Entenda como o Antigravity consome cada componente e como interagir com eles no 
 
 - **Comportamento:** Para economizar tokens de contexto, as skills **não** são carregadas integralmente de início. O agente recebe apenas um índice contendo o `name` e a `description` de cada uma.
 - **Como ativar:**
-    - **Automático (Semântico):** Se a sua dúvida ou tarefa coincidir com o propósito descrito em uma skill (ex.: revisar componentes Svelte 5, auditar débito técnico ou gerar um compose do Coolify), o próprio agente detecta a relevância e lê o respectivo `SKILL.md` por conta própria.
-    - **Explícito:** Você pode solicitar diretamente no prompt: _"Use a skill strategic-roadmap para analisar o repositório"_ ou _"Siga a skill coolify-compose"_.
-- **Onde residem:** Pastas em `skills/<nome>/SKILL.md` (globais em `~/.gemini/config/skills/` ou locais em `.agents/skills/`).
+    - **Automático (Semântico):** Se a sua dúvida ou tarefa coincidir com o propósito descrito em uma skill (ex.: auditar débito técnico ou redigir documentação), o próprio agente detecta a relevância e lê o respectivo `SKILL.md` por conta própria.
+    - **Explícito:** Você pode solicitar diretamente no prompt: _"Use a skill strategic-roadmap para analisar o repositório"_.
 
-### 3. Subagentes (Agents) — Especialistas e Paralelismo
-
-- **Comportamento:** Instâncias auxiliares de IA com papéis e ferramentas específicas para executar tarefas em segundo plano ou em isolamento, evitando poluir o contexto da conversa principal.
-- **Como usar:**
-    - **Invocação Autônoma:** O agente principal pode acionar subagentes (como `research`) para pesquisas extensas na base de código ou documentação externa.
-    - **A seu pedido:** Você pode pedir diretamente: _"Invoque um subagente especialista em segurança para auditar as rotas de autenticação"_.
-    - **Personas Customizadas:** Arquivos em `agents/` (ex.: [`accessibility-reviewer.md`](file:///d:/Bibliotecas/GitHub/agents/agents/accessibility-reviewer.md), [`security-auditor.md`](file:///d:/Bibliotecas/GitHub/agents/agents/security-auditor.md)) padronizam o fluxo de auditoria, diagnóstico prévio e correção autorizada.
+---
 
 ## Como Conectar ao Antigravity no Windows
 
-Para vincular este repositorio a configuracao global do Antigravity no Windows, execute no PowerShell:
+### 1. Configuração Global (Executar uma vez no PowerShell)
+
+Para vincular este repositório à configuração global do Antigravity no Windows:
 
 ```powershell
+# Cria junctions para os subagentes e regras globais
 New-Item -ItemType Junction -Path "C:\Users\User\.gemini\config\agents" -Target "D:\Bibliotecas\GitHub\agents\agents"
 New-Item -ItemType Junction -Path "C:\Users\User\.gemini\config\rules" -Target "D:\Bibliotecas\GitHub\agents\rules"
-New-Item -ItemType Junction -Path "C:\Users\User\.gemini\config\skills" -Target "D:\Bibliotecas\GitHub\agents\skills"
+
+# Vincula SOMENTE a pasta de skills globais (mantendo o orçamento de tokens leve)
+New-Item -ItemType Junction -Path "C:\Users\User\.gemini\config\skills" -Target "D:\Bibliotecas\GitHub\agents\skills\global"
+```
+
+> **Nota para atualização:** Se a junction `config\skills` já apontava para a pasta raiz anterior de `skills`, remova o link antigo e recrie apontando para `global`:
+> ```powershell
+> cmd /c rmdir "C:\Users\User\.gemini\config\skills"
+> New-Item -ItemType Junction -Path "C:\Users\User\.gemini\config\skills" -Target "D:\Bibliotecas\GitHub\agents\skills\global"
+> ```
+
+---
+
+### 2. Como Ativar Skills de Stack em Projetos Específicos
+
+Quando você estiver trabalhando em um projeto que utilize uma das tecnologias de `skills/stacks/` (ex.: Svelte 5 ou Rust), conecte a skill diretamente na pasta do projeto:
+
+#### Opção A: Via Junction (Recomendado - Mantém sincronizado com este repositório)
+
+Abra o PowerShell na raiz do seu projeto e execute:
+
+```powershell
+# Cria a pasta .agents\skills no repositório do seu projeto
+New-Item -ItemType Directory -Path ".\.agents\skills" -Force
+
+# Exemplo: Ativando Svelte 5 e SvelteKit no projeto atual
+New-Item -ItemType Junction -Path ".\.agents\skills\svelte5" -Target "D:\Bibliotecas\GitHub\agents\skills\stacks\svelte5"
+New-Item -ItemType Junction -Path ".\.agents\skills\sveltekit" -Target "D:\Bibliotecas\GitHub\agents\skills\stacks\sveltekit"
+
+# Exemplo: Ativando Rust e Salsa em um projeto Rust
+New-Item -ItemType Junction -Path ".\.agents\skills\rust" -Target "D:\Bibliotecas\GitHub\agents\skills\stacks\rust"
+New-Item -ItemType Junction -Path ".\.agents\skills\salsa" -Target "D:\Bibliotecas\GitHub\agents\skills\stacks\salsa"
+```
+
+#### Opção B: Cópia Direta
+
+Se preferir versionar a skill dentro do repositório do projeto:
+
+```powershell
+Copy-Item -Recurse "D:\Bibliotecas\GitHub\agents\skills\stacks\svelte5" ".\.agents\skills\"
 ```
