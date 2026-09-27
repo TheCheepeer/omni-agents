@@ -9,44 +9,51 @@ permite a seleção interativa e gera a configuração em .agents/skills.json,
 além de garantir que .agents/ esteja no .gitignore do projeto alvo.
 """
 
-import sys
-import os
-import json
 import argparse
+import json
+import sys
 from pathlib import Path
+
 
 # Tentativa de carregar interface gráfica (Tkinter) para seleção de pasta
 def pick_directory_gui(title="Selecione o Repositório de Destino"):
     try:
         import tkinter as tk
         from tkinter import filedialog
+    except ImportError:
+        return None
+
+    try:
         root = tk.Tk()
         root.withdraw()
         # Garante que a janela apareça na frente
-        root.attributes('-topmost', True)
+        root.attributes("-topmost", True)
         selected_path = filedialog.askdirectory(title=title)
         root.destroy()
         return selected_path if selected_path else None
-    except Exception:
+    except (tk.TclError, RuntimeError, OSError):
         return None
+
 
 def parse_frontmatter(file_path: Path):
     """Extrai campos básicos de frontmatter YAML simples sem dependências externas."""
-    name, description = file_path.parent.name, ""
+    default_name = file_path.parent.name
     try:
         content = file_path.read_text(encoding="utf-8")
-        if content.startswith("---"):
-            parts = content.split("---", 2)
-            if len(parts) >= 3:
-                yaml_text = parts[1]
-                for line in yaml_text.splitlines():
-                    line = line.strip()
-                    if line.startswith("name:"):
-                        name = line.split("name:", 1)[1].strip().strip('"').strip("'")
-                    elif line.startswith("description:"):
-                        description = line.split("description:", 1)[1].strip().strip('"').strip("'")
-    except Exception:
-        pass
+    except (OSError, UnicodeDecodeError):
+        return default_name, ""
+
+    name, description = default_name, ""
+    if content.startswith("---"):
+        parts = content.split("---", 2)
+        if len(parts) >= 3:
+            yaml_text = parts[1]
+            for line in yaml_text.splitlines():
+                stripped = line.strip()
+                if stripped.startswith("name:"):
+                    name = stripped.split("name:", 1)[1].strip().strip('"').strip("'")
+                elif stripped.startswith("description:"):
+                    description = stripped.split("description:", 1)[1].strip().strip('"').strip("'")
     return name, description
 
 def scan_repository(repo_root: Path):
@@ -235,11 +242,9 @@ def main():
                 for s in scanned["skills_by_category"][token]:
                     selected_skills_by_cat.setdefault(token, []).append(s["id"])
             elif token == "agents":
-                for a in scanned["agents"]:
-                    selected_agents.append(a)
+                selected_agents.extend(scanned["agents"])
             elif token == "rules":
-                for r in scanned["rules"]:
-                    selected_rules.append(r)
+                selected_rules.extend(scanned["rules"])
             # Verifica se é número
             elif token.isdigit():
                 num = int(token)
@@ -276,7 +281,7 @@ def main():
             cat_path = (repo_root / "skills" / cat_name).resolve().as_posix()
             entries.append({
                 "path": cat_path,
-                "include_only": sorted(list(set(skill_ids)))
+                "include_only": sorted(set(skill_ids))
             })
 
         skills_json_path = agents_workspace_dir / "skills.json"
