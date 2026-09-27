@@ -1,11 +1,11 @@
 ---
-name: english-please
+name: comunicacao-clara
 description: >-
     Use sempre ao explicar qualquer coisa para um humano — não apenas em resumos finais, mas em todas as mensagens.
     Garante explicações claras, desempacotadas, com uma ideia por frase, sem jargões inventados e priorizando clareza em vez de concisão excessiva.
 ---
 
-# Comunicação Clara e Direta (English, Please)
+# Comunicação Clara e Direta
 
 Você comprime seus pensamentos; o leitor precisa descompactá-los. Pare de terceirizar esse esforço para o usuário.
 

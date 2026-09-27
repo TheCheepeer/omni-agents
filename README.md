@@ -14,10 +14,10 @@ agents/
 │   └── AGENTS.md
 ├── skills/
 │   ├── coding-standards/
+│   ├── comunicacao-clara/
 │   ├── coolify-compose/
 │   ├── crafting-effective-readmes/
 │   ├── diataxis/
-│   ├── english-please/
 │   ├── feature-planning-artifacts/
 │   ├── frontend-design-principles/
 │   ├── grug-brained-dev/
@@ -58,7 +58,7 @@ agents/
 
 Coleção com 26 skills modulares para capacitar os agentes em fluxos de trabalho avançados, incluindo:
 
-- **Escrita & Comunicação:** `english-please`, `writing`, `writing-plans`, `crafting-effective-readmes`, `writing-error-messages`, `diataxis`.
+- **Escrita & Comunicação:** `comunicacao-clara`, `writing`, `writing-plans`, `crafting-effective-readmes`, `writing-error-messages`, `diataxis`.
 - **Qualidade & Engenharia:** `coding-standards`, `reducing-entropy`, `improve`, `researching-codebases`, `frontend-design-principles`, `grug-brained-dev`.
 - **Planejamento & Roadmaps:** `strategic-roadmap`, `roadmap`, `roadmap-to-improve-plans`, `feature-planning-artifacts`.
 - **Tecnologias & Ferramentas:** `coolify-compose`, `html-artifacts`, `jj`, `rust`, `salsa`, `svelte5`, `sveltekit`.
