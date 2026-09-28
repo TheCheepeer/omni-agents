@@ -34,8 +34,13 @@ def is_gui_available() -> bool:
     return importlib.util.find_spec("tkinter") is not None
 
 
-def pick_directory_gui(title="Selecione o Repositório de Destino"):
-    """Tentativa de carregar interface gráfica (Tkinter) para seleção de pasta."""
+def clear_screen():
+    """Limpa a tela do terminal de forma multiplataforma."""
+    os.system("cls" if sys.platform.startswith("win") else "clear")
+
+
+def pick_directory_gui(title="Selecione o Repositório do Projeto"):
+    """Tentativa de carregar interface gráfica nativa (Tkinter) para seleção de pasta."""
     try:
         import tkinter as tk
         from tkinter import filedialog
@@ -45,8 +50,10 @@ def pick_directory_gui(title="Selecione o Repositório de Destino"):
     try:
         root = tk.Tk()
         root.withdraw()
-        root.attributes("-topmost", True)
-        selected_path = filedialog.askdirectory(title=title)
+        root.wm_attributes("-topmost", True)
+        root.update()
+        root.focus_force()
+        selected_path = filedialog.askdirectory(parent=root, title=title)
         root.destroy()
         return selected_path if selected_path else None
     except (tk.TclError, RuntimeError, OSError):
@@ -252,18 +259,58 @@ def update_gitignore(target_path: Path):
         print(f"  [+] Arquivo .gitignore criado com '{entry}'.")
 
 
+def init_workspace(target_path: Path, interactive: bool = True) -> Path:
+    """Garante que a pasta .agents/, o manifesto skills.json e o .gitignore existam no workspace."""
+    agents_dir = target_path / ".agents"
+    agents_dir.mkdir(parents=True, exist_ok=True)
+
+    skills_json_path = agents_dir / "skills.json"
+    if not skills_json_path.exists():
+        initial_manifest = {"entries": []}
+        skills_json_path.write_text(
+            json.dumps(initial_manifest, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+        print(f"  [+] Arquivo criado: {skills_json_path}")
+    else:
+        print(f"  [i] Manifesto existente: {skills_json_path}")
+
+    update_gitignore(target_path)
+    print(f"\n[OK] Workspace configurado com sucesso:\n     {target_path}")
+    if interactive:
+        try:
+            input("\nPressione Enter para continuar...")
+        except (EOFError, KeyboardInterrupt):
+            pass
+    return target_path
+
+
 def resolve_workspace(current_target: Path | None) -> Path | None:
-    """Solicita a definição do workspace alvo caso não esteja definido."""
+    """Solicita a definição do workspace alvo, abrindo janela gráfica nativa se disponível."""
     if current_target and current_target.exists() and current_target.is_dir():
         return current_target
 
-    print("\n" + "-" * 65)
+    clear_screen()
+    print("\n" + "=" * 65)
     print("  DEFINIR WORKSPACE ALVO")
-    print("-" * 65)
-    print("Para continuar, informe a pasta do projeto alvo.")
-    print("  * Digite o caminho do projeto (ou '.' para a pasta atual)")
+    print("=" * 65)
+
+    # 1. Se houver interface gráfica disponível, abre direto o seletor nativo
     if is_gui_available():
-        print("  * Pressione Enter vazio para abrir a janela gráfica de seleção")
+        print("-> Abrindo janela gráfica nativa para seleção da pasta...")
+        selected = pick_directory_gui("Selecione a Pasta do Projeto Alvo")
+        if selected:
+            path = Path(selected).resolve()
+            if path.exists() and path.is_dir():
+                return init_workspace(path)
+
+        print("\n[!] Nenhuma pasta selecionada pela janela gráfica.")
+        print("    Você pode digitar o caminho manualmente abaixo ou voltar.")
+
+    # 2. Fallback CLI para ambiente sem UI ou se a janela foi cancelada
+    print("\n" + "-" * 65)
+    print("Informe o caminho do projeto alvo:")
+    print("  * Digite o caminho da pasta (ou '.' para a pasta atual)")
     print("  * Digite 'v' para voltar ao menu principal")
     print("-" * 65)
 
@@ -272,34 +319,26 @@ def resolve_workspace(current_target: Path | None) -> Path | None:
     except (EOFError, KeyboardInterrupt):
         return None
 
-    if raw.lower() in ("v", "voltar"):
+    if raw.lower() in ("v", "voltar", ""):
         return None
-
-    if not raw:
-        if is_gui_available():
-            print("-> Abrindo janela gráfica para selecionar o repositório...")
-            selected = pick_directory_gui("Selecione o repositório do projeto")
-            if selected:
-                raw = selected
-            else:
-                print("[!] Nenhuma pasta selecionada.")
-                return None
-        else:
-            raw = "."
 
     path = Path(raw).resolve()
     if not path.exists() or not path.is_dir():
         print(
-            f"[x] Erro: O caminho especificado não existe ou não é um diretório: {path}"
+            f"\n[x] Erro: O caminho especificado não existe ou não é um diretório: {path}"
         )
+        try:
+            input("\nPressione Enter para continuar...")
+        except (EOFError, KeyboardInterrupt):
+            pass
         return None
 
-    print(f"[OK] Workspace definido: {path}")
-    return path
+    return init_workspace(path)
 
 
 def handle_global_configuration(repo_root: Path):
     """Opção 1: Exibe os comandos/links e executa após confirmação, protegendo regras globais."""
+    clear_screen()
     global_dir = Path.home() / ".gemini" / "config"
     agents_src = repo_root / "agents"
     agents_dst = global_dir / "agents"
@@ -427,6 +466,7 @@ def handle_global_configuration(repo_root: Path):
 
 def handle_agents(target_path: Path, scanned: dict):
     """Opção 2: Seleção e ativação de subagentes para o workspace alvo."""
+    clear_screen()
     print("\n" + "=" * 65)
     print("  [2] SUBAGENTES DISPONÍVEIS PARA O WORKSPACE")
     print("=" * 65)
@@ -478,6 +518,10 @@ def handle_agents(target_path: Path, scanned: dict):
 
     if not selected:
         print("[!] Nenhum subagente selecionado.")
+        try:
+            input("\nPressione Enter para voltar ao menu...")
+        except (EOFError, KeyboardInterrupt):
+            pass
         return
 
     dest_dir = target_path / ".agents" / "agents"
@@ -499,6 +543,7 @@ def handle_agents(target_path: Path, scanned: dict):
 
 def handle_rules(target_path: Path, scanned: dict):
     """Opção 3: Seleção e ativação de regras para o workspace alvo."""
+    clear_screen()
     print("\n" + "=" * 65)
     print("  [3] REGRAS DISPONÍVEIS PARA O WORKSPACE")
     print("=" * 65)
@@ -625,6 +670,7 @@ def handle_category_submenu(
     current_selected = set(selected_set)
 
     while True:
+        clear_screen()
         print("\n" + "-" * 65)
         print(f"  CATEGORIA: {cat_name.upper()} ({len(skills)} skills disponíveis)")
         print("-" * 65)
@@ -657,14 +703,8 @@ def handle_category_submenu(
         if choice == "all":
             for s in skills:
                 current_selected.add(s["id"])
-            print(
-                f"  [+] Todas as skills da categoria {cat_name.upper()} foram marcadas."
-            )
         elif choice in ("limpar", "clear"):
             current_selected.clear()
-            print(
-                f"  [i] Todas as skills da categoria {cat_name.upper()} foram desmarcadas."
-            )
         else:
             tokens = [
                 t.strip() for t in choice.replace(";", ",").split(",") if t.strip()
@@ -676,20 +716,16 @@ def handle_category_submenu(
                         skill_id = skills[num - 1]["id"]
                         if skill_id in current_selected:
                             current_selected.remove(skill_id)
-                            print(f"  [-] Desmarcado: {skill_id}")
                         else:
                             current_selected.add(skill_id)
-                            print(f"  [+] Marcado: {skill_id}")
                 else:
                     matched = next((s for s in skills if s["id"].lower() == t), None)
                     if matched:
                         skill_id = matched["id"]
                         if skill_id in current_selected:
                             current_selected.remove(skill_id)
-                            print(f"  [-] Desmarcado: {skill_id}")
                         else:
                             current_selected.add(skill_id)
-                            print(f"  [+] Marcado: {skill_id}")
 
     return current_selected
 
@@ -710,6 +746,7 @@ def handle_skills(target_path: Path, scanned: dict, repo_root: Path):
     categories = sorted(skills_by_cat.keys())
 
     while True:
+        clear_screen()
         total_selected = sum(len(v) for v in selected_by_cat.values())
         cats_with_selection = len([c for c, v in selected_by_cat.items() if v])
 
@@ -823,15 +860,18 @@ def main():
 
     target_raw = args.target or args.target_flag
     target_path = Path(target_raw).resolve() if target_raw else None
-    if target_path and (not target_path.exists() or not target_path.is_dir()):
-        print(
-            f"\n[x] Erro: O caminho especificado não existe ou não é um diretório: {target_path}\n"
-        )
-        sys.exit(1)
+    if target_path:
+        if not target_path.exists() or not target_path.is_dir():
+            print(
+                f"\n[x] Erro: O caminho especificado não existe ou não é um diretório: {target_path}\n"
+            )
+            sys.exit(1)
+        init_workspace(target_path, interactive=False)
 
     scanned = scan_repository(repo_root)
 
     while True:
+        clear_screen()
         target_display = (
             str(target_path)
             if target_path
