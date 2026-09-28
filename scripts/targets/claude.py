@@ -131,6 +131,20 @@ class ClaudeTarget(BaseTarget):
         claude_global.mkdir(parents=True, exist_ok=True)
         global_rule = claude_global / "CLAUDE.md"
 
+        if global_rule.exists():
+            try:
+                ans = (
+                    input(f"\n  [?] {t_target('claude_rules_overwrite_prompt', lang)}")
+                    .strip()
+                    .lower()
+                )
+                should_overwrite = ans in ("s", "sim", "y", "yes")
+            except (EOFError, KeyboardInterrupt):
+                should_overwrite = False
+            if not should_overwrite:
+                print(f"  [i] {t_target('claude_global_rules_kept', lang)}")
+                return True
+
         rules_dir = repo_root / "rules"
         content_parts = ["# Global User Instructions (Claude Code)\n"]
         if rules_dir.exists():
