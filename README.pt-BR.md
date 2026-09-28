@@ -173,6 +173,18 @@ As preferências de cada workspace são salvas em `.agents/workspace_state.json`
 
 ---
 
+## Créditos e Agradecimentos
+
+Diversas skills presentes neste repositório foram adaptadas a partir de:
+
+- [agent-skills](https://github.com/joshuadavidthomas/agent-skills) por Josh Thomas (Licença MIT).
+- [The Grug Brained Developer](https://grugbrain.dev/) por Colin McDonnell.
+- [Framework Diátaxis](https://diataxis.fr/) por Daniele Procida.
+
+Consulte o arquivo [NOTICE](NOTICE) para as declarações formais de direitos autorais e licenças de terceiros.
+
+---
+
 ## Licença
 
 Distribuído sob a licença Apache 2.0. Consulte o arquivo [LICENSE](LICENSE) para mais detalhes.
