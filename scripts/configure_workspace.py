@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Configurador Declarativo e Modular de Workspace e Global para Agentes de IA.
-Multiplataforma (Windows, Linux e macOS) sem dependencias externas.
+omni-agent: Multi-Tool Agent, Rules & Skills Configurator.
+Cross-platform (Windows, Linux, macOS) using only Python standard library.
 
-Suporta:
+Supported Tools:
 - Google Antigravity
 - Claude Code (Anthropic)
 - Cursor IDE
@@ -12,7 +12,7 @@ Suporta:
 - Kiro
 - OpenCode
 - Codex (OpenAI)
-- Multi-Tool (Todos simultaneamente)
+- Multi-Tool (All simultaneously)
 """
 
 from __future__ import annotations
@@ -24,10 +24,17 @@ import sys
 from pathlib import Path
 from typing import Any
 
-# Garante que a pasta scripts/ esteja no sys.path para importacao relativa segura
+# Ensures scripts/ is in sys.path for safe relative target imports
 SCRIPTS_DIR = Path(__file__).resolve().parent
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
+
+# Garante codificacao UTF-8 no terminal para suporte estavel a caracteres acentuados
+if sys.platform.startswith("win"):
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 from targets import (
     get_all_targets,
@@ -37,6 +44,158 @@ from targets import (
     save_workspace_state,
 )
 from targets.base import parse_frontmatter
+
+# Lightweight bilingual dictionary (English & Portuguese)
+MESSAGES: dict[str, dict[str, str]] = {
+    "en": {
+        "app_title": "MULTI-TOOL AGENT, RULES & SKILLS CONFIGURATOR",
+        "target_workspace": "Target Workspace",
+        "active_tools": "Active Tools",
+        "none_default": "None (default: Antigravity)",
+        "not_defined": "[Not defined - type 'w' or select an option]",
+        "menu_select_tools": "[t] Select Target Tools (Antigravity, Cursor, Claude...)",
+        "menu_global": "[1] Global Machine Configuration (Antigravity & Claude)",
+        "menu_agents": "[2] Subagents for Workspace",
+        "menu_rules": "[3] Rules for Workspace",
+        "menu_skills": "[4] Modular Skills for Workspace",
+        "menu_sync": "[s] Synchronize All (Sync active tools in batch)",
+        "menu_clean": "[c] Clean / Uninstall by Tool",
+        "menu_lang": "[l] Language / Idioma: [{current}]",
+        "menu_exit": "[5] Exit",
+        "menu_change_workspace": "[w] Set / Change Target Workspace",
+        "choose_option": "Choose an option: ",
+        "press_enter": "Press Enter to continue...",
+        "press_enter_menu": "Press Enter to return to main menu...",
+        "sync_success": "Synchronization completed successfully!",
+        "exit_msg": "Exiting configurator. See you soon!",
+        "invalid_option": "Invalid option. Please choose a valid menu option.",
+        "no_active_tools": "No active tools selected in workspace.",
+        "applying_configs": "Applying configurations to {count} tool(s)...",
+        "processing": "Processing",
+        "error_applying": "Error applying {target}: {error}",
+        "workspace_selector_title": "Select Project Repository Directory",
+        "prompt_path": "Enter target project directory path (or 'v' to return): ",
+        "path_invalid": "The specified path does not exist or is not a directory: {path}",
+        "path_selected": "Selected path: {path}",
+        "target_selection_title": "TARGET TOOLS SELECTION (MULTI-TOOL)",
+        "target_available": "Available tools:",
+        "target_commands": "Commands:\n  * Type comma-separated numbers to toggle selection (e.g. 1, 3)\n  * 'all' to select ALL tools (Multi-Tool)\n  * 'clear' to uncheck all\n  * 's' or 'save' to confirm and synchronize\n  * 'v' to return without saving",
+        "your_choice": "Your choice: ",
+        "must_select_one_tool": "At least one tool must be selected.",
+        "targets_updated": "Target tools updated successfully!",
+        "global_title": "GLOBAL MACHINE CONFIGURATION",
+        "global_subtitle": "Links core agents, rules, and skills directly into user global folders.\n",
+        "global_options": "Options:\n  * Type tool number to link\n  * 'all' to link all global tools\n  * 'clear' to uninstall global links\n  * 'v' to return to main menu",
+        "linking": "Linking {tool}...",
+        "cleaning_global": "Removing global links...",
+        "agents_title": "AVAILABLE SUBAGENTS FOR WORKSPACE",
+        "no_agents_found": "No subagents found in agents/ directory.",
+        "how_to_select_agents": "How to select:\n  * Type numbers to toggle selection (e.g. 1, 2)\n  * 'all' to select all\n  * 'clear' to uncheck all\n  * 's' or 'save' to apply to active tools\n  * 'v' to return to main menu",
+        "agents_activated": "{count} subagent(s) activated successfully!",
+        "all_agents_marked": "All subagents selected.",
+        "all_agents_cleared": "All subagents unchecked.",
+        "rules_title": "AVAILABLE RULES FOR WORKSPACE",
+        "no_rules_found": "No rules found in rules/ directory.",
+        "how_to_select_rules": "How to select:\n  * Type numbers to toggle selection (e.g. 1)\n  * 'all' to select all\n  * 'clear' to uncheck all\n  * 's' or 'save' to apply to active tools\n  * 'v' to return to main menu",
+        "rules_activated": "{count} rule(s) activated successfully!",
+        "skills_title": "MODULAR SKILLS BY CATEGORY",
+        "no_skills_found": "No skill categories found in skills/ directory.",
+        "categories_available": "Available Categories:",
+        "total_skills_sel": "Total selected in Workspace: {skills} skill(s) across {cats} category(ies)",
+        "skills_nav": "How to navigate:\n  * Type category number to open its submenu (e.g. 1)\n  * 's' or 'save' to apply to active tools\n  * 'all' to select all skills in all categories\n  * 'clear' to uncheck all\n  * 'v' to return to main menu",
+        "skills_synced": "Skills synchronized across active tools!",
+        "clean_title": "CLEAN / UNINSTALL BY TOOL",
+        "configured_tools": "Configured tools:",
+        "clean_options": "Options:\n  * Type tool number to remove its configurations\n  * 'all' to remove configurations of ALL tools\n  * 'v' to return to main menu",
+        "clean_all_done": "All tool configurations removed from workspace.",
+        "clean_target_done": "Configurations for {target} removed.",
+        "cat_title": "CATEGORY: {cat} ({count} skills available)",
+        "cat_nav": "How to select:\n  * Type numbers to toggle selection (e.g. 1, 3)\n  * 'all' to select all in this category\n  * 'clear' to uncheck all in this category\n  * 'v' to return to category list",
+    },
+    "pt": {
+        "app_title": "CONFIGURADOR MULTI-TOOL DE AGENTES, REGRAS E SKILLS",
+        "target_workspace": "Workspace Alvo",
+        "active_tools": "Ferramentas Ativas",
+        "none_default": "Nenhuma (padrão: Antigravity)",
+        "not_defined": "[Não definido - digite 'w' ou selecione uma opção]",
+        "menu_select_tools": "[t] Selecionar Ferramentas Alvo (Antigravity, Cursor, Claude...)",
+        "menu_global": "[1] Configuração Global da Máquina (Antigravity e Claude)",
+        "menu_agents": "[2] Subagentes para o Workspace",
+        "menu_rules": "[3] Regras para o Workspace",
+        "menu_skills": "[4] Skills Modulares para o Workspace",
+        "menu_sync": "[s] Sincronizar Tudo (Sync em todas as ferramentas ativas)",
+        "menu_clean": "[c] Limpeza / Desinstalação por Ferramenta",
+        "menu_lang": "[l] Idioma / Language: [{current}]",
+        "menu_exit": "[5] Sair",
+        "menu_change_workspace": "[w] Definir / Alterar Workspace Alvo",
+        "choose_option": "Escolha uma opção: ",
+        "press_enter": "Pressione Enter para continuar...",
+        "press_enter_menu": "Pressione Enter para voltar ao menu...",
+        "sync_success": "Sincronização concluída com sucesso!",
+        "exit_msg": "Encerrando configurador. Até logo!",
+        "invalid_option": "Opção inválida. Digite uma opção válida do menu.",
+        "no_active_tools": "Nenhuma ferramenta ativa selecionada no workspace.",
+        "applying_configs": "Aplicando configurações para {count} ferramenta(s)...",
+        "processing": "Processando",
+        "error_applying": "Erro ao aplicar {target}: {error}",
+        "workspace_selector_title": "Selecione o Repositório do Projeto",
+        "prompt_path": "Digite o caminho do projeto alvo (ou 'v' para voltar): ",
+        "path_invalid": "O caminho informado não existe ou não é uma pasta válida: {path}",
+        "path_selected": "Pasta selecionada: {path}",
+        "target_selection_title": "SELEÇÃO DE FERRAMENTAS ALVO (MULTI-TOOL)",
+        "target_available": "Ferramentas disponíveis:",
+        "target_commands": "Comandos:\n  * Digite números separados por vírgula para alternar seleção (ex: 1, 3)\n  * 'all' para marcar TODAS as ferramentas (Multi-Tool)\n  * 'limpar' para desmarcar todas\n  * 's' ou 'salvar' para confirmar e sincronizar\n  * 'v' para voltar sem salvar",
+        "your_choice": "Sua escolha: ",
+        "must_select_one_tool": "Pelo menos uma ferramenta deve estar selecionada.",
+        "targets_updated": "Ferramentas alvo atualizadas com sucesso!",
+        "global_title": "CONFIGURAÇÃO GLOBAL DA MÁQUINA",
+        "global_subtitle": "Vincula agentes, regras e skills essenciais nas pastas globais do usuário.\n",
+        "global_options": "Opções:\n  * Digite o número da ferramenta para vincular\n  * 'all' para vincular todas as ferramentas globais\n  * 'limpar' para desinstalar links globais\n  * 'v' para voltar ao menu principal",
+        "linking": "Vinculando {tool}...",
+        "cleaning_global": "Removendo links globais...",
+        "agents_title": "SUBAGENTES DISPONÍVEIS PARA O WORKSPACE",
+        "no_agents_found": "Nenhum subagente encontrado na pasta agents/.",
+        "how_to_select_agents": "Como selecionar:\n  * Digite os números para alternar seleção (ex: 1, 2)\n  * 'all' para marcar todos\n  * 'limpar' para desmarcar todos\n  * 's' ou 'salvar' para aplicar nas ferramentas ativas\n  * 'v' para voltar ao menu principal",
+        "agents_activated": "{count} subagente(s) ativado(s) com sucesso!",
+        "all_agents_marked": "Todos os subagentes foram marcados.",
+        "all_agents_cleared": "Todos os subagentes foram desmarcados.",
+        "rules_title": "REGRAS DISPONÍVEIS PARA O WORKSPACE",
+        "no_rules_found": "Nenhuma regra encontrada na pasta rules/.",
+        "how_to_select_rules": "Como selecionar:\n  * Digite os números para alternar seleção (ex: 1)\n  * 'all' para marcar todas\n  * 'limpar' para desmarcar todas\n  * 's' ou 'salvar' para aplicar nas ferramentas ativas\n  * 'v' para voltar ao menu principal",
+        "rules_activated": "{count} regra(s) ativada(s) com sucesso!",
+        "skills_title": "SKILLS MODULARES POR CATEGORIA",
+        "no_skills_found": "Nenhuma categoria de skills encontrada na pasta skills/.",
+        "categories_available": "Categorias Disponíveis:",
+        "total_skills_sel": "Total selecionado no Workspace: {skills} skill(s) em {cats} categoria(s)",
+        "skills_nav": "Como navegar:\n  * Digite o número da categoria para abrir seu submenu (ex: 1)\n  * 's' ou 'salvar' para aplicar nas ferramentas ativas\n  * 'all' para marcar todas as skills de todas as categorias\n  * 'limpar' para desmarcar todas\n  * 'v' para voltar ao Menu Principal",
+        "skills_synced": "Skills sincronizadas nas ferramentas ativas!",
+        "clean_title": "LIMPEZA / DESINSTALAÇÃO POR FERRAMENTA",
+        "configured_tools": "Ferramentas configuradas:",
+        "clean_options": "Opções:\n  * Digite o número da ferramenta para remover suas configurações\n  * 'all' para remover configurações de TODAS as ferramentas\n  * 'v' para voltar ao menu principal",
+        "clean_all_done": "Todas as configurações foram removidas do workspace.",
+        "clean_target_done": "Configurações de {target} removidas.",
+        "cat_title": "CATEGORIA: {cat} ({count} skills disponíveis)",
+        "cat_nav": "Como selecionar:\n  * Digite números para alternar seleção (ex: 1, 3)\n  * 'all' para marcar todas desta categoria\n  * 'limpar' para desmarcar todas desta categoria\n  * 'v' para voltar à lista de categorias",
+    },
+}
+
+
+def t(key: str, lang: str = "en", **kwargs: Any) -> str:
+    """Helper de traducao simples e rapido."""
+    table = MESSAGES.get(lang, MESSAGES["en"])
+    template = table.get(key, MESSAGES["en"].get(key, key))
+    if kwargs:
+        return template.format(**kwargs)
+    return template
+
+
+def detect_system_language() -> str:
+    """Detecta idioma padrao do ambiente (portugues se houver 'pt', senao ingles)."""
+    for var in ("LANG", "LC_ALL", "LC_MESSAGES"):
+        val = os.environ.get(var, "")
+        if "pt" in val.lower():
+            return "pt"
+    return "en"
 
 
 def has_graphical_display() -> bool:
@@ -58,7 +217,9 @@ def clear_screen():
     os.system("cls" if sys.platform.startswith("win") else "clear")
 
 
-def pick_directory_gui(title: str = "Selecione o Repositorio do Projeto") -> str | None:
+def pick_directory_gui(
+    title: str = "Select Project Repository Directory",
+) -> str | None:
     """Abre interface grafica nativa (Tkinter) para selecao de pasta."""
     try:
         import tkinter as tk
@@ -150,30 +311,27 @@ def scan_repository(repo_root: Path) -> dict[str, Any]:
     return data
 
 
-def resolve_workspace(current_target: Path | None) -> Path | None:
+def resolve_workspace(current_target: Path | None, lang: str = "en") -> Path | None:
     """Solicita a definicao do workspace alvo, abrindo janela grafica nativa se disponivel."""
     if current_target and current_target.exists() and current_target.is_dir():
         return current_target
 
     clear_screen()
     print("\n" + "=" * 65)
-    print("  DEFINIR WORKSPACE ALVO")
+    print(f"  {t('target_workspace', lang).upper()}")
     print("=" * 65)
 
     if is_gui_available():
-        print("-> Abrindo janela grafica nativa para selecao da pasta...")
-        gui_path = pick_directory_gui()
+        gui_path = pick_directory_gui(title=t("workspace_selector_title", lang))
         if gui_path:
             p = Path(gui_path).resolve()
             if p.exists() and p.is_dir():
-                print(f"[OK] Pasta selecionada: {p}")
+                print(f"[OK] {t('path_selected', lang, path=p)}")
                 return p
 
     while True:
         try:
-            val = input(
-                "\nDigite o caminho absoluto ou relativo do projeto alvo (ou 'v' para voltar): "
-            ).strip()
+            val = input(f"\n{t('prompt_path', lang)}").strip()
         except (EOFError, KeyboardInterrupt):
             return None
 
@@ -184,7 +342,7 @@ def resolve_workspace(current_target: Path | None) -> Path | None:
         p = Path(clean_val).resolve()
         if p.exists() and p.is_dir():
             return p
-        print(f"[x] O caminho informado nao existe ou nao e uma pasta valida: {p}")
+        print(f"[x] {t('path_invalid', lang, path=p)}")
 
 
 def apply_workspace_to_targets(
@@ -195,13 +353,13 @@ def apply_workspace_to_targets(
     selected_agent_ids: list[str],
     selected_rule_ids: list[str],
     selected_skills_dict: dict[str, list[str] | set[str]],
+    lang: str = "en",
 ) -> bool:
     """Executa a aplicacao das regras, agentes e skills em todos os targets ativos."""
     if not active_target_ids:
-        print("  [!] Nenhuma ferramenta ativa selecionada no workspace.")
+        print(f"  [!] {t('no_active_tools', lang)}")
         return False
 
-    # Filtra objetos completos
     agents_map = {a["id"]: a for a in scanned["agents"]}
     rules_map = {r["id"]: r for r in scanned["rules"]}
 
@@ -212,13 +370,13 @@ def apply_workspace_to_targets(
         k: set(v) for k, v in selected_skills_dict.items() if v
     }
 
-    print(
-        f"\n-> Aplicando configuracoes para {len(active_target_ids)} ferramenta(s)..."
-    )
+    print(f"\n-> {t('applying_configs', lang, count=len(active_target_ids))}")
     for t_id in active_target_ids:
         adapter = get_target(t_id)
         if adapter:
-            print(f"\n  [Processando] {adapter.display_name} ({adapter.target_id})...")
+            print(
+                f"\n  [{t('processing', lang)}] {adapter.display_name} ({adapter.target_id})..."
+            )
             try:
                 adapter.configure_workspace(
                     target_path=target_path,
@@ -229,10 +387,12 @@ def apply_workspace_to_targets(
                     skills_by_cat=skills_by_cat,
                 )
             except (OSError, RuntimeError, ValueError, KeyError) as e:
-                print(f"  [x] Erro ao aplicar {adapter.display_name}: {e}")
+                print(
+                    f"  [x] {t('error_applying', lang, target=adapter.display_name, error=e)}"
+                )
 
-    # Salva o estado atualizado no workspace
     state_to_save = {
+        "language": lang,
         "active_targets": active_target_ids,
         "selected_agents": selected_agent_ids,
         "selected_rules": selected_rule_ids,
@@ -247,6 +407,7 @@ def handle_target_selection(
     repo_root: Path,
     scanned: dict[str, Any],
     current_state: dict[str, Any],
+    lang: str = "en",
 ) -> list[str]:
     """Menu interativo para selecionar e alternar quais ferramentas serao configuradas."""
     all_targets = get_all_targets()
@@ -257,28 +418,23 @@ def handle_target_selection(
     while True:
         clear_screen()
         print("\n" + "=" * 65)
-        print("  SELECAO DE FERRAMENTAS ALVO (MULTI-TOOL)")
+        print(f"  {t('target_selection_title', lang)}")
         print("=" * 65)
-        print(f"Workspace Alvo: {target_path}\n")
-        print("Ferramentas disponiveis:")
+        print(f"{t('target_workspace', lang)}: {target_path}\n")
+        print(f"{t('target_available', lang)}")
 
-        for idx, t in enumerate(all_targets, 1):
-            is_active = "[x]" if t.target_id in active_set else "[ ]"
-            print(f"  [{idx}] {is_active} {t.display_name:<26} - {t.description}")
+        for idx, target in enumerate(all_targets, 1):
+            is_active = "[x]" if target.target_id in active_set else "[ ]"
+            print(
+                f"  [{idx}] {is_active} {target.display_name:<26} - {target.description}"
+            )
 
         print("\n" + "-" * 65)
-        print("Comandos:")
-        print(
-            "  * Digite numeros separados por virgula para alternar selecao (ex: 1, 3)"
-        )
-        print("  * 'all' para marcar TODAS as ferramentas (Multi-Tool)")
-        print("  * 'limpar' para desmarcar todas")
-        print("  * 's' ou 'salvar' para confirmar e sincronizar")
-        print("  * 'v' para voltar sem salvar")
+        print(t("target_commands", lang))
         print("-" * 65)
 
         try:
-            choice = input("\nSua escolha: ").strip().lower()
+            choice = input(f"\n{t('your_choice', lang)}").strip().lower()
         except (EOFError, KeyboardInterrupt):
             break
 
@@ -287,12 +443,14 @@ def handle_target_selection(
 
         if choice in ("s", "salvar", "save", ""):
             new_active_list = [
-                t.target_id for t in all_targets if t.target_id in active_set
+                target.target_id
+                for target in all_targets
+                if target.target_id in active_set
             ]
             if not new_active_list:
-                print("  [!] Pelo menos uma ferramenta deve estar selecionada.")
+                print(f"  [!] {t('must_select_one_tool', lang)}")
                 try:
-                    input("Pressione Enter...")
+                    input(t("press_enter", lang))
                 except (EOFError, KeyboardInterrupt):
                     pass
                 continue
@@ -306,25 +464,28 @@ def handle_target_selection(
                 selected_agent_ids=current_state.get("selected_agents", []),
                 selected_rule_ids=current_state.get("selected_rules", []),
                 selected_skills_dict=current_state.get("selected_skills", {}),
+                lang=lang,
             )
-            print("\n[OK] Ferramentas alvo atualizadas com sucesso!")
+            print(f"\n[OK] {t('targets_updated', lang)}")
             try:
-                input("\nPressione Enter para continuar...")
+                input(f"\n{t('press_enter', lang)}")
             except (EOFError, KeyboardInterrupt):
                 pass
             return new_active_list
 
         if choice == "all":
-            active_set = {t.target_id for t in all_targets}
+            active_set = {target.target_id for target in all_targets}
         elif choice in ("limpar", "clear"):
             active_set.clear()
         else:
             tokens = [
-                t.strip() for t in choice.replace(";", ",").split(",") if t.strip()
+                token.strip()
+                for token in choice.replace(";", ",").split(",")
+                if token.strip()
             ]
-            for t in tokens:
-                if t.isdigit():
-                    num = int(t)
+            for token in tokens:
+                if token.isdigit():
+                    num = int(token)
                     if 1 <= num <= len(all_targets):
                         tid = all_targets[num - 1].target_id
                         if tid in active_set:
@@ -333,7 +494,7 @@ def handle_target_selection(
                             active_set.add(tid)
                 else:
                     matched = next(
-                        (target for target in all_targets if target.target_id == t),
+                        (target for target in all_targets if target.target_id == token),
                         None,
                     )
                     if matched:
@@ -346,29 +507,26 @@ def handle_target_selection(
     return list(active_set)
 
 
-def handle_global_configuration(repo_root: Path):
+def handle_global_configuration(repo_root: Path, lang: str = "en"):
     """Menu para gerenciar instalacao de configuracoes globais (Antigravity, Claude, etc.)."""
     clear_screen()
     print("\n" + "=" * 65)
-    print("  CONFIGURACAO GLOBAL DE FERRAMENTAS")
+    print(f"  {t('global_title', lang)}")
     print("=" * 65)
-    print("Esta opcao vincula os agentes, regras e skills essenciais")
-    print("diretamente nas pastas de configuracao global do usuario na maquina.\n")
+    print(t("global_subtitle", lang))
 
-    targets_with_global = [t for t in get_all_targets() if t.supports_global]
-    for idx, t in enumerate(targets_with_global, 1):
-        print(f"  [{idx}] {t.display_name:<26} - {t.description}")
+    targets_with_global = [
+        target for target in get_all_targets() if target.supports_global
+    ]
+    for idx, target in enumerate(targets_with_global, 1):
+        print(f"  [{idx}] {target.display_name:<26} - {target.description}")
 
     print("\n" + "-" * 65)
-    print("Opcoes:")
-    print("  * Digite o numero da ferramenta para vincular")
-    print("  * 'all' para vincular todas as ferramentas globais")
-    print("  * 'limpar' para desinstalar links globais")
-    print("  * 'v' para voltar ao menu principal")
+    print(t("global_options", lang))
     print("-" * 65)
 
     try:
-        choice = input("\nSua escolha: ").strip().lower()
+        choice = input(f"\n{t('your_choice', lang)}").strip().lower()
     except (EOFError, KeyboardInterrupt):
         return
 
@@ -376,21 +534,21 @@ def handle_global_configuration(repo_root: Path):
         return
 
     if choice == "all":
-        for t in targets_with_global:
-            print(f"\n-> Vinculando {t.display_name}...")
-            t.configure_global(repo_root)
+        for target in targets_with_global:
+            print(f"\n-> {t('linking', lang, tool=target.display_name)}")
+            target.configure_global(repo_root)
         try:
-            input("\nPressione Enter para continuar...")
+            input(f"\n{t('press_enter', lang)}")
         except (EOFError, KeyboardInterrupt):
             pass
         return
 
     if choice in ("limpar", "clear"):
-        print("\n-> Removendo links globais...")
-        for t in targets_with_global:
-            t.clean_global()
+        print(f"\n-> {t('cleaning_global', lang)}")
+        for target in targets_with_global:
+            target.clean_global()
         try:
-            input("\nPressione Enter para continuar...")
+            input(f"\n{t('press_enter', lang)}")
         except (EOFError, KeyboardInterrupt):
             pass
         return
@@ -399,10 +557,10 @@ def handle_global_configuration(repo_root: Path):
         num = int(choice)
         if 1 <= num <= len(targets_with_global):
             target = targets_with_global[num - 1]
-            print(f"\n-> Vinculando {target.display_name}...")
+            print(f"\n-> {t('linking', lang, tool=target.display_name)}")
             target.configure_global(repo_root)
             try:
-                input("\nPressione Enter para continuar...")
+                input(f"\n{t('press_enter', lang)}")
             except (EOFError, KeyboardInterrupt):
                 pass
 
@@ -412,42 +570,38 @@ def handle_agents(
     repo_root: Path,
     scanned: dict[str, Any],
     current_state: dict[str, Any],
+    lang: str = "en",
 ):
     """Opcao: Selecao e ativacao de subagentes para o workspace."""
     clear_screen()
     print("\n" + "=" * 65)
-    print("  SUBAGENTES DISPONIVEIS PARA O WORKSPACE")
+    print(f"  {t('agents_title', lang)}")
     print("=" * 65)
-    print(f"Workspace Alvo: {target_path}\n")
+    print(f"{t('target_workspace', lang)}: {target_path}\n")
 
     agents = scanned["agents"]
     if not agents:
-        print("[!] Nenhum subagente encontrado na pasta agents/.")
+        print(f"[!] {t('no_agents_found', lang)}")
         try:
-            input("\nPressione Enter para voltar ao menu...")
+            input(f"\n{t('press_enter_menu', lang)}")
         except (EOFError, KeyboardInterrupt):
             pass
         return
 
     curr_selected = set(current_state.get("selected_agents", []))
-    for idx, a in enumerate(agents, 1):
-        is_sel = "[x]" if a["id"] in curr_selected else "[ ]"
-        desc = a.get("description", "")
+    for idx, agent in enumerate(agents, 1):
+        is_sel = "[x]" if agent["id"] in curr_selected else "[ ]"
+        desc = agent.get("description", "")
         desc_preview = f" - {desc[:60]}..." if desc else ""
-        print(f"  [{idx:2d}] {is_sel} {a['id']:<28}{desc_preview}")
+        print(f"  [{idx:2d}] {is_sel} {agent['id']:<28}{desc_preview}")
 
     print("\n" + "-" * 65)
-    print("Como selecionar:")
-    print("  * Digite os numeros para alternar selecao (ex: 1, 2)")
-    print("  * 'all' para marcar todos")
-    print("  * 'limpar' para desmarcar todos")
-    print("  * 's' ou 'salvar' para aplicar as ferramentas ativas")
-    print("  * 'v' para voltar ao menu principal")
+    print(t("how_to_select_agents", lang))
     print("-" * 65)
 
     while True:
         try:
-            user_input = input("\nSua escolha: ").strip().lower()
+            user_input = input(f"\n{t('your_choice', lang)}").strip().lower()
         except (EOFError, KeyboardInterrupt):
             return
 
@@ -464,27 +618,30 @@ def handle_agents(
                 selected_agent_ids=current_state["selected_agents"],
                 selected_rule_ids=current_state.get("selected_rules", []),
                 selected_skills_dict=current_state.get("selected_skills", {}),
+                lang=lang,
             )
-            print(f"\n[OK] {len(curr_selected)} subagente(s) ativado(s) com sucesso!")
+            print(f"\n[OK] {t('agents_activated', lang, count=len(curr_selected))}")
             try:
-                input("\nPressione Enter para voltar ao menu...")
+                input(f"\n{t('press_enter_menu', lang)}")
             except (EOFError, KeyboardInterrupt):
                 pass
             return
 
         if user_input == "all":
-            curr_selected = {a["id"] for a in agents}
-            print("  [+] Todos os subagentes foram marcados.")
+            curr_selected = {agent["id"] for agent in agents}
+            print(f"  [+] {t('all_agents_marked', lang)}")
         elif user_input in ("limpar", "clear"):
             curr_selected.clear()
-            print("  [i] Todos os subagentes foram desmarcados.")
+            print(f"  [i] {t('all_agents_cleared', lang)}")
         else:
             tokens = [
-                t.strip() for t in user_input.replace(";", ",").split(",") if t.strip()
+                token.strip()
+                for token in user_input.replace(";", ",").split(",")
+                if token.strip()
             ]
-            for t in tokens:
-                if t.isdigit():
-                    num = int(t)
+            for token in tokens:
+                if token.isdigit():
+                    num = int(token)
                     if 1 <= num <= len(agents):
                         aid = agents[num - 1]["id"]
                         if aid in curr_selected:
@@ -496,8 +653,8 @@ def handle_agents(
                         (
                             a
                             for a in agents
-                            if a["id"].lower() == t
-                            or a["id"].lower().replace(".md", "") == t
+                            if a["id"].lower() == token
+                            or a["id"].lower().replace(".md", "") == token
                         ),
                         None,
                     )
@@ -514,45 +671,41 @@ def handle_rules(
     repo_root: Path,
     scanned: dict[str, Any],
     current_state: dict[str, Any],
+    lang: str = "en",
 ):
     """Opcao: Selecao e ativacao de regras para o workspace."""
     rules = scanned["rules"]
     if not rules:
-        print("[!] Nenhuma regra encontrada na pasta rules/.")
+        print(f"[!] {t('no_rules_found', lang)}")
         try:
-            input("\nPressione Enter para voltar ao menu...")
+            input(f"\n{t('press_enter_menu', lang)}")
         except (EOFError, KeyboardInterrupt):
             pass
         return
 
     curr_selected = set(current_state.get("selected_rules", []))
     if not curr_selected and rules:
-        curr_selected = {r["id"] for r in rules}
+        curr_selected = {rule["id"] for rule in rules}
 
     while True:
         clear_screen()
         print("\n" + "=" * 65)
-        print("  REGRAS DISPONIVEIS PARA O WORKSPACE")
+        print(f"  {t('rules_title', lang)}")
         print("=" * 65)
-        print(f"Workspace Alvo: {target_path}\n")
+        print(f"{t('target_workspace', lang)}: {target_path}\n")
 
-        for idx, r in enumerate(rules, 1):
-            is_sel = "[x]" if r["id"] in curr_selected else "[ ]"
-            desc = r.get("description", "")
+        for idx, rule in enumerate(rules, 1):
+            is_sel = "[x]" if rule["id"] in curr_selected else "[ ]"
+            desc = rule.get("description", "")
             desc_preview = f" - {desc[:58]}..." if desc else ""
-            print(f"  [{idx:2d}] {is_sel} {r['id']:<24}{desc_preview}")
+            print(f"  [{idx:2d}] {is_sel} {rule['id']:<24}{desc_preview}")
 
         print("\n" + "-" * 65)
-        print("Como selecionar:")
-        print("  * Digite os numeros para alternar selecao (ex: 1)")
-        print("  * 'all' para marcar todas")
-        print("  * 'limpar' para desmarcar todas")
-        print("  * 's' ou 'salvar' para aplicar nas ferramentas ativas")
-        print("  * 'v' para voltar ao menu principal")
+        print(t("how_to_select_rules", lang))
         print("-" * 65)
 
         try:
-            user_input = input("\nSua escolha: ").strip().lower()
+            user_input = input(f"\n{t('your_choice', lang)}").strip().lower()
         except (EOFError, KeyboardInterrupt):
             return
 
@@ -569,25 +722,28 @@ def handle_rules(
                 selected_agent_ids=current_state.get("selected_agents", []),
                 selected_rule_ids=current_state["selected_rules"],
                 selected_skills_dict=current_state.get("selected_skills", {}),
+                lang=lang,
             )
-            print(f"\n[OK] {len(curr_selected)} regra(s) ativada(s) com sucesso!")
+            print(f"\n[OK] {t('rules_activated', lang, count=len(curr_selected))}")
             try:
-                input("\nPressione Enter para voltar ao menu...")
+                input(f"\n{t('press_enter_menu', lang)}")
             except (EOFError, KeyboardInterrupt):
                 pass
             return
 
         if user_input == "all":
-            curr_selected = {r["id"] for r in rules}
+            curr_selected = {rule["id"] for rule in rules}
         elif user_input in ("limpar", "clear"):
             curr_selected.clear()
         else:
             tokens = [
-                t.strip() for t in user_input.replace(";", ",").split(",") if t.strip()
+                token.strip()
+                for token in user_input.replace(";", ",").split(",")
+                if token.strip()
             ]
-            for t in tokens:
-                if t.isdigit():
-                    num = int(t)
+            for token in tokens:
+                if token.isdigit():
+                    num = int(token)
                     if 1 <= num <= len(rules):
                         rid = rules[num - 1]["id"]
                         if rid in curr_selected:
@@ -597,7 +753,7 @@ def handle_rules(
 
 
 def handle_category_submenu(
-    cat_name: str, skills: list[dict], selected_set: set[str]
+    cat_name: str, skills: list[dict], selected_set: set[str], lang: str = "en"
 ) -> set[str]:
     """Submenu dinamico para gerenciar as skills de uma categoria especifica."""
     current_selected = set(selected_set)
@@ -605,28 +761,24 @@ def handle_category_submenu(
     while True:
         clear_screen()
         print("\n" + "-" * 65)
-        print(f"  CATEGORIA: {cat_name.upper()} ({len(skills)} skills disponiveis)")
+        print(f"  {t('cat_title', lang, cat=cat_name.upper(), count=len(skills))}")
         print("-" * 65)
 
-        for idx, s in enumerate(skills, 1):
-            is_sel = "[x]" if s["id"] in current_selected else "[ ]"
+        for idx, skill in enumerate(skills, 1):
+            is_sel = "[x]" if skill["id"] in current_selected else "[ ]"
             desc_preview = (
-                s["description"][:58] + "..."
-                if len(s["description"]) > 58
-                else s["description"]
+                skill["description"][:58] + "..."
+                if len(skill["description"]) > 58
+                else skill["description"]
             )
-            print(f"  [{idx:2d}] {is_sel} {s['id']:<24} - {desc_preview}")
+            print(f"  [{idx:2d}] {is_sel} {skill['id']:<24} - {desc_preview}")
 
         print("\n" + "-" * 65)
-        print("Como selecionar:")
-        print("  * Digite numeros para alternar selecao (ex: 1, 3)")
-        print("  * 'all' para marcar todas desta categoria")
-        print("  * 'limpar' para desmarcar todas desta categoria")
-        print("  * 'v' para voltar a lista de categorias")
+        print(t("cat_nav", lang))
         print("-" * 65)
 
         try:
-            choice = input("\nSua escolha: ").strip().lower()
+            choice = input(f"\n{t('your_choice', lang)}").strip().lower()
         except (EOFError, KeyboardInterrupt):
             break
 
@@ -634,17 +786,19 @@ def handle_category_submenu(
             break
 
         if choice == "all":
-            for s in skills:
-                current_selected.add(s["id"])
+            for skill in skills:
+                current_selected.add(skill["id"])
         elif choice in ("limpar", "clear"):
             current_selected.clear()
         else:
             tokens = [
-                t.strip() for t in choice.replace(";", ",").split(",") if t.strip()
+                token.strip()
+                for token in choice.replace(";", ",").split(",")
+                if token.strip()
             ]
-            for t in tokens:
-                if t.isdigit():
-                    num = int(t)
+            for token in tokens:
+                if token.isdigit():
+                    num = int(token)
                     if 1 <= num <= len(skills):
                         skill_id = skills[num - 1]["id"]
                         if skill_id in current_selected:
@@ -652,7 +806,9 @@ def handle_category_submenu(
                         else:
                             current_selected.add(skill_id)
                 else:
-                    matched = next((s for s in skills if s["id"].lower() == t), None)
+                    matched = next(
+                        (s for s in skills if s["id"].lower() == token), None
+                    )
                     if matched:
                         skill_id = matched["id"]
                         if skill_id in current_selected:
@@ -668,13 +824,14 @@ def handle_skills(
     repo_root: Path,
     scanned: dict[str, Any],
     current_state: dict[str, Any],
+    lang: str = "en",
 ):
     """Opcao: Menu dinamico de categorias de skills com submenus individuais."""
     skills_by_cat = scanned["skills_by_category"]
     if not skills_by_cat:
-        print("[!] Nenhuma categoria de skills encontrada na pasta skills/.")
+        print(f"[!] {t('no_skills_found', lang)}")
         try:
-            input("\nPressione Enter para voltar ao menu...")
+            input(f"\n{t('press_enter_menu', lang)}")
         except (EOFError, KeyboardInterrupt):
             pass
         return
@@ -689,36 +846,28 @@ def handle_skills(
         cats_with_selection = len([c for c, v in selected_by_cat.items() if v])
 
         print("\n" + "=" * 65)
-        print("  SKILLS MODULARES POR CATEGORIA")
+        print(f"  {t('skills_title', lang)}")
         print("=" * 65)
-        print(f"Workspace Alvo: {target_path}\n")
-        print("Categorias Disponiveis:")
+        print(f"{t('target_workspace', lang)}: {target_path}\n")
+        print(t("categories_available", lang))
 
         for idx, cat_name in enumerate(categories, 1):
             skills = skills_by_cat[cat_name]
             sel_count = len(selected_by_cat.get(cat_name, set()))
             status = (
-                f"({sel_count}/{len(skills)} selecionadas)"
-                if sel_count > 0
-                else f"({len(skills)} skills)"
+                f"({sel_count}/{len(skills)})" if sel_count > 0 else f"({len(skills)})"
             )
             print(f"  [{idx:2d}] {cat_name.upper():<16} {status}")
 
         print(
-            f"\nTotal selecionado no Workspace: {total_selected} skill(s) em {cats_with_selection} categoria(s)"
+            f"\n{t('total_skills_sel', lang, skills=total_selected, cats=cats_with_selection)}"
         )
-
         print("\n" + "-" * 65)
-        print("Como navegar:")
-        print("  * Digite o numero da categoria para abrir seu submenu (ex: 1)")
-        print("  * 's' ou 'salvar' para aplicar nas ferramentas ativas")
-        print("  * 'all' para marcar todas as skills de todas as categorias")
-        print("  * 'limpar' para desmarcar todas")
-        print("  * 'v' para voltar ao Menu Principal")
+        print(t("skills_nav", lang))
         print("-" * 65)
 
         try:
-            choice = input("\nEscolha uma opcao: ").strip().lower()
+            choice = input(f"\n{t('choose_option', lang)}").strip().lower()
         except (EOFError, KeyboardInterrupt):
             break
 
@@ -737,10 +886,11 @@ def handle_skills(
                 selected_agent_ids=current_state.get("selected_agents", []),
                 selected_rule_ids=current_state.get("selected_rules", []),
                 selected_skills_dict=current_state["selected_skills"],
+                lang=lang,
             )
-            print("\n[OK] Skills sincronizadas nas ferramentas ativas!")
+            print(f"\n[OK] {t('skills_synced', lang)}")
             try:
-                input("\nPressione Enter para voltar ao menu principal...")
+                input(f"\n{t('press_enter_menu', lang)}")
             except (EOFError, KeyboardInterrupt):
                 pass
             break
@@ -748,11 +898,9 @@ def handle_skills(
         if choice == "all":
             for cat_name, skills in skills_by_cat.items():
                 selected_by_cat[cat_name] = {s["id"] for s in skills}
-            print("  [+] Todas as skills de todas as categorias foram marcadas.")
 
         elif choice in ("limpar", "clear"):
             selected_by_cat.clear()
-            print("  [i] Todas as selecoes foram desmarcadas.")
 
         elif choice.isdigit():
             num = int(choice)
@@ -760,18 +908,18 @@ def handle_skills(
                 cat_name = categories[num - 1]
                 skills = skills_by_cat[cat_name]
                 curr_sel = selected_by_cat.get(cat_name, set())
-                updated = handle_category_submenu(cat_name, skills, curr_sel)
+                updated = handle_category_submenu(cat_name, skills, curr_sel, lang=lang)
                 if updated:
                     selected_by_cat[cat_name] = updated
                 else:
                     selected_by_cat.pop(cat_name, None)
             else:
-                print(f"[!] Opcao invalida. Digite um numero de 1 a {len(categories)}.")
+                print(f"[!] {t('invalid_option', lang)}")
         elif choice in skills_by_cat:
             cat_name = choice
             skills = skills_by_cat[cat_name]
             curr_sel = selected_by_cat.get(cat_name, set())
-            updated = handle_category_submenu(cat_name, skills, curr_sel)
+            updated = handle_category_submenu(cat_name, skills, curr_sel, lang=lang)
             if updated:
                 selected_by_cat[cat_name] = updated
             else:
@@ -781,31 +929,29 @@ def handle_skills(
 def handle_clean_workspace(
     target_path: Path,
     current_state: dict[str, Any],
+    lang: str = "en",
 ):
     """Opcao: Desinstalacao e limpeza isolada por ferramenta."""
     clear_screen()
     print("\n" + "=" * 65)
-    print("  LIMPEZA / DESINSTALACAO POR FERRAMENTA")
+    print(f"  {t('clean_title', lang)}")
     print("=" * 65)
-    print(f"Workspace Alvo: {target_path}\n")
+    print(f"{t('target_workspace', lang)}: {target_path}\n")
 
     all_targets = get_all_targets()
     active_targets = current_state.get("active_targets", [])
 
-    print("Ferramentas configuradas:")
-    for idx, t in enumerate(all_targets, 1):
-        status = "(Ativa)" if t.target_id in active_targets else "(Inativa)"
-        print(f"  [{idx}] {t.display_name:<26} {status}")
+    print(t("configured_tools", lang))
+    for idx, target in enumerate(all_targets, 1):
+        status = "(Active)" if target.target_id in active_targets else "(Inactive)"
+        print(f"  [{idx}] {target.display_name:<26} {status}")
 
     print("\n" + "-" * 65)
-    print("Opcoes:")
-    print("  * Digite o numero da ferramenta para remover suas configuracoes")
-    print("  * 'all' para remover configuracoes de TODAS as ferramentas")
-    print("  * 'v' para voltar ao menu principal")
+    print(t("clean_options", lang))
     print("-" * 65)
 
     try:
-        choice = input("\nSua escolha: ").strip().lower()
+        choice = input(f"\n{t('your_choice', lang)}").strip().lower()
     except (EOFError, KeyboardInterrupt):
         return
 
@@ -813,13 +959,13 @@ def handle_clean_workspace(
         return
 
     if choice == "all":
-        for t in all_targets:
-            t.clean_workspace(target_path)
+        for target in all_targets:
+            target.clean_workspace(target_path)
         current_state["active_targets"] = []
         save_workspace_state(target_path, current_state)
-        print("\n[OK] Todas as configuracoes foram removidas do workspace.")
+        print(f"\n[OK] {t('clean_all_done', lang)}")
         try:
-            input("\nPressione Enter para continuar...")
+            input(f"\n{t('press_enter', lang)}")
         except (EOFError, KeyboardInterrupt):
             pass
         return
@@ -833,22 +979,22 @@ def handle_clean_workspace(
                 active_targets.remove(target.target_id)
                 current_state["active_targets"] = active_targets
                 save_workspace_state(target_path, current_state)
-            print(f"\n[OK] Configuracoes de {target.display_name} removidas.")
+            print(f"\n[OK] {t('clean_target_done', lang, target=target.display_name)}")
             try:
-                input("\nPressione Enter para continuar...")
+                input(f"\n{t('press_enter', lang)}")
             except (EOFError, KeyboardInterrupt):
                 pass
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Configurador interativo e modular de Workspace e Global para Agentes de IA.",
+        description="omni-agent: Multi-Tool Agent, Rules & Skills Configurator.",
         epilog=(
-            "Exemplos de uso:\n"
+            "Usage examples:\n"
             "  python scripts/configure_workspace.py\n"
             "  python scripts/configure_workspace.py .\n"
-            "  python scripts/configure_workspace.py /meu/projeto --tool cursor\n"
-            "  python scripts/configure_workspace.py /meu/projeto --sync\n"
+            "  python scripts/configure_workspace.py /path/to/project --tool cursor\n"
+            "  python scripts/configure_workspace.py /path/to/project --sync --lang en\n"
             "  python scripts/configure_workspace.py --global\n"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -857,47 +1003,69 @@ def main():
         "target",
         nargs="?",
         default=None,
-        help="Caminho do repositorio alvo (opcional)",
+        help="Path to the target repository directory (optional)",
     )
     parser.add_argument(
         "-t",
         "--tool",
         "--target-tool",
         dest="target_tool",
-        help="Ferramenta alvo (antigravity, claude, cursor, copilot, universal, kiro, opencode, codex ou all)",
+        help="Target tool (antigravity, claude, cursor, copilot, universal, kiro, opencode, codex, or all)",
     )
     parser.add_argument(
         "--sync",
         action="store_true",
-        help="Executa sincronizacao rapida no workspace alvo sem menu interativo",
+        help="Executes fast synchronization in target workspace without interactive menu",
     )
     parser.add_argument(
         "--clean",
         action="store_true",
-        help="Remove configuracoes do workspace alvo para a ferramenta especificada (ou todas)",
+        help="Removes configurations from target workspace for specified tool (or all)",
     )
     parser.add_argument(
         "--global",
         dest="is_global",
         action="store_true",
-        help="Aplica configuracao global para a ferramenta especificada (ou todas)",
+        help="Applies global configuration for specified tool (or all)",
+    )
+    parser.add_argument(
+        "--lang",
+        choices=["en", "pt"],
+        default=None,
+        help="UI Language (en: English, pt: Brazilian Portuguese)",
     )
     parser.add_argument(
         "--list-tools",
         action="store_true",
-        help="Lista todas as ferramentas suportadas e encerra",
+        help="Lists all supported tools and exits",
     )
 
     args = parser.parse_args()
     repo_root = Path(__file__).resolve().parent.parent
 
+    # Resolucao de Workspace
+    target_raw = args.target
+    target_path = Path(target_raw).resolve() if target_raw else None
+    if target_path and (not target_path.exists() or not target_path.is_dir()):
+        print(
+            f"\n[x] Error: Path does not exist or is not a directory: {target_path}\n"
+        )
+        sys.exit(1)
+
+    workspace_state = load_workspace_state(target_path) if target_path else {}
+    current_lang = (
+        args.lang or workspace_state.get("language") or detect_system_language()
+    )
+
     if args.list_tools:
-        print("\nFerramentas Suportadas:")
-        for t in get_all_targets():
+        print("\nSupported Tools:")
+        for target in get_all_targets():
             supports_glob = (
-                "[Global + Workspace]" if t.supports_global else "[Workspace]"
+                "[Global + Workspace]" if target.supports_global else "[Workspace]"
             )
-            print(f"  * {t.target_id:<14} - {t.display_name:<24} {supports_glob}")
+            print(
+                f"  * {target.target_id:<14} - {target.display_name:<24} {supports_glob}"
+            )
         sys.exit(0)
 
     # Modo Global via CLI
@@ -905,20 +1073,13 @@ def main():
         tools = (
             [get_target(args.target_tool)]
             if args.target_tool and args.target_tool != "all"
-            else [t for t in get_all_targets() if t.supports_global]
+            else [target for target in get_all_targets() if target.supports_global]
         )
-        for t in tools:
-            if t:
-                print(f"\n-> Aplicando configuracao global para {t.display_name}...")
-                t.configure_global(repo_root)
+        for target in tools:
+            if target:
+                print(f"\n-> {t('linking', current_lang, tool=target.display_name)}")
+                target.configure_global(repo_root)
         sys.exit(0)
-
-    # Resolve Workspace
-    target_raw = args.target
-    target_path = Path(target_raw).resolve() if target_raw else None
-    if target_path and (not target_path.exists() or not target_path.is_dir()):
-        print(f"\n[x] Erro: Caminho nao existe ou nao e um diretorio: {target_path}\n")
-        sys.exit(1)
 
     scanned = scan_repository(repo_root)
 
@@ -937,7 +1098,7 @@ def main():
                 if tid in state.get("active_targets", []):
                     state["active_targets"].remove(tid)
         save_workspace_state(target_path, state)
-        print("\n[OK] Limpeza concluida.")
+        print("\n[OK] Clean completed.")
         sys.exit(0)
 
     # Modo Sincronizacao via CLI
@@ -961,76 +1122,87 @@ def main():
             selected_rule_ids=state.get("selected_rules")
             or [r["id"] for r in scanned["rules"]],
             selected_skills_dict=state.get("selected_skills", {}),
+            lang=current_lang,
         )
-        print("\n[OK] Sincronizacao concluida.")
+        print(f"\n[OK] {t('sync_success', current_lang)}")
         sys.exit(0)
 
     # Menu Interativo
     while True:
         clear_screen()
         workspace_state = load_workspace_state(target_path) if target_path else {}
+        if not args.lang and workspace_state.get("language"):
+            current_lang = workspace_state["language"]
+
         active_tools_display = (
             ", ".join(workspace_state.get("active_targets", []))
             if workspace_state.get("active_targets")
-            else "Nenhuma (padrao: Antigravity)"
+            else t("none_default", current_lang)
         )
         target_display = (
-            str(target_path)
-            if target_path
-            else "[Nao definido - digite 'w' ou selecione uma opcao]"
+            str(target_path) if target_path else t("not_defined", current_lang)
         )
 
+        lang_badge = "PT-BR" if current_lang == "pt" else "EN"
+
         print("\n" + "=" * 65)
-        print("  CONFIGURADOR MULTI-TOOL DE AGENTES, REGRAS E SKILLS")
+        print(f"  {t('app_title', current_lang)}")
         print("=" * 65)
-        print(f"  Workspace Alvo:     {target_display}")
-        print(f"  Ferramentas Ativas: {active_tools_display}")
+        print(f"  {t('target_workspace', current_lang)}:     {target_display}")
+        print(f"  {t('active_tools', current_lang)}: {active_tools_display}")
         print("-" * 65)
-        print("  [t] Selecionar Ferramentas Alvo (Antigravity, Cursor, Claude...)")
-        print("  [1] Configuracao Global da Maquina (Antigravity e Claude)")
-        print("  [2] Subagentes para o Workspace")
-        print("  [3] Regras para o Workspace")
-        print("  [4] Skills Modulares para o Workspace")
-        print("  [s] Sincronizar Tudo (Sync em todas as ferramentas ativas)")
-        print("  [c] Limpeza / Desinstalacao por Ferramenta")
-        print("  [5] Sair")
+        print(f"  {t('menu_select_tools', current_lang)}")
+        print(f"  {t('menu_global', current_lang)}")
+        print(f"  {t('menu_agents', current_lang)}")
+        print(f"  {t('menu_rules', current_lang)}")
+        print(f"  {t('menu_skills', current_lang)}")
+        print(f"  {t('menu_sync', current_lang)}")
+        print(f"  {t('menu_clean', current_lang)}")
+        print(f"  {t('menu_lang', current_lang, current=lang_badge)}")
+        print(f"  {t('menu_exit', current_lang)}")
         print("-" * 65)
-        print("  [w] Definir / Alterar Workspace Alvo")
+        print(f"  {t('menu_change_workspace', current_lang)}")
         print("=" * 65)
 
         try:
-            choice = input("\nEscolha uma opcao: ").strip().lower()
+            choice = input(f"\n{t('choose_option', current_lang)}").strip().lower()
         except (EOFError, KeyboardInterrupt):
-            print("\nEncerrando configurador. Ate logo!\n")
+            print(f"\n{t('exit_msg', current_lang)}\n")
             sys.exit(0)
 
         if choice in ("t", "tool", "tools", "ferramentas"):
-            target_path = resolve_workspace(target_path)
+            target_path = resolve_workspace(target_path, lang=current_lang)
             if target_path:
                 handle_target_selection(
-                    target_path, repo_root, scanned, workspace_state
+                    target_path, repo_root, scanned, workspace_state, lang=current_lang
                 )
 
         elif choice in ("1", "global"):
-            handle_global_configuration(repo_root)
+            handle_global_configuration(repo_root, lang=current_lang)
 
         elif choice in ("2", "agents", "agent"):
-            target_path = resolve_workspace(target_path)
+            target_path = resolve_workspace(target_path, lang=current_lang)
             if target_path:
-                handle_agents(target_path, repo_root, scanned, workspace_state)
+                handle_agents(
+                    target_path, repo_root, scanned, workspace_state, lang=current_lang
+                )
 
         elif choice in ("3", "rules", "rule"):
-            target_path = resolve_workspace(target_path)
+            target_path = resolve_workspace(target_path, lang=current_lang)
             if target_path:
-                handle_rules(target_path, repo_root, scanned, workspace_state)
+                handle_rules(
+                    target_path, repo_root, scanned, workspace_state, lang=current_lang
+                )
 
         elif choice in ("4", "skills", "skill"):
-            target_path = resolve_workspace(target_path)
+            target_path = resolve_workspace(target_path, lang=current_lang)
             if target_path:
-                handle_skills(target_path, repo_root, scanned, workspace_state)
+                handle_skills(
+                    target_path, repo_root, scanned, workspace_state, lang=current_lang
+                )
 
         elif choice in ("s", "sync", "sincronizar"):
-            target_path = resolve_workspace(target_path)
+            target_path = resolve_workspace(target_path, lang=current_lang)
             if target_path:
                 active_tools = workspace_state.get("active_targets") or ["antigravity"]
                 apply_workspace_to_targets(
@@ -1042,29 +1214,36 @@ def main():
                     selected_rule_ids=workspace_state.get("selected_rules")
                     or [r["id"] for r in scanned["rules"]],
                     selected_skills_dict=workspace_state.get("selected_skills", {}),
+                    lang=current_lang,
                 )
-                print("\n[OK] Sincronizacao concluida com sucesso!")
+                print(f"\n[OK] {t('sync_success', current_lang)}")
                 try:
-                    input("\nPressione Enter para continuar...")
+                    input(f"\n{t('press_enter', current_lang)}")
                 except (EOFError, KeyboardInterrupt):
                     pass
 
         elif choice in ("c", "clean", "limpar"):
-            target_path = resolve_workspace(target_path)
+            target_path = resolve_workspace(target_path, lang=current_lang)
             if target_path:
-                handle_clean_workspace(target_path, workspace_state)
+                handle_clean_workspace(target_path, workspace_state, lang=current_lang)
+
+        elif choice in ("l", "lang", "idioma", "language"):
+            current_lang = "en" if current_lang == "pt" else "pt"
+            if target_path:
+                workspace_state["language"] = current_lang
+                save_workspace_state(target_path, workspace_state)
 
         elif choice in ("5", "sair", "exit", "q", "quit"):
-            print("\nEncerrando configurador. Ate logo!\n")
+            print(f"\n{t('exit_msg', current_lang)}\n")
             sys.exit(0)
 
         elif choice in ("w", "workspace"):
-            new_target = resolve_workspace(None)
+            new_target = resolve_workspace(None, lang=current_lang)
             if new_target:
                 target_path = new_target
 
         else:
-            print("[!] Opcao invalida. Digite uma opcao do menu.")
+            print(f"[!] {t('invalid_option', current_lang)}")
 
 
 if __name__ == "__main__":

@@ -1,33 +1,41 @@
-# Diretrizes Globais de Desenvolvimento
+---
+name: global-development-guidelines
+description: Core engineering standards, security rules, communication guidelines, and Tailwind CSS patterns applied across all projects.
+---
 
-Este arquivo define padroes e regras que devem ser seguidos pelos agentes em qualquer projeto.
+# Global Development Guidelines
 
-## Principios Gerais
+This file defines standards, architectural guidelines, and rules that must be strictly followed by all AI agents.
 
-- Seguir os principios de Clean Code e arquitetura solida.
-- Manter o foco em seguranca, performance e manutenibilidade.
-- Respeitar a integridade de documentacao e comentarios existentes.
+## General Principles
 
-## Seguranca
+- Adhere to Clean Code and solid software architecture principles.
+- Maintain an uncompromising focus on security, performance, and maintainability.
+- Preserve the integrity of preexisting documentation, comments, and project conventions.
 
-- Nunca incluir credenciais, chaves de API, senhas ou tokens sensiveis no codigo.
-- Tratar e sanitizar todas as entradas de usuario.
-- Seguir as recomendacoes do padrao OWASP Top 10.
+## Security
 
-## Comunicacao e Estilo
+- Never hardcode or commit credentials, API keys, passwords, secrets, or sensitive tokens.
+- Validate and sanitize all user inputs across boundaries.
+- Follow OWASP Top 10 recommendations and secure coding standards.
 
-- Respostas diretas, claras e objetivas.
-- Manter consistencia de estilo com o codigo preexistente do projeto.
-- **Proibição Absoluta de Emojis:** Jamais utilizar emojis em nenhuma circunstância (seja em respostas, comentários de código, documentações, commits ou mensagens do sistema). Manter a comunicação estritamente textual, limpa e profissional.
+## Communication and Style
 
-## Frontend e Estilizacao (Tailwind CSS)
+- Provide direct, clear, concise, and objective responses.
+- Maintain stylistic consistency with the preexisting codebase.
+- **Language Adaptation:** Always reply in the language used by the user in their prompt (default to Brazilian Portuguese when prompted in Portuguese).
+- **Strict Diacritics, Accents, and Orthography:**
+  - Strictly respect standard orthography, grammar, punctuation, and diacritical marks/accents across all languages in responses, documentation, UI strings, code comments, and commit messages.
+  - When writing in Portuguese, always use proper accents and diacritics (e.g., `ã`, `õ`, `á`, `é`, `í`, `ó`, `ú`, `â`, `ê`, `ç`). Never strip accents or degrade text to unaccented ASCII (e.g., write "configuração", "módulo", "diretório", "não", instead of "configuracao", "modulo", "diretorio", "nao"), unless strictly required by technical syntax (such as code identifiers, URL slugs, or ASCII-only file schemas).
+- **Absolute Prohibition of Emojis:** Never use emojis under any circumstances (in responses, code comments, documentation, commits, or system messages). Keep all communication strictly textual, clean, and professional.
 
-- **Padrao Obrigatorio:** Todo desenvolvimento web/frontend deve utilizar **Tailwind CSS** para estilizacao.
-- **Versao Mais Recente e Estavel:**
-  - Sempre adotar a versao mais recente e estavel disponivel.
-  - O agente deve checar a versao oficial mais recente diretamente no site oficial [tailwindcss.com](https://tailwindcss.com) ou no registro do npm antes de criar projetos novos.
-  - Para versoes v4+, utilizar a configuracao moderna baseada em CSS nativo (`@import "tailwindcss";` e diretivas `@theme`), evitando criar arquivos de configuracao legados (`tailwind.config.js`) a menos que o projeto preexistente ja utilize v3.
-- **Proibicao de CSS Solto e CSS-in-JS:** Nao criar arquivos de estilos separados (`.css`, `.scss`) nem instalar bibliotecas de CSS-in-JS (como styled-components ou emotion), a menos que explicitamente solicitado pelo usuario ou preexistente no projeto.
-- **Composicao Dinamica:** Para combinacao condicional de classes utilitarias, sempre padronizar com utilitarios como `clsx` e `tailwind-merge` (funcao `cn(...)`).
-- **Acessibilidade e Estados:** Garantir aneis de foco visiveis (`focus-visible:ring-*`), suporte a leitores de tela (`sr-only`) e estados interativos claros (`hover:`, `active:`, `disabled:`).
+## Frontend and Styling (Tailwind CSS)
 
+- **Mandatory Standard:** All web and frontend development must use **Tailwind CSS** for styling.
+- **Latest Stable Version:**
+    - Always adopt the most recent stable release available.
+    - Check the official registry or documentation before bootstrapping new projects.
+    - For Tailwind CSS v4+, use the modern native CSS setup (`@import "tailwindcss";` and `@theme` directives), avoiding legacy configuration files (`tailwind.config.js`) unless the preexisting project already runs on v3.
+- **Prohibition of Standalone CSS & CSS-in-JS:** Do not create separate stylesheet files (`.css`, `.scss`) or install CSS-in-JS libraries (such as `styled-components` or `emotion`), unless explicitly requested or preexisting.
+- **Dynamic Utility Composition:** When combining conditional utility classes, always use `clsx` and `tailwind-merge` (standard `cn(...)` helper function).
+- **Accessibility & Interactive States:** Ensure visible focus rings (`focus-visible:ring-*`), screen-reader support (`sr-only`), and explicit interactive states (`hover:`, `active:`, `disabled:`).

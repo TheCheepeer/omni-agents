@@ -1,169 +1,176 @@
 # omni-agent
 
-Hub centralizado e agnostico para versionar, gerenciar e distribuir subagentes, regras de desenvolvimento e biblioteca modular de skills para multiplos ambientes de desenvolvimento assistido por IA.
+> [Leia em Portugues / Read in Brazilian Portuguese](README.pt-BR.md)
+
+A centralized, tool-agnostic hub to version, manage, and distribute specialized subagents, development rules, and modular skill libraries across multiple AI coding assistants.
 
 ---
 
-## Ferramentas Suportadas
+## Supported Tools
 
-O sistema unifica a gestao de contexto e exporta automaticamente para os formatos nativos de cada assistente:
+`omni-agent` unifies context management and compiles directly into the native format expected by each assistant:
 
-| Ferramenta             | Identificador | Escopo             | Arquivos e Destinos Gerados                                           |
-| :--------------------- | :------------ | :----------------- | :-------------------------------------------------------------------- |
-| **Google Antigravity** | `antigravity` | Global + Workspace | `.agents/` (`skills.json`, `rules/`, `agents/`) e `~/.gemini/config/` |
-| **Claude Code**        | `claude`      | Global + Workspace | `CLAUDE.md` na raiz do projeto e `~/.claude/CLAUDE.md`                |
-| **Cursor IDE**         | `cursor`      | Workspace          | `.cursor/rules/*.mdc` (com metadados de globs e alwaysApply)          |
-| **GitHub Copilot**     | `copilot`     | Workspace          | `.github/copilot-instructions.md` consolidado                         |
-| **Universal**          | `universal`   | Workspace          | `AGENTS.md` padronizado na raiz do projeto                            |
-| **Kiro**               | `kiro`        | Workspace          | `AGENTS.md` e pasta `.kiro/`                                          |
-| **OpenCode**           | `opencode`    | Workspace          | `AGENTS.md` e pasta `.opencode/`                                      |
-| **Codex (OpenAI)**     | `codex`       | Workspace          | `AGENTS.md` otimizado para o ecossistema Codex                        |
+| Tool                   | Target ID     | Scope              | Generated Files & Destinations                                          |
+| :--------------------- | :------------ | :----------------- | :---------------------------------------------------------------------- |
+| **Google Antigravity** | `antigravity` | Global + Workspace | `.agents/` (`skills.json`, `rules/`, `agents/`) and `~/.gemini/config/` |
+| **Claude Code**        | `claude`      | Global + Workspace | `CLAUDE.md` in project root and `~/.claude/CLAUDE.md`                   |
+| **Cursor IDE**         | `cursor`      | Workspace          | `.cursor/rules/*.mdc` (with `globs` and `alwaysApply` metadata)         |
+| **GitHub Copilot**     | `copilot`     | Workspace          | Consolidated `.github/copilot-instructions.md`                          |
+| **Universal**          | `universal`   | Workspace          | Standardized `AGENTS.md` in project root                                |
+| **Kiro**               | `kiro`        | Workspace          | Root `AGENTS.md` and `.kiro/` directory                                 |
+| **OpenCode**           | `opencode`    | Workspace          | Root `AGENTS.md` and `.opencode/` directory                             |
+| **Codex (OpenAI)**     | `codex`       | Workspace          | Root `AGENTS.md` tailored for Codex                                     |
 
 ---
 
-## Estrutura do Repositorio
+## Repository Structure
 
 ```text
 omni-agent/
-├── agents/                          # Personas especializadas de subagentes
+├── agents/                          # Specialized subagent personas
 │   ├── accessibility-reviewer.md
 │   ├── code-reviewer.md
 │   └── security-auditor.md
-├── rules/                           # Regras e diretrizes globais
+├── rules/                           # Global engineering rules and guidelines
 │   └── AGENTS.md
-├── scripts/                         # Configurador declarativo e adaptadores
-│   ├── configure_workspace.py       # Menu interativo e orquestrador CLI
-│   └── targets/                     # Modulos adaptadores por ferramenta
-│       ├── __init__.py              # Registro central de adaptadores
-│       ├── base.py                  # Contratos e utilitarios de filesystem
-│       ├── antigravity.py           # Adaptador Google Antigravity
-│       ├── claude.py                # Adaptador Claude Code (CLAUDE.md)
-│       ├── cursor.py                # Adaptador Cursor (.cursor/rules/*.mdc)
-│       ├── copilot.py               # Adaptador GitHub Copilot
-│       └── universal.py             # Adaptador Universal, Kiro, OpenCode e Codex
+├── scripts/                         # Automation configurator and target adapters
+│   ├── configure_workspace.py       # Interactive TUI and CLI orchestrator
+│   └── targets/                     # Specialized target adapter modules
+│       ├── __init__.py              # Central target registry
+│       ├── base.py                  # Adapter contracts and filesystem utilities
+│       ├── antigravity.py           # Google Antigravity adapter
+│       ├── claude.py                # Claude Code adapter (CLAUDE.md)
+│       ├── cursor.py                # Cursor IDE adapter (.cursor/rules/*.mdc)
+│       ├── copilot.py               # GitHub Copilot adapter
+│       └── universal.py             # Universal, Kiro, OpenCode, and Codex adapter
 ├── skills/
-│   ├── global/                      # CORE GLOBAL (~800 tokens) - Essenciais para qualquer projeto
-│   │   ├── coding-standards/        # Qualidade tecnica, Clean Code e padroes de engenharia
-│   │   ├── comunicacao-clara/       # Postura didatica, clareza e sintese sem enrolacao
-│   │   ├── grug-brained-dev/        # Anti-overengineering e reducao de complexidade
-│   │   ├── reducing-entropy/        # Combate a debito tecnico e delecao de codigo morto
-│   │   └── researching-codebases/   # Investigacao de repositorios usando subagentes
-│   ├── planning/                    # BIBLIOTECA: Planejamento, Auditoria e Roadmaps
-│   ├── docs/                        # BIBLIOTECA: Redacao e Documentacao Tecnica
-│   ├── frontend/                    # BIBLIOTECA: Design, Visualizacao e Tailwind CSS
-│   ├── meta/                        # BIBLIOTECA: Criacao de Prompts e Customizacoes
-│   └── stacks/                      # BIBLIOTECA: Linguagens, Frameworks e Infraestrutura
+│   ├── global/                      # GLOBAL CORE (~800 tokens) - Essential for all projects
+│   │   ├── coding-standards/        # Technical excellence, Clean Code, and engineering patterns
+│   │   ├── comunicacao-clara/       # Clear, unpacked communication and concise synthesis
+│   │   ├── grug-brained-dev/        # Anti-overengineering and simplicity mindset
+│   │   ├── reducing-entropy/        # Combating technical debt and deleting dead code
+│   │   └── researching-codebases/   # Multi-agent codebase research and navigation
+│   ├── planning/                    # LIBRARY: Planning, auditing, and roadmaps
+│   ├── docs/                        # LIBRARY: Technical writing and documentation
+│   ├── frontend/                    # LIBRARY: UI design, visual standards, and Tailwind CSS
+│   ├── meta/                        # LIBRARY: Prompt engineering and customization authoring
+│   └── stacks/                      # LIBRARY: Frameworks, languages, and infrastructure
 └── README.md
 ```
 
 ---
 
-## Conteudo
+## Contents
 
-### 1. Subagentes (`agents/`)
+### 1. Subagents (`agents/`)
 
-- `accessibility-reviewer.md`: Especialista em acessibilidade digital (a11y), diretrizes WCAG 2.1/2.2 (A, AA, AAA) e WAI-ARIA.
-- `code-reviewer.md`: Especialista em analise estatica de codigo, Clean Code e legibilidade.
-- `security-auditor.md`: Especialista em OWASP Top 10 e AppSec.
+- `accessibility-reviewer.md`: Digital accessibility (a11y) specialist covering WCAG 2.1/2.2 (A, AA, AAA) and WAI-ARIA guidelines.
+- `code-reviewer.md`: Static code analysis, Clean Code, readability, and solid architecture reviewer.
+- `security-auditor.md`: Application security specialist covering OWASP Top 10 and secure coding practices.
 
-### 2. Regras Globais (`rules/`)
+### 2. Global Rules (`rules/`)
 
-- `AGENTS.md`: Diretrizes essenciais de desenvolvimento, seguranca, comunicacao, proibicao de emojis e padrao obrigatorio de Tailwind CSS.
+- `AGENTS.md`: High-priority guidelines covering software architecture, security, communication standards, strict emoji prohibition, and modern Tailwind CSS standards.
 
-### 3. Biblioteca Modular de Skills (`skills/`)
+### 3. Modular Skill Library (`skills/`)
 
-Para manter o consumo de tokens baixo e evitar que o modelo hesite entre dezenas de opcoes irrelevantes:
+To optimize token consumption and prevent model choice hesitation:
 
-1. **Core Global (`skills/global/`):** 5 skills essenciais que moldam o comportamento base do modelo em qualquer contexto. Consomem apenas ~800 tokens.
-2. **Biblioteca Sob Demanda (`skills/{planning,docs,frontend,meta,stacks}/`):** Skills especializadas que voce pode ativar pontualmente apenas nos projetos onde fizerem sentido.
+1. **Global Core (`skills/global/`):** 5 essential skills establishing foundational pair-programming behavior across any project (~800 tokens total).
+2. **On-Demand Library (`skills/{planning,docs,frontend,meta,stacks}/`):** Specialized skills selectively mounted only in relevant repositories.
 
 ---
 
-## Configuracao e Automacao Multiplataforma
+## Cross-Platform Configuration & Automation
 
-O script [`scripts/configure_workspace.py`](scripts/configure_workspace.py) roda nativamente em **Windows, Linux e macOS** sem dependencias externas (apenas a biblioteca padrao do Python).
+The [`scripts/configure_workspace.py`](scripts/configure_workspace.py) script runs natively on **Windows, Linux, and macOS** using only the Python standard library (zero external dependencies).
 
-### 1. Modo Interativo (TUI / GUI)
+### 1. Interactive Mode (TUI / GUI)
 
 ```bash
-# Iniciar o menu interativo:
+# Launch interactive menu:
 python scripts/configure_workspace.py
 
-# Ou informando a pasta do projeto alvo diretamente:
-python scripts/configure_workspace.py /caminho/do/projeto
+# Or specify target project directory directly:
+python scripts/configure_workspace.py /path/to/project
 python scripts/configure_workspace.py .
 ```
 
-#### Estrutura do Menu Interativo:
+#### Interactive Menu Layout:
 
 ```text
 =================================================================
-  CONFIGURADOR MULTI-TOOL DE AGENTES, REGRAS E SKILLS
+  MULTI-TOOL AGENT, RULES & SKILLS CONFIGURATOR
 =================================================================
-  Workspace Alvo:     [Caminho do Projeto]
-  Ferramentas Ativas: antigravity, cursor, claude
+  Target Workspace:   [/path/to/project]
+  Active Tools:       antigravity, cursor, claude
 -----------------------------------------------------------------
-  [t] Selecionar Ferramentas Alvo (Antigravity, Cursor, Claude...)
-  [1] Configuracao Global da Maquina (Antigravity e Claude)
-  [2] Subagentes para o Workspace
-  [3] Regras para o Workspace
-  [4] Skills Modulares para o Workspace
-  [s] Sincronizar Tudo (Sync em todas as ferramentas ativas)
-  [c] Limpeza / Desinstalacao por Ferramenta
-  [5] Sair
+  [t] Select Target Tools (Antigravity, Cursor, Claude...)
+  [1] Global Machine Configuration (Antigravity & Claude)
+  [2] Subagents for Workspace
+  [3] Rules for Workspace
+  [4] Modular Skills for Workspace
+  [s] Synchronize All (Sync active tools in batch)
+  [c] Clean / Uninstall by Tool
+  [l] Language / Idioma: [EN | PT-BR]
+  [5] Exit
 -----------------------------------------------------------------
-  [w] Definir / Alterar Workspace Alvo
+  [w] Set / Change Target Workspace
 =================================================================
 ```
 
 ---
 
-### 2. Modo Linha de Comando (CLI / Automacao)
+### 2. Command-Line Interface (CLI / Automation)
 
-O configurador pode ser executado diretamente em scripts ou rotinas de CI/CD:
+Execute commands directly within scripts or CI/CD pipelines:
 
 ```bash
-# Listar todas as ferramentas suportadas:
+# List all supported tools:
 python scripts/configure_workspace.py --list-tools
 
-# Sincronizar workspace para todas as ferramentas ativas salvas:
-python scripts/configure_workspace.py /caminho/do/projeto --sync
+# Synchronize workspace across all active tools:
+python scripts/configure_workspace.py /path/to/project --sync
 
-# Configurar para uma ferramenta especifica:
-python scripts/configure_workspace.py /caminho/do/projeto --tool cursor --sync
-python scripts/configure_workspace.py /caminho/do/projeto --tool claude --sync
-python scripts/configure_workspace.py /caminho/do/projeto --tool copilot --sync
+# Configure for a specific tool:
+python scripts/configure_workspace.py /path/to/project --tool cursor --sync
+python scripts/configure_workspace.py /path/to/project --tool claude --sync
+python scripts/configure_workspace.py /path/to/project --tool copilot --sync
 
-# Configurar todas as ferramentas simultaneamente (Multi-Tool):
-python scripts/configure_workspace.py /caminho/do/projeto --tool all --sync
+# Configure for all tools simultaneously (Multi-Tool):
+python scripts/configure_workspace.py /path/to/project --tool all --sync
 
-# Limpar/desinstalar configuracoes de uma ferramenta sem afetar as outras:
-python scripts/configure_workspace.py /caminho/do/projeto --tool cursor --clean
-python scripts/configure_workspace.py /caminho/do/projeto --clean  # Remove todas
+# Remove configuration for a single tool without affecting others:
+python scripts/configure_workspace.py /path/to/project --tool cursor --clean
+python scripts/configure_workspace.py /path/to/project --clean  # Remove all
 
-# Aplicar configuracao global da maquina:
+# Apply global machine configuration:
 python scripts/configure_workspace.py --global
 python scripts/configure_workspace.py --tool claude --global
+
+# Force UI language:
+python scripts/configure_workspace.py --lang en
+python scripts/configure_workspace.py --lang pt
 ```
 
 ---
 
-### 3. Cenarios Estrategicos
+### 3. Strategic Scenarios
 
-#### Trabalho em Equipe (Multi-Tool no mesmo repositorio)
+#### Multi-Tool Team Workflow
 
-Em equipes onde desenvolvedores usam ambientes diferentes (por exemplo, um desenvolvedor no Cursor, outro no VS Code com Copilot e outro no Antigravity), utilize a opcao `[all]` ou `--tool all`. O script cria os arquivos de configuracao para cada assistente a partir da mesma fonte de regras, garantindo consistencia sem atrito.
+In teams where different developers use different environments (e.g., developer A uses Cursor, developer B uses VS Code with Copilot, and developer C uses Antigravity), use `--tool all`. The script exports native configuration files for each assistant from a single source of truth, guaranteeing project-wide consistency.
 
-#### Sincronizacao Rapida (Sync)
+#### Fast Synchronization (Sync)
 
-Ao atualizar regras ou skills no repositorio central, execute `--sync` no projeto para atualizar os arquivos consolidados (como `CLAUDE.md`, `copilot-instructions.md` e `.cursor/rules/`) instantaneamente.
+When updating rules or skills in this repository, run `--sync` on any target project to instantly regenerate consolidated files (`CLAUDE.md`, `copilot-instructions.md`, `.cursor/rules/`, etc.).
 
-#### Persistencia de Estado
+#### State Persistence
 
-As preferencias de cada workspace sao salvas em `.agents/workspace_state.json` (adicionado automaticamente ao `.gitignore`), permitindo rastrear quais ferramentas estao ativas no projeto.
+Workspace preferences are saved in `.agents/workspace_state.json` (automatically added to `.gitignore`), allowing you to inspect and modify active targets at any time.
 
 ---
 
-## Licenca
+## License
 
-Distribuido sob a licenca Apache 2.0. Consulte o arquivo [LICENSE](LICENSE) para mais detalhes.
+Distributed under the Apache 2.0 License. See [LICENSE](LICENSE) for details.
