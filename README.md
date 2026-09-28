@@ -1,6 +1,6 @@
-# Repositorio Central de Agentes, Regras e Skills (Multi-Tool)
+# omni-agent
 
-Repositorio centralizado e agnostico para armazenar, versionar e distribuir subagentes, regras de desenvolvimento e biblioteca modular de skills para multiplos ambientes de desenvolvimento assistido por IA.
+Hub centralizado e agnostico para versionar, gerenciar e distribuir subagentes, regras de desenvolvimento e biblioteca modular de skills para multiplos ambientes de desenvolvimento assistido por IA.
 
 ---
 
@@ -24,7 +24,7 @@ O sistema unifica a gestao de contexto e exporta automaticamente para os formato
 ## Estrutura do Repositorio
 
 ```text
-agents/
+omni-agent/
 ├── agents/                          # Personas especializadas de subagentes
 │   ├── accessibility-reviewer.md
 │   ├── code-reviewer.md
@@ -161,3 +161,9 @@ Ao atualizar regras ou skills no repositorio central, execute `--sync` no projet
 #### Persistencia de Estado
 
 As preferencias de cada workspace sao salvas em `.agents/workspace_state.json` (adicionado automaticamente ao `.gitignore`), permitindo rastrear quais ferramentas estao ativas no projeto.
+
+---
+
+## Licenca
+
+Distribuido sob a licenca Apache 2.0. Consulte o arquivo [LICENSE](LICENSE) para mais detalhes.
