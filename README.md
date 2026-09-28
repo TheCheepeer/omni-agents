@@ -1,6 +1,6 @@
 # omni-agent
 
-> [Leia em Portugues / Read in Brazilian Portuguese](README.pt-BR.md)
+> Translations: [Português](docs/translations/README.pt-BR.md) | [Español](docs/translations/README.es.md)
 
 A centralized, tool-agnostic hub to version, manage, and distribute specialized subagents, development rules, and modular skill libraries across multiple AI coding assistants.
 
@@ -57,7 +57,11 @@ omni-agent/
 │   ├── frontend/                    # LIBRARY: UI design, visual standards, and Tailwind CSS
 │   ├── meta/                        # LIBRARY: Prompt engineering and customization authoring
 │   └── stacks/                      # LIBRARY: Frameworks, languages, and infrastructure
-└── README.md
+├── docs/
+│   └── translations/                # Translated documentation
+│       ├── README.pt-BR.md
+│       └── README.es.md
+└── README.md                        # Primary documentation in English
 ```
 
 ---

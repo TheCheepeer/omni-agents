@@ -1,6 +1,6 @@
 # omni-agent (Português do Brasil)
 
-> [English version / Versão em inglês](README.md)
+> Traduções: [English](../../README.md) | Português (Brasil) | [Español](README.es.md)
 
 Hub centralizado e agnóstico para versionar, gerenciar e distribuir subagentes, regras de desenvolvimento e biblioteca modular de skills para múltiplos ambientes de desenvolvimento assistido por IA.
 
@@ -57,7 +57,11 @@ omni-agent/
 │   ├── frontend/                    # BIBLIOTECA: Design, Visualização e Tailwind CSS
 │   ├── meta/                        # BIBLIOTECA: Criação de Prompts e Customizações
 │   └── stacks/                      # BIBLIOTECA: Linguagens, Frameworks e Infraestrutura
-└── README.md
+├── docs/
+│   └── translations/                # Versões traduzidas da documentação
+│       ├── README.pt-BR.md
+│       └── README.es.md
+└── README.md                        # Documentação principal em inglês
 ```
 
 ---
@@ -85,7 +89,7 @@ Para manter o consumo de tokens baixo e evitar que o modelo hesite entre dezenas
 
 ## Configuração e Automação Multiplataforma
 
-O script [`scripts/configure_workspace.py`](scripts/configure_workspace.py) roda nativamente em **Windows, Linux e macOS** sem dependências externas (apenas a biblioteca padrão do Python).
+O script [`scripts/configure_workspace.py`](../../scripts/configure_workspace.py) roda nativamente em **Windows, Linux e macOS** sem dependências externas (apenas a biblioteca padrão do Python).
 
 ### 1. Modo Interativo (TUI / GUI)
 
@@ -181,10 +185,10 @@ Diversas skills presentes neste repositório foram adaptadas a partir de:
 - [The Grug Brained Developer](https://grugbrain.dev/) por Colin McDonnell.
 - [Framework Diátaxis](https://diataxis.fr/) por Daniele Procida.
 
-Consulte o arquivo [NOTICE](NOTICE) para as declarações formais de direitos autorais e licenças de terceiros.
+Consulte o arquivo [NOTICE](../../NOTICE) para as declarações formais de direitos autorais e licenças de terceiros.
 
 ---
 
 ## Licença
 
-Distribuído sob a licença Apache 2.0. Consulte o arquivo [LICENSE](LICENSE) para mais detalhes.
+Distribuído sob a licença Apache 2.0. Consulte o arquivo [LICENSE](../../LICENSE) para mais detalhes.
