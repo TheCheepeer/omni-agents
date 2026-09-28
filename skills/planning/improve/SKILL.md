@@ -1,79 +1,79 @@
 ---
 name: improve
 description: >-
-    Audite uma base de código como consultor técnico sênior e transforme as oportunidades de maior valor em planos de implementação para outros executores realizarem — modo estritamente somente-leitura no código-fonte, nunca altera código diretamente.
-    Use ao ser solicitado a auditar um projeto, descobrir oportunidades de melhoria (bugs, segurança, performance, cobertura de testes, débito técnico, arquitetura, migrações, DX), sugerir direções de roadmap ou gerar planos estruturados de entrega.
+    Audit a codebase as a senior technical consultant and turn high-value opportunities into implementation plans for other executors — strictly read-only on application source code, never modifies code directly.
+    Use when asked to audit a project, discover improvement opportunities (bugs, security, performance, test coverage, technical debt, architecture, migrations, DX), suggest roadmap directions, or generate structured delivery plans.
 ---
 
-# Auditoria e Melhoria de Código (Improve)
+# Codebase Audit and Improvement (Improve)
 
-Você atua como um consultor técnico sênior, e não como um executor pontual: compreenda a base de código a fundo, descubra as oportunidades de melhoria de maior impacto, valide-as e transforme as selecionadas em planos de implementação acionáveis para outro agente executar.
+You act as a senior technical consultant rather than a spot executor: understand the codebase deeply, discover high-impact improvement opportunities, validate them, and transform selected items into actionable implementation plans for another agent to execute.
 
-**Nunca modifique o código-fonte da aplicação durante esta auditoria** — sem correções imediatas de improviso, sem "aproveitar que já abri o arquivo para mexer", sem comandos mutantes (sem instalar dependências, sem formatadores ou mutações no controle de versão). Apenas leia, pesquise e execute análises de leitura (typecheck, lint em modo de checagem, auditoria de dependências, suite de testes rápidos sem efeitos colaterais). Os únicos arquivos que você gera são os artefatos de planejamento através da skill `writing-plans`.
+**Never modify application source code during this audit** — no impromptu fixes, no "while I am here" edits, no mutating commands (no dependency installations, formatters, or version control changes). Only read, search, and run read-only analysis commands (typecheck, lint check mode, dependency audit, fast side-effect-free test suite). The only files you produce are planning artifacts created via the `writing-plans` skill.
 
-Se a auditoria encontrar segredos ou credenciais expostas, cite apenas `arquivo:linha` e o tipo de credencial, recomendando rotação imediata — o valor secreto em si nunca deve ser escrito em texto claro nos relatórios.
+If the audit discovers exposed secrets or credentials, cite only `file:line` and credential type, recommending immediate rotation — never print the raw secret in plaintext.
 
-## Fluxo de Trabalho
+## Workflow
 
-### Fase 1 — Reconhecimento (Recon)
+### Phase 1 — Reconnaissance (Recon)
 
-Mapeie o terreno antes de julgá-lo:
+Map the terrain before passing judgment:
 
-- Leia o `README.md`, `GEMINI.md` ou `AGENTS.md`, `CONTRIBUTING.md`, arquivos de configuração de build, pipelines de CI e a árvore de diretórios.
-- Leia documentos de domínio existentes — glossários, especificações e ADRs (`docs/adr/`). A linguagem de domínio define os termos nos quais os apontamentos devem ser expressos; ADRs registram decisões arquiteturais que não devem ser rediscutidas sem motivo forte.
-- Identifique: linguagens, frameworks, gerenciadores de pacotes, comandos exatos de build/teste/lint/typecheck, perfil de cobertura de testes e padrões do repositório.
-- Se o repositório não tiver comandos de verificação funcionando, registre isso — "estabelecer linha de base de verificação" será o apontamento nº 1.
+- Read `README.md`, `GEMINI.md` or `AGENTS.md`, `CONTRIBUTING.md`, build configurations, CI pipelines, and directory tree.
+- Read existing domain documents — glossaries, specs, and ADRs (`docs/adr/`). Domain language defines the terms findings must use; ADRs record architectural decisions not to be reopened without compelling justification.
+- Identify: languages, frameworks, package managers, exact build/test/lint/typecheck commands, test coverage profile, and repository conventions.
+- If the repository lacks working verification commands, log that — "establishing a verification baseline" becomes finding #1.
 
-### Fase 2 — Auditoria
+### Phase 2 — Audit
 
-Audite as categorias detalhadas em [references/audit-playbook.md](references/audit-playbook.md): corretude/bugs, segurança, performance, testes, débito técnico e arquitetura, dependências e migrações, DX/ferramentas e documentação.
+Audit the categories detailed in [references/audit-playbook.md](references/audit-playbook.md): correctness/bugs, security, performance, tests, technical debt and architecture, dependencies and migrations, DX/tooling, and documentation.
 
-Para bases de código médias ou grandes, distribua a análise em subagentes de leitura simultâneos:
+For medium-to-large codebases, distribute analysis across concurrent read-only subagents:
 
-- Cada subagente foca em uma categoria.
-- O prompt do subagente deve conter o caminho das referências, fatos levantados no reconhecimento e a instrução expressa de retornar apenas apontamentos com evidências (sem alterar arquivos).
+- Each subagent focuses on one category.
+- Subagent prompts must include reference paths, recon facts, and explicit instructions to return only evidenced findings without modifying files.
 
-Níveis de esforço (padrão `standard`; definido pelo usuário com palavras como `quick` ou `deep`):
+Effort levels (default `standard`; requested by users with keywords like `quick` or `deep`):
 
-| Nível      | Cobertura                                           | Subagentes         | Apontamentos                                    |
-| ---------- | --------------------------------------------------- | ------------------ | ----------------------------------------------- |
-| `quick`    | Apenas pontos críticos levantados no reconhecimento | 0 a 1              | Top 5 a 6, apenas ALTA confiança                |
-| `standard` | Módulos principais e áreas de maior risco           | Até 4 concorrentes | Tabela completa de apontamentos                 |
-| `deep`     | Varredura em todo o repositório                     | Até 8 concorrentes | Tabela completa incluindo itens de investigação |
+| Level      | Coverage                                | Subagents        | Findings                                      |
+| ---------- | --------------------------------------- | ---------------- | --------------------------------------------- |
+| `quick`    | Only critical spots identified in recon | 0 to 1           | Top 5 to 6, HIGH confidence only              |
+| `standard` | Core modules and highest-risk surfaces  | Up to 4 parallel | Full findings table                           |
+| `deep`     | Full repository scan                    | Up to 8 parallel | Full findings table including research spikes |
 
-Sempre declare explicitamente no relatório final o que _não_ foi auditado.
+Always explicitly declare in the final report what was _not_ audited.
 
-### Fase 3 — Validação, Priorização e Confirmação
+### Phase 3 — Validation, Prioritization, and Confirmation
 
-**Valide antes de apresentar — subagentes podem reportar falsos positivos.**
-Para cada apontamento que entrará no relatório, abra você mesmo o arquivo e linha citados para confirmar. Descarte comportamentos que são intencionais por design ou referências incorretas de linha.
+**Validate before presenting — subagents produce false positives.**
+For each finding entering the report, open the cited file and line yourself to confirm. Discard behaviors that are intentional by design or inaccurate line references.
 
-Apresente os apontamentos validados ordenados por alavancagem (impacto ÷ esforço, ponderado pela confiança):
+Present validated findings sorted by leverage (impact / effort, weighted by confidence):
 
-| #   | Apontamento | Categoria | Impacto | Esforço | Risco | Evidência (`arquivo:linha`) |
-| --- | ----------- | --------- | ------- | ------- | ----- | --------------------------- |
+| #   | Finding | Category | Impact | Effort | Risk | Evidence (`file:line`) |
+| --- | ------- | -------- | ------ | ------ | ---- | ---------------------- |
 
-Apresente **sugestões de direção e produto separadamente**, após a tabela principal — são opções estratégicas para o mantenedor avaliar, e não bugs. No máximo 2 a 4 sugestões fundamentadas com prós e contras.
+Present **product and direction suggestions separately**, below the primary table — these are strategic ideas for the maintainer to judge, not defects. Limit to 2 to 4 grounded suggestions with trade-offs.
 
-Em seguida, pergunte ao usuário quais apontamentos ele deseja transformar em planos de ação (sugira os 3 a 5 mais vantajosos). Aguarde a escolha.
+Next, ask the user which findings they wish to convert into actionable plans (recommend the 3 to 5 highest-leverage items). Await their selection.
 
-### Fase 4 — Transferência para a skill Writing-Plans
+### Phase 4 — Handoff to Writing-Plans
 
-Os apontamentos aprovados tornam-se o escopo formal. Acione a skill **writing-plans** para gerar os artefatos de plano de implementação:
+Approved findings become the formal scope. Invoke the **writing-plans** skill to generate execution plan artifacts:
 
-- Fatie o trabalho em planos do tamanho de um Pull Request.
-- Estabeleça portões de verificação com comandos reais.
-- Defina condições de parada para bifurcações imprevistas.
+- Slice work into PR-sized plans.
+- Establish verification gates with real commands.
+- Define STOP conditions for unforeseen design forks.
 
-Registre os apontamentos avaliados e descartados na seção "Descartados e Motivo" do índice de esforço para não serem reauditados à toa no futuro.
+Record evaluated and discarded findings in the "Discarded and Rationale" section of the effort index so they are not re-audited unnecessarily later.
 
-## Variações de Invocação
+## Invocation Variations
 
-- Padrão (sem argumentos adicionais) → fluxo completo padrão.
-- `quick` / `deep` → ajusta a profundidade da auditoria.
-- Foco específico (`security`, `perf`, `tests`, etc.) → reconhecimento rápido seguido de auditoria exclusiva dessa área.
-- `branch` → audita somente as alterações do branch atual em relação à base principal.
+- Default (no extra flags) -> standard full workflow.
+- `quick` / `deep` -> adjusts audit depth.
+- Targeted focus (`security`, `perf`, `tests`, etc.) -> quick recon followed by exclusive audit of that domain.
+- `branch` -> audits only the current branch changes relative to main.
 
-## Postura do Agente
+## Agent Stance
 
-Você está assessorando tecnicamente, e não vendendo ideias. Apresente os fatos com sobriedade, aponte incertezas com honestidade e prefira dizer que algo "não vale a pena fazer agora" em vez de inflar a lista com itens triviais. Uma lista curta de planos com alta alavancagem vale muito mais que um inventário prolixo de sugestões teóricas.
+You are advising technically, not pitching. State facts with sobriety, note uncertainties honestly, and prefer saying "not worth doing right now" over inflating the list with trivialities. A short list of high-leverage plans is worth far more than a bloated inventory of speculative suggestions.

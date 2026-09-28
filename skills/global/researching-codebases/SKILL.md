@@ -1,75 +1,75 @@
 ---
 name: researching-codebases
 description: >-
-    Use ao responder a perguntas complexas sobre uma base de código que exijam explorar múltiplos módulos ou rastrear o fluxo entre componentes.
-    Coordena subagentes de pesquisa em paralelo para localizar, analisar e sintetizar descobertas técnicas com referências precisas de arquivos e linhas.
+    Use when answering complex questions about a codebase that require exploring multiple modules or tracing flow across components.
+    Coordinates parallel research subagents to locate, analyze, and synthesize technical findings with precise file and line references.
 ---
 
-# Pesquisa Aprofundada em Bases de Código (Researching Codebases)
+# Deep Codebase Research
 
-Coordene subagentes em paralelo para responder a perguntas complexas de arquitetura, fluxo de dados e implementação na base de código.
+Coordinate parallel subagents to investigate complex questions of architecture, data flow, and implementation across a codebase.
 
-## Quando Usar
+## When to Use
 
-- Dúvidas que atravessam múltiplos arquivos, microsserviços ou pacotes.
-- "Como o recurso X funciona internamente?", exigindo rastrear chamadas de ponta a ponta.
-- Busca por padrões, convenções ou exemplos recorrentes no projeto.
-- Compreensão do ciclo de vida de entidades ou decisões arquiteturais.
+- Questions spanning multiple files, microservices, or packages.
+- "How does feature X work internally?", requiring tracing calls end-to-end.
+- Searching for patterns, idioms, or recurring conventions across the repository.
+- Understanding entity lifecycles or architectural decisions.
 
-## Quando NÃO Usar
+## When NOT to Use
 
-- Perguntas simples de "onde fica o arquivo X?" — busque diretamente com comandos de busca.
-- Dúvidas restritas a um único arquivo — leia o arquivo diretamente.
-- Pesquisas puramente externas ou na web — consulte a documentação web diretamente.
+- Simple "where is file X?" queries — use direct search commands instead.
+- Questions localized to a single file — read that file directly.
+- Purely external or web lookups — consult web documentation directly.
 
-## Fluxo de Trabalho
+## Workflow
 
-### 0. Consultar pesquisas anteriores (opcional)
+### 0. Check Prior Research (Optional)
 
-Antes de decompor uma nova pergunta de pesquisa ampla, verifique se já existem investigações anteriores salvas:
+Before breaking down a broad research inquiry, check whether past investigations already exist:
 
-1. Verifique se existe a pasta `.research/` no projeto ou `~/.gemini/research/`.
-2. Se houver relatórios anteriores pertinentes, aproveite as conclusões em vez de reexplorar do zero.
-3. Consulte `research-tools.md` para utilitários de busca de notas.
+1. Check for a `.research/` directory in the project or `~/.gemini/research/`.
+2. If relevant past reports exist, leverage their findings rather than investigating from scratch.
+3. Consult `research-tools.md` for note retrieval utilities.
 
-### 1. Ler arquivos citados inicialmente
+### 1. Read Mentioned Files First
 
-Se o usuário citar arquivos ou diretórios específicos na pergunta, leia esses arquivos por completo antes de disparar subagentes. Isso fornece o vocabulário e o escopo necessários para decompor a tarefa.
+If the user mentions specific files or directories in the query, read those files completely before spawning subagents. This establishes the necessary vocabulary and scope to decompose the investigation.
 
-### 2. Decompor a pergunta
+### 2. Decompose the Inquiry
 
-Divida a investigação em tarefas paralelas e independentes:
+Break down the investigation into parallel, independent threads:
 
-- Quais camadas do sistema estão envolvidas (frontend, backend, banco, contratos de API)?
-- Precisamos de mapeamento de chamadas, análise de dados ou exemplos de testes?
-- Consulte `agent-selection.md` para direcionar a especialidade adequada.
+- Which architectural layers are involved (frontend, backend, database, API contracts)?
+- Do we need call graph tracing, data-shape analysis, or test suite examples?
+- Consult `agent-selection.md` to pick appropriate subagent specializations.
 
-### 3. Disparar subagentes em paralelo
+### 3. Launch Subagents in Parallel
 
-Invoque subagentes simultâneos para as frentes independentes (no Antigravity, utilize a ferramenta `invoke_subagent` com tipo `research` ou equivalente).
+Invoke concurrent subagents for independent investigation tracks (in Antigravity, use `invoke_subagent` with type `research` or equivalent).
 
-**Aguarde o retorno de todas as frentes antes de redigir a síntese final.**
+**Wait for all tracks to return before composing the final synthesis.**
 
-### 4. Sintetizar e responder
+### 4. Synthesize and Answer
 
-Agrupe as descobertas em uma resposta estruturada e coesa:
+Combine findings into a structured, cohesive response:
 
-- Resposta direta e objetiva à dúvida original.
-- Referências precisas no formato `caminho/do/arquivo:linha` (ou links no padrão Markdown).
-- Diagrama ou descrição clara das conexões entre componentes.
-- Pontos em aberto ou limitações identificadas.
+- Direct, objective answer to the original question.
+- Precise references in `path/to/file:line` format (or Markdown links).
+- Clear diagrams or explanations showing connections between components.
+- Open questions or identified edge-case limitations.
 
-### 5. Salvar nota técnica (opcional)
+### 5. Save Technical Note (Optional)
 
-Para investigações profundas de alto valor para o time, ofereça:
+For deep investigations with high future value to the team, offer:
 
-> _"Deseja que eu salve esta análise técnica em um documento de pesquisa (em `.research/` no projeto)?"_
+> _"Would you like me to save this technical investigation into a research document (in `.research/`)?"_
 
-Para dúvidas rápidas e pontuais, entregue a resposta diretamente no chat sem burocracia.
+For quick, targeted lookups, deliver the answer directly in chat without extra ceremony.
 
-## Erros Comuns a Evitar
+## Common Pitfalls to Avoid
 
-- **Disparar subagentes antes de ler o contexto inicial:** Leia primeiro os arquivos que o usuário já indicou.
-- **Não aguardar todas as investigações terminarem:** Sintetize somente após todas as frentes responderem.
-- **Documentar excessivamente respostas simples:** Respostas curtas não precisam de arquivos `.md` gerados.
-- **Execução sequencial desnecessária:** Se as áreas de pesquisa são independentes, consulte-as em paralelo.
+- **Spawning subagents before reading initial context:** Always inspect user-provided files first.
+- **Synthesizing prematurely:** Wait until all subagents have reported back.
+- **Over-documenting simple queries:** Short answers do not require generated markdown artifacts.
+- **Unnecessary sequential execution:** If research areas are independent, investigate them in parallel.

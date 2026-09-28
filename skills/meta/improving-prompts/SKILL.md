@@ -1,91 +1,91 @@
 ---
 name: improving-prompts
 description: >-
-    Use ao otimizar arquivos GEMINI.md, AGENTS.md, prompts de sistema, comandos customizados ou arquivos de skills.
-    Diagnostica primeiro a falha concreta de comportamento e depois aplica as melhores práticas documentadas de engenharia de prompt (instruções explícitas, contexto/motivação, controle de verbosidade, exemplos formatados e tamanho enxuto) em vez de inventar alterações cosméticas.
+    Use when optimizing GEMINI.md, AGENTS.md, system prompts, custom slash commands, or skill files.
+    Diagnoses concrete behavioral failures first and applies documented prompt engineering best practices (explicit instructions, context/motivation, verbosity constraints, formatted examples, and compact length) rather than making cosmetic changes.
 ---
 
-# Otimização e Melhoria de Prompts (Improving Prompts)
+# Improving Prompts
 
-## Visão Geral
+## Overview
 
-Aplique as melhores práticas documentadas de engenharia de prompt aos arquivos existentes. Não invente "melhorias" cosméticas — identifique o comportamento com falha real e aplique a orientação correta.
+Apply documented prompt engineering best practices to existing instruction files. Do not invent cosmetic "improvements" — identify the concrete behavioral defect first and apply the appropriate remedy.
 
-## Quando Usar
+## When to Use
 
-- Otimização de arquivos `GEMINI.md` ou `AGENTS.md`.
-- Refinamento de instruções em skills e comandos.
-- Correção de prompts que o modelo não está obedecendo ou ignorando.
-- Encurtamento de regras muito longas ou infladas.
+- Optimizing `GEMINI.md` or `AGENTS.md` files.
+- Refining instructions in skills and custom commands.
+- Correcting prompts that the model ignores or disobeys.
+- Trimming rules that are excessively long or bloated.
 
-## Quando NÃO Usar
+## When NOT to Use
 
-- Escrever novos prompts do zero (apenas siga as boas práticas diretamente).
-- O prompt atual já funciona bem e o usuário não relatou nenhum problema.
+- Writing brand new prompts from scratch (apply best practices directly).
+- The current prompt works reliably and the user reported no failure.
 
-## O Problema Central
+## The Core Problem
 
-Sem esta skill, os agentes tendem a:
+Without this skill, agents tend to:
 
-- Inventar "boas práticas" genéricas da internet.
-- Fazer alterações estruturais sem saber o que estava quebrado.
-- Adicionar complexidade assumindo que "mais texto = melhor".
-- Mudar coisas apenas para demonstrar serviço, em vez de resolver um problema real.
+- Invent generic, unverified "best practices" from the internet.
+- Restructure prompts without knowing what behavior was actually broken.
+- Add complexity assuming "more words = better instruction".
+- Mutate instructions to demonstrate activity rather than solving an observed defect.
 
-## Pare se Você Pegar a Si Mesmo Pensando:
+## Catch Yourself Thinking:
 
-| Pensamento                                                   | Realidade                                                                 |
-| ------------------------------------------------------------ | ------------------------------------------------------------------------- |
-| "Está vago / fora do padrão / inconsistente"                 | Não é acionável. Qual comportamento específico falhou?                    |
-| "Já entendi o suficiente / vou assumir o que o usuário quer" | Se você não consegue citar a falha concreta, você não sabe. Pergunte.     |
-| "Eu sou o especialista / eu escreveria diferente"            | Preferência pessoal não substitui um problema real. Você não é o usuário. |
-| "Estrutura é sempre melhor"                                  | Estrutura resolve problemas estruturais, não todos os problemas.          |
-| "Isso é obviamente uma melhoria"                             | O que é óbvio para você pode quebrar o fluxo do usuário.                  |
+| Thought                                             | Reality                                                                      |
+| --------------------------------------------------- | ---------------------------------------------------------------------------- |
+| "It feels vague / non-standard / inconsistent"      | Not actionable. What specific behavior failed?                               |
+| "I know enough / I will assume what the user wants" | If you cannot point to a concrete failure, you do not know. Ask.             |
+| "I am the expert / I would write it differently"    | Stylistic preference does not replace a functional defect. You are not user. |
+| "More structure is always better"                   | Structure solves structural issues, not all problems.                        |
+| "This is obviously an improvement"                  | What is obvious to you may disrupt the user's workflow.                      |
 
-## Processo Obrigatório
+## Mandatory Process
 
-### Etapa 1: Entender Antes de Mudar
+### Step 1: Understand Before Changing
 
-Antes de QUALQUER modificação:
+Before ANY modification:
 
-1. Pergunte qual comportamento específico está aquém do esperado.
-2. Pergunte o que o prompt deveria alcançar que não está alcançando hoje.
-3. Se o usuário disser "apenas melhore de forma geral", peça pelo menos um exemplo de falha concreta.
+1. Ask what specific behavior fell short of expectations.
+2. Ask what the prompt was supposed to achieve that it currently fails to deliver.
+3. If the user asks for a general improvement, request at least one concrete failure example.
 
-**O que conta como falha concreta:**
+**What qualifies as a concrete failure:**
 
-- "O modelo ignora minha instrução de ser conciso" ✓
-- "O modelo apenas sugere alterações em vez de aplicar as edições no código" ✓
+- "The model ignores my instruction to be concise" [x]
+- "The model only suggests diffs instead of editing the files directly" [x]
 
-### Etapa 2: Aplicar Princípios Comprovados
+### Step 2: Apply Proven Principles
 
-- **Seja explícito com o escopo:** Modelos modernos seguem instruções ao pé da letra. Especifique se a regra vale para todas as seções ou apenas para um caso.
-- **Explique o PORQUÊ (Motivação):** Explicar o motivo de uma regra ajuda o modelo a generalizar corretamente. Em vez de apenas "NUNCA use elipses", use: "Não use reticências porque o motor de text-to-speech não consegue pronunciá-las".
-- **Atenção aos exemplos:** Exemplos são imitados à risca, inclusive vícios indesejados. Forneça de 2 a 3 exemplos perfeitamente alinhados ao resultado esperado.
-- **Controle a verbosidade explicitamente:** Indique se a resposta deve ser curta, objetiva ou detalhada com justificativas.
-- **Modere palavras em tom agressivo:** Evite usar "CRÍTICO: VOCÊ DEVE OBRIGATORIAMENTE" em todo lugar. Modelos tendem a hiperfocar e ignorar o restante do prompt quando expostos a linguagem em pânico. Prefira: "Use X quando Y".
+- **Be explicit about scope:** Modern models follow instructions literally. State whether a rule applies to all files or only to specific cases.
+- **Explain the WHY (Motivation):** Explaining the reason behind a rule helps the model generalize correctly. Instead of "NEVER use ellipses", use: "Do not use ellipses because the text-to-speech engine fails to pronounce them".
+- **Curate few-shot examples carefully:** Models emulate formatting and quirks. Provide 2 to 3 examples strictly aligned with the target behavior.
+- **Constrain verbosity explicitly:** State whether responses should be concise, direct, or detailed with rationales.
+- **Moderate aggressive phrasing:** Avoid plastering "CRITICAL: YOU MUST AT ALL COSTS" everywhere. Models overfocus and ignore surrounding context when flooded with panicked language. Prefer: "Use X when Y".
 
-### Etapa 3: Preservar o que Já Funciona
+### Step 3: Preserve What Already Works
 
-- NÃO reestruture seções que não apresentam problemas.
-- NÃO adicione complexidade a menos que ela resolva uma falha relatada.
-- Mantenha os exemplos do usuário se eles demonstram o comportamento correto.
+- DO NOT restructure sections that exhibit no failure.
+- DO NOT add complexity unless it directly resolves a reported issue.
+- Retain existing user examples if they demonstrate valid behavior.
 
-### Etapa 4: Propor Alterações com Justificativa
+### Step 4: Propose Changes with Rationale
 
-Para cada alteração, declare:
+For each change, declare:
 
-1. Qual boa prática foi aplicada.
-2. Qual problema concreto ela resolve.
-3. O antes e depois.
+1. Which best practice was applied.
+2. What concrete problem it resolves.
+3. The before-and-after comparison.
 
-## Tabela Rápida: Problema → Solução
+## Quick Reference: Problem -> Solution
 
-| Problema Observado                           | Correção Recomendada                                                                     |
-| -------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| Resposta restrita demais / não generaliza    | Especifique o escopo explicitamente ("aplique a todos os arquivos", "em todos os casos") |
-| O agente não explica o raciocínio            | Peça explicitamente para declarar os motivos antes da conclusão                          |
-| O agente é verboso demais                    | Instrua: "Seja conciso" ou "Responda em no máximo 3 frases"                              |
-| O agente sugere mas não aplica alterações    | Troque "Você pode sugerir..." pelo imperativo "Execute as alterações nos arquivos"       |
-| Uma regra é ignorada                         | Adicione a motivação (explique POR QUE essa regra é importante)                          |
-| Arquivo de regras longo demais (>200 linhas) | Remova regras redundantes que o modelo já segue naturalmente por bom senso               |
+| Observed Defect                              | Recommended Fix                                                                    |
+| -------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Overly narrow response / fails to generalize | State scope explicitly ("apply across all files", "in all instances")              |
+| Agent fails to explain reasoning             | Explicitly prompt to state reasoning prior to the final answer                     |
+| Agent is excessively verbose                 | Instruct: "Be concise" or "Respond in at most 3 sentences"                         |
+| Agent suggests diffs without applying them   | Replace "You can suggest..." with imperative "Apply changes directly to the files" |
+| A specific rule is routinely ignored         | Add motivation (explain WHY the rule is critical)                                  |
+| Rules file is bloated (>200 lines)           | Remove redundant rules that the model follows naturally via common sense           |

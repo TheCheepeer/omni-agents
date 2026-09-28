@@ -1,87 +1,87 @@
 ---
 name: frontend-design-principles
 description: >-
-    Use ao construir ou revisar interfaces frontend (UI) — dashboards, painéis administrativos, landing pages, sites institucionais e aplicações web.
-    Orienta decisões de design específicas do domínio (tipografia intencional, universo cromático, tokens semânticos de CSS, layout, profundidade e espaçamento) em vez de entregar designs genéricos de IA.
-    Encaminha para referências de produto (app.md) ou marketing (marketing.md) conforme o contexto.
+    Use when building or reviewing frontend user interfaces (UI) — dashboards, admin panels, landing pages, marketing sites, and web applications.
+    Guides domain-specific design decisions (intentional typography, color palettes, semantic CSS tokens, layout, depth, and spacing) rather than default generic AI aesthetics.
+    Routes to product (app.md) or marketing (marketing.md) references based on context.
 ---
 
-# Princípios de Design Frontend (Frontend Design Principles)
+# Frontend Design Principles
 
-Construa interfaces com intenção, identidade e refinamento artesanal.
+Build interfaces with intention, character, and crafted polish.
 
-## Escopo e Roteamento
+## Scope and Routing
 
-Após este arquivo, consulte o guia específico para o contexto:
+After reading this overview, consult the context-specific guide:
 
-- **`app.md`** — dashboards, painéis administrativos, telas de configurações, ferramentas internas, produtos SaaS e interfaces ricas em dados (tabelas, formulários, listas) onde os usuários trabalham com frequência.
-- **`marketing.md`** — landing pages, páginas de conversão, anúncios de produto e peças criativas onde a primeira impressão visual é o fator crítico.
+- **`app.md`** — dashboards, admin panels, settings pages, internal tools, SaaS products, and data-dense interfaces (tables, forms, feeds) where users perform repetitive daily work.
+- **`marketing.md`** — landing pages, conversion funnels, product announcements, and creative showcases where visual first impressions and brand differentiation are paramount.
 
-## Por que este processo existe
+## Why This Process Exists
 
-Modelos de linguagem tendem por padrão a gerar interfaces previsíveis e genéricas — cartões brancos com sombras exageradas e ícones azuis. O processo abaixo força você a tomar decisões intencionais de design antes de escrever o código.
+Language models default to predictable, generic interfaces — rounded white cards with exaggerated drop shadows and standard blue accents. The process below requires deliberate design decisions before writing UI code.
 
-## Onde os Padrões Genéricos se Escondem
+## Where Generic Defaults Hide
 
-- **Tipografia não é apenas um contêiner — ela É o design.** Um sistema de confeitaria artesanal e um terminal financeiro buscam "clareza tipográfica", mas um deve ser caloroso e orgânico enquanto o outro é frio e milimetricamente denso.
-- **Navegação não cerca o produto — ela É o produto.** Onde o usuário está, para onde pode ir e o que importa mais. Uma tela isolada sem contexto é apenas uma demo de componente, não um produto real.
-- **Dados comunicam significado.** Um anel de progresso e um contador textual podem mostrar "3 de 10"; um conta uma história de evolução, o outro apenas ocupa espaço.
-- **Nomes de tokens CSS são decisões de design:** Ao ler apenas as variáveis CSS, deve ser possível adivinhar o universo do produto:
+- **Typography is not just a container — it IS the design.** An artisan bakery platform and a financial trading terminal both pursue "typographic clarity", yet one must feel warm and tactile while the other must be precise, cold, and tabular.
+- **Navigation does not frame the product — it IS the product.** Where the user is, where they can go, and what matters most. An isolated screen without contextual hierarchy is just a component demo, not a usable tool.
+- **Data communicates meaning.** A progress ring and a text counter might both display "3 of 10"; one conveys an unfolding story, the other merely fills space.
+- **CSS token names reflect design choices:** Reading CSS variables alone should reveal the product's domain:
 
 ```css
-/* ❌ Genérico — poderia ser qualquer projeto clichê */
+/* ❌ Generic — could belong to any random template */
 --gray-700: #333;
 --surface-2: #fafafa;
 
-/* ✅ Semântico e alinhado ao domínio */
+/* ✅ Semantic and domain-aligned */
 --ink: #18181b;
 --parchment: #fdfbf7;
 ```
 
-## Etapas Obrigatórias Antes de Gerar Código
+## Mandatory Steps Before Writing Code
 
-Não escreva código de interface antes de resolver:
+Resolve these questions before writing interface code:
 
-### 1. Responder às Perguntas de Intenção
+### 1. Answer Intent Questions
 
-- **Quem é este ser humano?** Não diga apenas "usuários". Descreva a pessoa real — em que ambiente ela está, o que estava fazendo antes e o que precisa fazer logo após.
-- **Qual é a tarefa a cumprir?** O verbo central: aprovar pagamentos, auditar deploy, tabular faturas.
-- **Qual deve ser a sensação da interface?** Fuja do clichê "limpa e moderna". Defina sensações concretas: quente como papel kraft? densa e funcional como uma planilha de Bloomberg? minimalista e afiada como uma lâmina cirúrgica?
+- **Who is this human?** Do not just say "users". Describe the real person — their physical environment, what they were doing immediately before, and what they must accomplish next.
+- **What is the core task?** The central action verb: approve payments, audit deploy logs, reconcile invoices.
+- **What should the interface feel like?** Reject lazy labels like "clean and modern". Define concrete sensory qualities: warm like kraft paper? dense and functional like a Bloomberg terminal? minimal and surgical?
 
-### 2. Definir os Quatro Pilares do Design
+### 2. Define the Four Design Pillars
 
-- **Domínio:** pelo menos 5 conceitos e termos reais do ecossistema do produto.
-- **Universo de Cor:** cores que existem naturalmente no mundo físico do produto (ao menos 5 tons).
-- **Assinatura:** um elemento único (visual, estrutural ou de microinteração) que só faria sentido neste produto específico.
-- **Padrões a Rejeitar:** 3 escolhas óbvias e clichês de UI que você se compromete a NÃO usar nesta tela.
+- **Domain:** at least 5 authentic domain terms from the product's specific ecosystem.
+- **Color Universe:** colors derived naturally from the physical world of the product (at least 5 distinct tones).
+- **Signature:** one distinctive element (visual treatment, structural pattern, or micro-interaction) that belongs uniquely to this product.
+- **Patterns to Reject:** 3 generic UI clichés you commit to avoiding in this interface.
 
-### 3. Confirmar a Direção
+### 3. Confirm Direction
 
-Apresente a direção para o usuário antes de despejar centenas de linhas de código, validando se a identidade visual atende à expectativa.
+Present this design direction to the user before generating hundreds of lines of code, validating that the visual identity aligns with expectations.
 
-## Testes de Validação da Interface
+## Interface Validation Tests
 
-- **Teste da Substituição:** se você trocar a fonte e as cores pelo padrão cinza/azul do Tailwind/Bootstrap, alguém notaria? Onde a troca passar despercebida é onde faltou intenção.
-- **Teste do Desfoque (Squint Test):** aperte os olhos ou desfoque a visão. A hierarquia de pesos e áreas continua nítida?
-- **Teste de Assinatura:** aponte exatamente em quais componentes a identidade própria do produto está presente.
-- **Teste dos Tokens:** suas variáveis de estilo pertencem à identidade única desta marca ou parecem um template genérico?
+- **Substitution Test:** if you swapped the font and colors for default gray/blue Tailwind or Bootstrap utilities, would anyone notice? Where the swap is invisible is where design intention is missing.
+- **Squint Test:** squint or blur your vision. Does the visual hierarchy of weights and functional zones remain distinct?
+- **Signature Test:** point out exactly which components embody the product's bespoke character.
+- **Token Test:** do your style tokens reflect a unique brand system or an off-the-shelf template?
 
-## Fundamentos de Acabamento e Refinamento
+## Craft and Polish Fundamentals
 
-- **Camadas sutis de elevação:** transições de superfície extremamente suaves e discretas (como visto em Linear, Vercel e Supabase).
-- **Bordas elegantes:** bordas finas e sutis que desaparecem até que o olhar busque a estrutura.
-- **Cores com propósito:** tons neutros constroem a estrutura; cores de destaque carregam significado. Um destaque intencional vale mais do que cinco cores aleatórias.
+- **Subtle Elevation Layers:** exceedingly gentle, layered surface shifts (as seen in Linear, Vercel, and Supabase).
+- **Crisp Borders:** fine, subtle borders that recede until the eye seeks structural division.
+- **Purposeful Color:** neutral tones construct structure; accent colors carry functional meaning. One intentional accent outperforms five competing saturated colors.
 
-## Antipadrões Universais a Evitar
+## Universal Anti-Patterns to Avoid
 
-- Sombras projetadas gigantes e escuras (`box-shadow: 0 25px 50px ...` artificial).
-- Bordas decorativas muito grossas e chamativas (2px+ aleatórios).
-- Múltiplas cores de destaque competindo pela atenção.
-- Mistura descuidada de profundidade (sombras pesadas concorrendo com bordas duras).
-- Espaçamentos inconsistentes fora de uma escala matemática coerente.
+- Oversized, muddy drop shadows (`box-shadow: 0 25px 50px ...`).
+- Decorative borders thicker than necessary (unmotivated 2px+ strokes).
+- Competing accent colors fighting for equal attention.
+- Incoherent elevation layering (heavy drop shadows combined with harsh flat borders).
+- Inconsistent spacing outside a disciplined scale.
 
-## Documentos de Aprofundamento
+## Supporting Documents
 
-- `references/principles.md` — valores concretos de CSS para profundidade, tipografia, espaçamento e modo escuro.
-- `app.md` — diretrizes focadas em aplicações SaaS, dashboards e telas de alta densidade.
-- `marketing.md` — diretrizes para landing pages e páginas de conversão.
+- `references/principles.md` — concrete CSS values for elevation, typography scales, spacing, and dark mode.
+- `app.md` — guidelines focused on SaaS products, dashboards, and high-density screens.
+- `marketing.md` — guidelines for landing pages, conversion funnels, and brand showcases.

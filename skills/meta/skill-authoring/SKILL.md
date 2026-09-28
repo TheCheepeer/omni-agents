@@ -1,98 +1,98 @@
 ---
 name: skill-authoring
 description: >-
-    Use ao criar, redigir, refinar ou depurar skills para agentes de IA.
-    Orienta a estrutura de arquivos e frontmatter de SKILL.md, redação de descrições ricas em gatilhos para ativação semântica, organização de instruções com divulgação progressiva (progressive disclosure), validação estrutural e resolução de problemas quando uma skill não ativa ou é ignorada pelo modelo.
+    Use when creating, authoring, refining, or debugging skills for AI agents.
+    Guides SKILL.md file structure, frontmatter schemas, trigger-rich descriptions for semantic activation, progressive disclosure organization, structural validation, and troubleshooting skills that fail to activate or get ignored by models.
 ---
 
-# Criação e Manutenção de Skills (Skill Authoring)
+# Skill Authoring and Maintenance (Skill Authoring)
 
-Utilize este guia como manual de referência para criar, auditar e manter skills de alto impacto para agentes de IA.
+Use this guide as an authoritative manual for creating, auditing, and maintaining high-impact skills for AI coding agents.
 
-Uma skill é considerada concluída quando carrega apenas para as solicitações corretas, fornece instruções claras sem desperdiçar tokens na janela de contexto e baseia suas orientações em evidências reais.
+A skill is considered complete when it activates only on appropriate queries, delivers unambiguous instructions without wasting context window tokens, and grounds its advice in verifiable repository evidence.
 
-Os agentes de IA leem `name` e `description` antes de ler o corpo do arquivo. O conteúdo principal só é carregado na memória quando a descrição corresponde à tarefa do usuário. Referências, scripts e modelos são lidos sob demanda. Escreva sempre respeitando essa ordem de carregamento.
+AI agents read `name` and `description` before loading the file body. The main body is pulled into working context only when the description matches the user's intent. Supporting references, scripts, and templates are read strictly on demand. Always author content respecting this loading hierarchy.
 
-## Escolha o Fluxo Adequado
+## Choose the Appropriate Workflow
 
-| Objetivo                                                | Leitura Inicial                                    | Recursos Secundários                                                                             |
-| ------------------------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| Criar uma skill simples do zero                         | [workflows/create.md](workflows/create.md)         | [templates/simple.md](templates/simple.md), [references/patterns.md](references/patterns.md)     |
-| Criar/atualizar a partir de docs e histórico do projeto | [workflows/synthesize.md](workflows/synthesize.md) | [README.md](README.md), [references/examples.md](references/examples.md)                         |
-| Revisar ou auditar uma skill existente                  | [references/rules.md](references/rules.md)         | [references/examples.md](references/examples.md), [spec/specification.md](spec/specification.md) |
-| Verificar se a skill ativa e responde corretamente      | [workflows/test.md](workflows/test.md)             | [workflows/debug.md](workflows/debug.md) se falhar                                               |
-| Diagnosticar skill que não ativa ou é ignorada          | [workflows/debug.md](workflows/debug.md)           | [spec/specification.md](spec/specification.md)                                                   |
-| Aprimorar skill após falha concreta em sessão           | [workflows/refine.md](workflows/refine.md)         | [references/rules.md](references/rules.md)                                                       |
+| Objective                                             | Entry Point                                        | Secondary Resources                                                                              |
+| ----------------------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Create a simple skill from scratch                    | [workflows/create.md](workflows/create.md)         | [templates/simple.md](templates/simple.md), [references/patterns.md](references/patterns.md)     |
+| Create or update from project docs and history        | [workflows/synthesize.md](workflows/synthesize.md) | [README.md](README.md), [references/examples.md](references/examples.md)                         |
+| Review or audit an existing skill                     | [references/rules.md](references/rules.md)         | [references/examples.md](references/examples.md), [spec/specification.md](spec/specification.md) |
+| Verify that a skill activates and responds correctly  | [workflows/test.md](workflows/test.md)             | [workflows/debug.md](workflows/debug.md) upon failure                                            |
+| Diagnose a skill that fails to activate or is ignored | [workflows/debug.md](workflows/debug.md)           | [spec/specification.md](spec/specification.md)                                                   |
+| Refine a skill after an observed runtime failure      | [workflows/refine.md](workflows/refine.md)         | [references/rules.md](references/rules.md)                                                       |
 
-## Regras Cardeais de Qualidade
+## Cardinal Quality Rules
 
-1. **A descrição deve conter palavras-chave de gatilho:** Sem termos claros, o agente nunca saberá quando ativar a skill.
-2. **A descrição cita capacidades e condições, não passos:** O agente pode se apegar a resumos do frontmatter em vez de ler o corpo detalhado se a descrição tentar resumir o passo a passo.
-3. **A descrição usa a 3ª pessoa:** Ela é injetada como metadado de contexto ("Use ao...", "Guia para..."), e não como fala do agente.
-4. **O nome deve ser idêntico ao da pasta:** Em formato kebab-case (`nome-da-skill`).
-5. **Instruções críticas ficam no topo:** Em arquivos extensos, informações do final podem perder peso de atenção.
-6. **`SKILL.md` deve ser enxuto:** O contexto em tempo de execução é valioso; mova documentações complementares para `references/`.
-7. **Referências devem ser explicitamente linkadas no Markdown:** Links relativos facilitam a navegação pelo agente.
-8. **Precisão antes de volume:** Mais arquivos e textos prolixos frequentemente diminuem a confiabilidade do agente.
+1. **Descriptions must contain trigger keywords:** Without explicit intent verbs and domain nouns, agents cannot match queries semantically.
+2. **Descriptions describe capabilities and conditions, not step-by-step procedures:** Agents can fixate on frontmatter summaries instead of reading detailed instructions in the body if steps are compressed into the description.
+3. **Descriptions use 3rd-person phrasing:** Injected as system metadata ("Use when...", "Guides..."), never as conversational agent dialogue.
+4. **Name must match the parent folder exactly:** In kebab-case format (`skill-name`).
+5. **Critical instructions live near the top:** In long files, terminal instructions experience attention degradation.
+6. **`SKILL.md` must remain lean:** Runtime context is expensive; relocate deep technical manuals to `references/`.
+7. **References must be explicitly linked in Markdown:** Relative links allow agents to navigate referenced resources systematically.
+8. **Precision over volume:** Bloated, rambling instructions degrade agent reasoning reliability.
 
-## Anatomia de uma Skill
+## Skill Anatomy
 
 ```text
-nome-da-skill/
-├── SKILL.md              # Ponto de entrada obrigatório (instruções essenciais)
-├── README.md             # Opcional: contexto para mantenedores humanos
-├── references/           # Opcional: manuais técnicos detalhados sob demanda
-├── scripts/              # Opcional: scripts utilitários executáveis
-└── assets/               # Opcional: modelos, esquemas e arquivos estáticos
+skill-name/
+├── SKILL.md              # Mandatory entry point (core instructions and rules)
+├── README.md             # Optional: human maintainer documentation
+├── references/           # Optional: deep-dive manuals loaded on demand
+├── scripts/              # Optional: deterministic executable scripts
+└── assets/               # Optional: templates, schemas, and static assets
 ```
 
-Distribuição recomendada do conteúdo:
+Recommended content distribution:
 
-- **`SKILL.md`:** Frontmatter YAML e regras operacionais essenciais.
-- **`references/*.md`:** Manuais e explicações aprofundadas que o agente só lê quando necessário.
-- **`scripts/*`:** Operações repetitivas e determinísticas que scripts resolvem melhor que texto.
-- **`assets/*`:** Templates de saída, schemas JSON e exemplos brutos.
+- **`SKILL.md`:** YAML frontmatter and foundational operational rules.
+- **`references/*.md`:** Detailed explanations and manuals that agents read only when specialized depth is needed.
+- **`scripts/*`:** Deterministic, repetitive operations that code executes more reliably than text generation.
+- **`assets/*`:** Output templates, JSON schemas, and raw examples.
 
-## Como Escrever Descrições Eficazes no Frontmatter
+## Writing Effective Frontmatter Descriptions
 
-A descrição decide se a skill será carregada ou ignorada. Siga esta fórmula:
+The description determines whether the skill is loaded or bypassed. Follow this template:
 
 ```yaml
 description: >-
-    Use ao [condições de ativação] — [capacidades específicas].
-    Trata [formatos de arquivo, contextos, sintomas, termos correlatos].
+    Use when [trigger conditions] — [specific capabilities].
+    Handles [file formats, contexts, failure symptoms, related terms].
 ```
 
-**Exemplo Recomendado:**
+**Recommended Example:**
 
 ```yaml
 description: >-
-    Use ao trabalhar com arquivos PDF — extração de texto, preenchimento de formulários e união de documentos.
-    Lida com arquivos .pdf, relatórios digitalizados e campos de formulário.
+    Use when working with PDF files — text extraction, form filling, and document merging.
+    Handles .pdf files, scanned forms, and interactive form fields.
 ```
 
-**Exemplo a Evitar:**
+**Anti-Pattern to Avoid:**
 
 ```yaml
-description: Processa PDFs extraindo texto e gerando relatórios.
+description: Processes PDFs by extracting text and creating reports.
 ```
 
-## Divulgação Progressiva (Progressive Disclosure)
+## Progressive Disclosure
 
-| Camada       | Conteúdo                   | Quando Carrega                        | Objetivo                                  |
-| ------------ | -------------------------- | ------------------------------------- | ----------------------------------------- |
-| **Camada 1** | `name` + `description`     | Sempre (injetado no contexto inicial) | Decisão de ativação rápida e precisa      |
-| **Camada 2** | Corpo de `SKILL.md`        | Ao disparar a skill                   | Fluxo principal, regras e exemplos        |
-| **Camada 3** | `references/` e `scripts/` | Sob demanda                           | Aprofundamento cirúrgico de tópicos raros |
+| Layer       | Content                    | When Loaded                          | Purpose                                 |
+| ----------- | -------------------------- | ------------------------------------ | --------------------------------------- |
+| **Layer 1** | `name` + `description`     | Always (injected in initial context) | Fast, accurate activation matching      |
+| **Layer 2** | `SKILL.md` body            | On skill activation                  | Core operational workflow and idioms    |
+| **Layer 3** | `references/` & `scripts/` | On demand                            | Surgical deep-dives for specialized ops |
 
-## Estrutura do Corpo do `SKILL.md`
+## Body Structure of `SKILL.md`
 
-Escreva para um agente que já possui capacidade de raciocínio. Não ensine o óbvio. Forneça:
+Write for an intelligent reasoning agent. Do not explain standard basics. Provide:
 
-1. **Escolha:** identifique o caminho ou modo de ação rapidamente.
-2. **Ação:** passos imperativos claros e critérios de decisão.
-3. **Exemplo:** um modelo concreto e bem implementado.
-4. **Proteções (Guards):** erros comuns, falsos positivos e pegadinhas.
-5. **Verificação:** comando ou teste que comprova o sucesso da tarefa.
+1. **Choice:** Identify the operational track or mode quickly.
+2. **Action:** Clear imperative steps and decision gates.
+3. **Examples:** Concrete, idiomatic snippets.
+4. **Guards:** Common failure modes, false positives, and pitfalls.
+5. **Verification:** Exact command or check confirming success.
 
-Prefira tabelas, listas de checagem e exemplos diretos a parágrafos conceituais longos.
+Prefer tables, structured lists, and focused snippets over verbose narrative prose.

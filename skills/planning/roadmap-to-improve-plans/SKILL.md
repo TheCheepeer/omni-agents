@@ -1,75 +1,75 @@
 ---
 name: roadmap-to-improve-plans
 description: >-
-    Use ao transformar um roadmap, prioridades de repositório, arquitetura ou oportunidades selecionadas em lotes agrupados de planos de melhoria numerados para futuros executores.
-    Gera índices README.md, planos no formato 001-*.md/NNN, memorandos (memo-*.md), portões de verificação de testes, checagens de divergência (drift checks), condições de PARADA (STOP conditions) e notas de transição para executores.
+    Use when turning a roadmap, repository priorities, architecture, or selected opportunities into grouped batches of numbered improvement plans for future executors.
+    Generates README.md indexes, NNN-*.md plan files, memos (memo-*.md), test verification gates, drift checks, STOP conditions, and handoff notes for executors.
 ---
 
-# Do Roadmap aos Planos de Melhoria (Roadmap to Improve Plans)
+# From Roadmap to Improvement Plans
 
-Converta oportunidades selecionadas de um roadmap estratégico em lotes estruturados de planos de melhoria numerados. Esta é a etapa de planejamento detalhado: preserve o julgamento de auditoria e os diagnósticos de arquitetura de cada oportunidade, detalhando-os no nível de precisão necessário para que futuros executores atuem com total segurança.
+Convert selected opportunities from a strategic roadmap into structured batches of numbered improvement plans. This is the detailed planning phase: preserve audit judgments and architectural diagnoses for each opportunity, detailing them to the precision necessary for future executors to act with complete safety.
 
-Trate a escrita de planos como meta-engenharia: o resultado deve aprimorar os ciclos futuros de execução, transportando impacto esperado, riscos, hipóteses de design, verificações contra regressão, limites de autonomia e condições de parada.
+Treat plan writing as meta-engineering: outputs must improve future execution cycles by conveying expected impact, risks, design hypotheses, regression checks, autonomy boundaries, and stop conditions.
 
-## Fontes e Referências
+## Sources and References
 
-Antes de redigir os planos, consulte o que for pertinente:
+Before drafting plans, consult relevant materials:
 
-- O arquivo `.agents/ROADMAP.md` (ou equivalente no projeto).
-- A skill `improve` para recuperar a postura original da auditoria: categoria, evidência, impacto, esforço, risco, confiança e esboço da solução.
-- A skill `coding-standards` para nomear os padrões violados e garantias arquiteturais.
-- Documentos e comandos do projeto: `GEMINI.md`, `AGENTS.md`, `README.md`, ADRs, scripts de build/teste e pipelines de CI.
+- `.agents/ROADMAP.md` (or project equivalent).
+- The `improve` skill to recover the original audit findings: category, evidence, impact, effort, risk, confidence, and solution sketch.
+- The `coding-standards` skill to cite violated idioms and architectural guarantees.
+- Project docs and commands: `GEMINI.md`, `AGENTS.md`, `README.md`, ADRs, build/test scripts, and CI pipelines.
 
-## Fluxo de Trabalho
+## Workflow
 
-### 1. Selecionar o Escopo do Planejamento
+### 1. Select Planning Scope
 
-- Inicie a partir das oportunidades aprovadas no roadmap.
-- Trate cada diretório de esforço como um lote coeso de melhoria: um tema central, um resultado claro, um índice `README.md`.
-- Separe funcionalidades ou objetivos não correlacionados em lotes distintos.
-- Respeite a ordem de dependências do roadmap; não transforme tudo em tarefas paralelas indiscriminadas.
+- Start from approved roadmap opportunities.
+- Treat each effort directory as a cohesive improvement batch: one core theme, one clear outcome, one index `README.md`.
+- Separate unrelated features or goals into distinct batches.
+- Respect roadmap dependency order; do not turn everything into uncoordinated parallel tasks.
 
-### 2. Reconciliar com o Estado Atual
+### 2. Reconcile with Current State
 
-- Verifique o estado atual do repositório no controle de versão (Git) para não planejar sobre código defasado.
-- Reabra e valide as evidências de código citadas no roadmap.
-- Identifique os comandos exatos de compilação, linter e testes.
-- Nunca copie chaves ou senhas para os planos; mencione apenas o arquivo e a linha.
+- Verify current repository status in version control (Git) so planning is not based on stale code.
+- Reopen and validate code evidence cited in the roadmap.
+- Identify exact build, linter, and test commands.
+- Never copy keys or credentials into plans; reference only file and line.
 
-### 3. Decompor em Planos Numerados (`NNN-*.md`)
+### 3. Decompose into Numbered Plans (`NNN-*.md`)
 
-- Cada plano `NNN-*.md` deve representar uma alteração do tamanho de um Pull Request, aplicável de forma independente ou com dependência clara de um plano anterior.
-- Prefira fatias verticais e funcionais a reescritas horizontais camada por camada.
-- Para planos de arquitetura, explicite o diagnóstico: atrito atual, teste de deleção, ganho de localidade e nível de recomendação.
-- Não finja que uma decisão técnica em aberto está pronta para execução direta. Encaminhe dúvidas arquiteturais para spikes de pesquisa ou memos de design.
+- Each `NNN-*.md` plan must represent a PR-sized change, applicable independently or with explicit dependency on a prior plan.
+- Prefer vertical functional slices over horizontal layer-by-layer rewrites.
+- For architectural plans, state the diagnosis: current friction, deletion test, locality gain, and recommendation level.
+- Do not pretend an open technical choice is ready for immediate coding. Route architectural uncertainties to research spikes or design memos.
 
-### 4. Escrever o Índice e os Planos
+### 4. Write Index and Plans
 
-- Salve preferencialmente em `.agents/plans/improvements/<slug-do-esforco>/` (ou na convenção adotada pelo projeto).
-- Use [references/index-template.md](references/index-template.md) para o `README.md`.
-- Use [references/plan-template.md](references/plan-template.md) para cada plano numerado.
-- Use [references/memo-template.md](references/memo-template.md) para registrar decisões e forks de design.
+- Save in `.agents/plans/improvements/<effort-slug>/` (or project convention).
+- Use [references/index-template.md](references/index-template.md) for `README.md`.
+- Use [references/plan-template.md](references/plan-template.md) for each numbered plan.
+- Use [references/memo-template.md](references/memo-template.md) to record decisions and design forks.
 
-### 5. Definir Fronteiras de Autonomia
+### 5. Define Autonomy Boundaries
 
-- No índice do lote, aponte os planos que exigem maior cuidado ou decisões de negócio antes de codificar.
-- Para cada plano, explicite: o que pode ser executado rotineiramente pelo agente, o que requer revisão de design e o que exige aprovação humana direta.
+- In the batch index, flag plans requiring special care or domain decisions before coding.
+- For each plan, specify: what can be routinely executed by an agent, what requires design review, and what mandates direct human approval.
 
-## Requisitos de Cada Plano
+## Plan Requirements
 
-Todo plano numerado deve ser autocontido para um executor sem histórico da sessão anterior:
+Every numbered plan must be self-contained for an executor with no prior session history:
 
-- Justificativa, impacto e retorno esperado.
-- Evidências do estado atual (`arquivo:linha`).
-- Estado final desejado.
-- Escopo incluído e explicitamente fora de escopo.
-- Sequência de passos de implementação no tamanho de um PR.
-- Comandos exatos de verificação automatizada.
-- Limite de autonomia (execução rotineira, revisão de design ou aprovação humana).
-- Condições de PARADA (STOP conditions) para suposições incorretas ou testes falhando.
-- Abordagens descartadas e por que não foram escolhidas.
-- Orientações de entrega para uma nova sessão de execução.
+- Rationale, impact, and expected return.
+- Current state evidence (`file:line`).
+- Desired end state.
+- In-scope and explicit out-of-scope boundaries.
+- PR-sized implementation step sequence.
+- Exact automated verification commands.
+- Autonomy tier (routine execution, design review, or human approval).
+- STOP conditions for incorrect assumptions or failing tests.
+- Discarded approaches and why they were rejected.
+- Delivery guidance for fresh execution sessions.
 
-## Critérios de Conclusão
+## Completion Criteria
 
-O lote de planejamento está pronto quando o índice explica a ordem de execução e a maturidade de cada plano, cada plano numerado pode ser entregue a um executor limpo e tarefas com incertezas arquiteturais estão devidamente sinalizadas para revisão prévia.
+The planning batch is complete when the index clarifies execution order and plan maturity, each numbered plan can be handed to a clean executor, and tasks with architectural uncertainty are flagged for prior review.

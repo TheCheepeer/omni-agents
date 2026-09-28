@@ -1,140 +1,140 @@
 ---
 name: writing-error-messages
 description: >-
-    Use ao escrever, revisar ou reescrever mensagens de erro voltadas a humanos, mensagens de validação de formulários, estados vazios (empty states), falhas de autenticação, notificações de erro, textos de suporte e mensagens de erro em CLI ou APIs.
-    Ajuda a produzir erros específicos, acionáveis, sem culpabilizar o usuário, acessíveis e seguros contra vazamento de dados sensíveis.
+    Use when writing, reviewing, or rewriting human-facing error messages, form validation errors, empty states, authentication failures, error notifications, support copy, and CLI or API errors.
+    Produces specific, actionable, blameless, accessible, and privacy-safe error communications.
 ---
 
-# Redação de Mensagens de Erro (Writing Error Messages)
+# Writing Error Messages
 
-## Início Rápido
+## Quickstart
 
-Antes de redigir qualquer mensagem de erro, identifique:
+Before drafting any error message, identify:
 
-1. **Público:** usuário final, administrador, desenvolvedor, agente de suporte ou operador de infraestrutura.
-2. **Falha:** qual ação falhou e o que permaneceu intacto ou salvo com sucesso.
-3. **Causa:** conhecida, desconhecida, corrigível pelo usuário, falha no servidor, serviço de terceiros ou sensível à segurança.
-4. **Recuperação:** o que o leitor pode fazer agora, o que o sistema fará a seguir e onde obter suporte se o erro persistir.
+1. **Audience:** end user, administrator, developer, support agent, or infrastructure operator.
+2. **Failure:** what action failed and what remained intact or safely preserved.
+3. **Cause:** known, unknown, user-fixable, server-side, third-party dependency, or security-sensitive.
+4. **Recovery:** what the reader can do right now, what the system will do next, and where to get help if it persists.
 
-Em seguida, adote esta estrutura:
-
-```text
-[O que aconteceu]
-[Garantia de segurança, se útil]. [Por que aconteceu, se conhecido e seguro informar]. [Ação corretiva específica]. [Caminho alternativo se continuar falhando].
-```
-
-Exemplo:
+Then, apply this structure:
 
 ```text
-Não foi possível conectar sua conta
-Suas alterações foram salvas, mas não conseguimos conectar a conta devido a uma instabilidade no nosso servidor. Tente conectar novamente. Se o problema continuar, entre em contato com o suporte.
+[What happened]
+[Reassurance, if applicable]. [Why it happened, if known and safe to disclose]. [Specific corrective action]. [Fallback path if it continues failing].
 ```
 
-## Regras Fundamentais
-
-| Regra                                   | O que Fazer                                       | O que Evitar                                             |
-| --------------------------------------- | ------------------------------------------------- | -------------------------------------------------------- |
-| Diga o que aconteceu                    | "Não foi possível salvar seu arquivo."            | "Algo deu errado." genérico sem contexto                 |
-| Informe o que não foi afetado           | "Seu rascunho continua salvo."                    | Deixar o usuário em dúvida se perdeu dados               |
-| Aponte a ação corretiva                 | "Verifique o número do cartão e tente novamente." | "OK" ou "Fechar" como único caminho                      |
-| Use linguagem simples                   | "Não foi possível conectar ao Google Drive."      | "Fetch failed" ou "status code 500" para usuários leigos |
-| Não culpe o usuário                     | "O nome da organização é obrigatório."            | "Você esqueceu de preencher o nome."                     |
-| Respeite a gravidade                    | Tom calmo, direto e profissional                  | "Ops!", piadinhas ou tom debochado                       |
-| Seja específico quando seguro           | "Informe uma data no passado."                    | "Entrada inválida."                                      |
-| Seja genérico quando a segurança exigir | "E-mail ou senha incorretos."                     | "O e-mail existe, mas a senha está errada."              |
-
-## Anatomia da Mensagem
-
-Use apenas os elementos que a situação exigir:
-
-| Elemento            | Finalidade                    | Padrão                                                                                 |
-| ------------------- | ----------------------------- | -------------------------------------------------------------------------------------- |
-| Título              | Resumir a ação que falhou     | "Não foi possível salvar as alterações"                                                |
-| Corpo               | Explicar causa e consequência | "Suas alterações continuam abertas, mas não puderam ser salvas porque a conexão caiu." |
-| Ação primária       | Dizer ao leitor o que fazer   | "Tentar novamente", "Atualizar dados", "Escolher outro arquivo"                        |
-| Caminho alternativo | Prover uma saída              | "Se o problema persistir, fale com o suporte."                                         |
-| Detalhe diagnóstico | Ajudar suporte ou devs        | Código de erro, ID da requisição (`requestId`), logs                                   |
-
-Mantenha o texto de corpo em UIs com 1 a 2 frases curtas. Detalhes de diagnóstico devem ir para seções expansíveis ou logs.
-
-## Validação e Erros de Formulário
-
-Para erros no nível de campo:
-
-- Posicione a mensagem junto ao campo correspondente e resuma no topo em formulários longos.
-- Use a mesma nomenclatura do rótulo (label) do campo para fácil identificação.
-- Diga como corrigir, e não apenas que está errado.
-- Preserve o texto já digitado pelo usuário para que ele apenas ajuste o erro.
-- Não valide prematuramente antes de o usuário ter a chance razoável de terminar de digitar.
-
-Bons padrões:
+Example:
 
 ```text
-Informe um endereço de e-mail válido
-Informe uma data no passado
-A senha deve ter pelo menos 12 caracteres
-Selecione um arquivo menor que 10 MB
+Could not connect your account
+Your changes were saved, but we could not connect the account due to server instability. Please try connecting again. If the issue persists, contact support.
 ```
 
-Evite:
+## Fundamental Rules
+
+| Rule                              | What to Do                              | What to Avoid                                     |
+| --------------------------------- | --------------------------------------- | ------------------------------------------------- |
+| State what happened               | "Could not save your file."             | Generic "Something went wrong" with no context    |
+| State what was unaffected         | "Your draft remains saved."             | Leaving user guessing whether data was lost       |
+| Provide actionable next steps     | "Check your card number and try again." | "OK" or "Close" as the only options               |
+| Use plain language                | "Could not connect to Google Drive."    | "Fetch failed" or "status code 500" for end users |
+| Do not blame the user             | "Organization name is required."        | "You forgot to enter the organization name."      |
+| Respect the situation's gravity   | Calm, direct, professional tone         | "Oops!", forced humor, or sarcastic phrasing      |
+| Be specific when safe             | "Enter a date in the past."             | "Invalid input."                                  |
+| Be generic when security requires | "Incorrect email or password."          | "Email exists, but password was incorrect."       |
+
+## Message Anatomy
+
+Use only the elements demanded by the situation:
+
+| Element            | Purpose                     | Pattern                                                                           |
+| ------------------ | --------------------------- | --------------------------------------------------------------------------------- |
+| Title              | Summarize the failed action | "Could not save changes"                                                          |
+| Body               | Explain cause and outcome   | "Your draft remains open, but could not be saved because the connection dropped." |
+| Primary action     | Tell the reader what to do  | "Try again", "Update billing", "Choose another file"                              |
+| Fallback action    | Provide an escape hatch     | "If this continues, contact support."                                             |
+| Diagnostic details | Help developers or support  | Error code, Request ID (`requestId`), logs                                        |
+
+Keep UI body copy to 1 to 2 short sentences. Push diagnostic details into expandable panels or log outputs.
+
+## Validation and Form Errors
+
+For field-level errors:
+
+- Position the error adjacent to the related input, and summarize at the top for long forms.
+- Mirror the exact label name of the field for easy identification.
+- Explain how to fix, not just that it failed.
+- Retain the user's previously entered input so they can adjust rather than retype.
+- Avoid premature validation before the user has finished typing.
+
+Good patterns:
 
 ```text
-Este campo é obrigatório
-Entrada inválida
-Valor ilegal informado
-Erro de validação
+Enter a valid email address
+Enter a date in the past
+Password must be at least 12 characters
+Select a file smaller than 10 MB
 ```
 
-## Acessibilidade e Estados Vazios
-
-- Posicione o erro visualmente no local onde o leitor já está focando.
-- Nunca dependa apenas de cores (vermelho). Utilize texto explícito, ícones e atributos de acessibilidade (como `aria-describedby` e `aria-invalid`).
-- Para páginas de formulários, mova o foco do leitor para o resumo de erros ao submeter.
-- Não confunda resultado vazio com erro. Se a busca não encontrou registros, use um estado vazio amigável: "Nenhuma fatura encontrada" acompanhado do botão "Criar nova fatura".
-
-## Portão de Segurança e Privacidade
-
-Especificidade nem sempre é boa. Use mensagens deliberadamente genéricas quando detalhes puderem revelar existência de contas, credenciais, dados privados ou vetores de fraude.
-
-Para autenticação e recuperação de senha:
+Avoid:
 
 ```text
-E-mail ou senha inválidos
-Se houver uma conta associada a este e-mail, enviaremos as instruções de redefinição de senha.
+This field is required
+Invalid input
+Illegal value provided
+Validation error
 ```
 
-Nunca revele:
+## Accessibility and Empty States
+
+- Place the error visually where the reader's focus already rests.
+- Never rely exclusively on color (red). Use explicit text, clear icons, and accessible attributes (`aria-describedby`, `aria-invalid`).
+- On page-level form submissions, move keyboard focus to the error summary block.
+- Do not mistake empty results for errors. If a search returns no records, render a helpful empty state: "No invoices found" paired with a "Create invoice" button.
+
+## Security and Privacy Guardrails
+
+Specificity is not always desirable. Use deliberately generic messages when details could leak account existence, credentials, personal information, or fraud vectors.
+
+For authentication and password recovery:
 
 ```text
-Esse e-mail está cadastrado, mas a senha está incorreta
-Esta conta foi bloqueada por tentativas excessivas
-Nenhuma conta encontrada para o e-mail informado
+Invalid email or password
+If an account is associated with this email, we have sent password reset instructions.
 ```
 
-## Mensagens Voltadas a Desenvolvedores e CLI
-
-Quando o leitor for técnico e puder agir sobre o erro, forneça detalhes estruturados:
+Never disclose:
 
 ```text
-Não foi possível ler o arquivo de configuração
-Esperava-se formato TOML em ./app.config.toml, mas foi encontrada sintaxe inválida na linha 12: aspas de fechamento ausentes.
-Corrija a sintaxe e execute `app deploy` novamente.
+This email is registered, but the password was incorrect
+This account was locked due to excessive failed attempts
+No account exists for the provided email
 ```
 
-Detalhes úteis:
+## Developer-Facing and CLI Errors
 
-- Qual comando, arquivo, variável ou recurso falhou.
-- O que era esperado versus o que foi recebido.
-- O menor comando ou passo corretivo para solucionar.
-- ID da requisição ou caminho do log para depuração.
+When the audience is technical and can act directly on the error, provide structured detail:
 
-## Checklist Final
+```text
+Could not read configuration file
+Expected TOML format in ./app.config.toml, but found invalid syntax at line 12: missing closing quote.
+Fix the syntax error and run `app deploy` again.
+```
 
-Antes de finalizar uma mensagem de erro, verifique:
+Actionable details:
 
-1. O que aconteceu?
-2. O usuário perdeu algo ou criou dados duplicados?
-3. Por que aconteceu (se for seguro informar)?
-4. Qual é a próxima ação recomendada?
-5. O que acontece se o usuário não fizer nada?
-6. Onde ele pode buscar ajuda se a correção não funcionar?
+- Which command, file, environment variable, or resource failed.
+- Expected value versus received value.
+- Smallest corrective command or fix step.
+- Request ID or log file path for debugging.
+
+## Final Checklist
+
+Before shipping an error message, verify:
+
+1. What happened?
+2. Did the user lose anything or generate duplicate data?
+3. Why did it happen (if safe to disclose)?
+4. What is the recommended next action?
+5. What happens if the user does nothing?
+6. Where can they find help if the recommended fix fails?

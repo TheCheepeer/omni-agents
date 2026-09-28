@@ -1,104 +1,104 @@
 ---
 name: writing-cli-skills
 description: >-
-    Use ao criar uma skill de agente que encapsula uma ferramenta de linha de comando (CLI) ou binário de terminal.
-    Orienta a exploração prática da ferramenta, estrutura de instalação e uso, descrições ricas em gatilhos para ativação semântica, comandos agrupados por tarefa, divulgação progressiva (progressive disclosure) e checklist de publicação.
+    Use when authoring an agent skill that wraps a command-line interface (CLI) tool or terminal binary.
+    Guides hands-on tool exploration, installation and usage structures, trigger-rich descriptions for semantic activation, task-oriented command grouping, progressive disclosure, and pre-publish checklists.
 ---
 
-# Criação de Skills para Ferramentas CLI (Writing CLI Skills)
+# Authoring Skills for CLI Tools (Writing CLI Skills)
 
-Como criar uma skill de alta qualidade para empacotar e ensinar ferramentas de linha de comando (CLI) para agentes de IA.
+How to build high-quality skills that package and teach command-line interface (CLI) tools to AI agents.
 
-## Início Rápido
+## Quickstart
 
-1. **Instale a ferramenta e teste na prática** — não apenas leia a documentação. Testar comandos reais revela comportamentos, pegadinhas e valores padrão que os manuais omitem.
-2. Execute `--help` em cada subcomando principal.
-3. Teste as operações mais frequentes do dia a dia.
-4. Anote o que for contraintuitivo ou surpreendente.
-5. Copie o modelo em `references/template.md` para a nova pasta da skill.
-6. Preencha as seções baseando-se na experiência prática de uso.
-7. Remova seções irrelevantes.
+1. **Install and run the tool hands-on** — do not just read docs. Testing real commands uncovers real behaviors, undocumented gotchas, and defaults that reference manuals omit.
+2. Run `--help` across each primary subcommand.
+3. Test the most frequent day-to-day operations.
+4. Note counterintuitive behaviors or surprises.
+5. Copy the template in `references/template.md` into the new skill directory.
+6. Populate sections based on real terminal findings.
+7. Strip irrelevant sections.
 
 ```bash
-# 1. Teste a ferramenta no terminal
-minha-cli --help
-minha-cli subcomando --help
+# 1. Test tool in the terminal
+my-cli --help
+my-cli subcommand --help
 
-# 2. Localização da skill no Gemini/Antigravity:
-# No projeto: .agents/skills/minha-cli/SKILL.md
-# Globalmente: ~/.gemini/config/skills/minha-cli/SKILL.md
+# 2. Skill placement in Gemini/Antigravity:
+# Project-level: .agents/skills/my-cli/SKILL.md
+# Global-level: ~/.gemini/config/skills/my-cli/SKILL.md
 ```
 
-## O Que NÃO Fazer
+## What NOT to Do
 
-- Não cole a saída bruta do `--help` sem filtro — resuma apenas o que é útil.
-- Não documente todas as dezenas de flags obscuras — foque nos 80% dos casos de uso reais.
-- Não inclua comandos que você não testou e validou pessoalmente.
-- Mantenha o arquivo `SKILL.md` principal com menos de 500 linhas para não sobrecarregar a janela de contexto.
+- Do not dump unfiltered `--help` output — extract only actionable flags.
+- Do not document dozens of obscure flags — cover the 80% daily use cases.
+- Do not include commands you have not verified yourself.
+- Keep the root `SKILL.md` under 500 lines to preserve context window tokens.
 
-## Seções da Skill
+## Skill Sections
 
-### Obrigatórias
+### Mandatory
 
-| Seção                | Finalidade                                                                           |
-| -------------------- | ------------------------------------------------------------------------------------ |
-| **Frontmatter YAML** | `name` e `description` rica em termos de gatilho para o modelo decidir quando ativar |
-| **Instalação**       | Como obter ou compilar o executável nos diferentes sistemas operacionais             |
-| **Uso Principal**    | Os 80% dos fluxos e comandos mais frequentes                                         |
+| Section              | Purpose                                                               |
+| -------------------- | --------------------------------------------------------------------- |
+| **YAML Frontmatter** | `name` and trigger-rich `description` enabling semantic matching      |
+| **Installation**     | How to install or build the binary across supported operating systems |
+| **Primary Usage**    | The 80% highest-frequency commands and workflows                      |
 
-### Recomendadas
+### Recommended
 
-| Seção                 | Quando Incluir                                                                |
-| --------------------- | ----------------------------------------------------------------------------- |
-| Pré-requisitos        | A ferramenta exige tokens de API, contas ou dependências do sistema           |
-| Formatos de Saída     | A ferramenta suporta flags como `--json` para facilitar o parsing pelo agente |
-| Dicas e Pegadinhas    | Comandos interativos que travam o terminal e devem ser evitados pelo agente   |
-| Diagnóstico de Falhas | Como ativar modo de depuração (`--verbose`, `--debug`)                        |
-| Desinstalação         | Onde a ferramenta grava arquivos de configuração persistentes                 |
+| Section                | When to Include                                                   |
+| ---------------------- | ----------------------------------------------------------------- |
+| Prerequisites          | Tool requires API tokens, cloud accounts, or runtime dependencies |
+| Output Formats         | Tool supports flags like `--json` that simplify agent parsing     |
+| Tips and Gotchas       | Interactive prompts that block the terminal and must be bypassed  |
+| Troubleshooting        | How to enable verbose debugging (`--verbose`, `--debug`)          |
+| Uninstall / Data paths | Where the tool persists state, cache, or configuration files      |
 
-## Boas Descrições de Frontmatter
+## Frontmatter Descriptions
 
-Inclua frases de intenção para que o agente saiba exatamente quando carregar a skill:
+Include explicit intent phrases so the agent knows precisely when to load the skill:
 
 ```yaml
-# ✅ Bom: descritivo e com cenários claros de uso
-description: Monitora feeds RSS em busca de atualizações. Use ao acompanhar blogs técnicos, verificar novos posts ou construir fluxos de leitura de feeds.
+# Good: descriptive with concrete scenarios
+description: Monitors RSS feeds for updates. Use when following technical blogs, checking new releases, or building feed-reading pipelines.
 
-# ❌ Ruim: genérico demais
-description: Ferramenta de RSS.
+# Bad: overly generic
+description: RSS tool.
 ```
 
-## Organização dos Comandos
+## Organizing Commands
 
-Agrupe os comandos por **tarefa do usuário**, e não em ordem alfabética da CLI:
+Group commands by **user task** rather than CLI command hierarchy:
 
-- Visualizar / Listar
-- Criar / Adicionar
-- Atualizar / Editar
-- Excluir / Remover
-- Buscar / Filtrar
+- View / List
+- Create / Add
+- Update / Edit
+- Delete / Remove
+- Search / Filter
 
-## Divulgação Progressiva (Progressive Disclosure)
+## Progressive Disclosure
 
-Mantenha o `SKILL.md` enxuto e conciso. Mova manuais extensos para a pasta `references/`:
+Keep `SKILL.md` lean. Move comprehensive reference material to `references/`:
 
 ```text
-minha-cli/
-├── SKILL.md                 # Fluxos essenciais e rápidos
+my-cli/
+├── SKILL.md                 # Fast, essential everyday workflows
 ├── references/
-│   ├── config-avancada.md   # Detalhes aprofundados de configuração
-│   └── api-reference.md     # Todas as flags e opções raras
+│   ├── advanced-config.md   # Complex configuration options
+│   └── api-reference.md     # Full catalog of flags and subcommands
 └── scripts/
-    └── helper.sh            # Scripts utilitários de automação
+    └── helper.sh            # Deterministic automation scripts
 ```
 
-## Checklist de Publicação da Skill
+## Publication Checklist
 
-- [ ] Frontmatter possui `name` (kebab-case) e `description` com frases de gatilho.
-- [ ] Comandos de instalação testados.
-- [ ] Inclui comando de verificação da instalação (`tool --version`).
-- [ ] Caminho de arquivos de configuração e variáveis de ambiente documentados.
-- [ ] Exemplos realistas com comandos e formatos de saída esperados.
-- [ ] Flags que geram saídas JSON documentadas (preferenciais para agentes).
-- [ ] Avisos contra comandos interativos que travam o terminal.
-- [ ] Arquivo principal mantido enxuto, com referências na pasta `references/`.
+- [ ] Frontmatter includes kebab-case `name` and trigger-rich `description`.
+- [ ] Installation instructions verified.
+- [ ] Includes verification check (`tool --version`).
+- [ ] Config file paths and environment variables documented.
+- [ ] Realistic examples with sample command and output formats.
+- [ ] JSON output flags highlighted (preferred for agents).
+- [ ] Warnings against interactive commands that hang terminals.
+- [ ] Lean main file with deep reference manuals moved to `references/`.

@@ -1,118 +1,118 @@
 ---
 name: diataxis
 description: >-
-    Estruture, classifique e redija documentação técnica utilizando o framework Diátaxis.
-    Use ao escrever documentações, READMEs, guias práticos, tutoriais, manuais passo a passo, referências de API ou ao organizar a arquitetura de documentação de um projeto.
-    Também serve para auditar, reestruturar e separar conteúdos misturados entre tutoriais, how-to, referência e explicação.
+    Structure, classify, and author technical documentation using the Diátaxis framework.
+    Use when writing documentation, READMEs, how-to guides, tutorials, step-by-step manuals, API references, or organizing documentation architecture.
+    Also used to audit, restructure, and untangle mixed content across tutorials, how-to guides, reference, and explanation.
 ---
 
-# Framework Diátaxis para Documentação Técnica
+# Diátaxis Framework for Technical Documentation
 
-Aplique a metodologia sistemática do Diátaxis para estruturar e redigir documentações claras e de alta utilidade.
+Apply the systematic Diátaxis methodology to structure and author clear, highly usable technical documentation.
 
-## Os Quatro Tipos de Documentação
+## The Four Documentation Types
 
-O Diátaxis identifica exatamente quatro categorias, definidas por dois eixos fundamentais:
+Diátaxis identifies exactly four categories, defined along two fundamental axes:
 
-|                         | **Aquisição de conhecimento** (estudo) | **Aplicação prática** (trabalho) |
-| ----------------------- | -------------------------------------- | -------------------------------- |
-| **Ação** (fazer)        | **Tutorial**                           | **Guia Prático (How-to)**        |
-| **Cognição** (entender) | **Explicação**                         | **Referência**                   |
+|                         | **Knowledge acquisition** (study) | **Practical application** (work) |
+| ----------------------- | --------------------------------- | -------------------------------- |
+| **Action** (doing)      | **Tutorial**                      | **How-to Guide**                 |
+| **Cognition** (knowing) | **Explanation**                   | **Reference**                    |
 
-### 1. Tutoriais — Orientados ao Aprendizado
+### 1. Tutorials — Learning-Oriented
 
-Escreva tutoriais como lições práticas. Conduza o aprendiz pela mão através de uma experiência guiada onde ele adquire habilidades fazendo.
+Write tutorials as guided practical lessons. Lead the learner by the hand through a structured experience where they acquire skills by doing.
 
-- Use a primeira pessoa do plural ("Nós vamos instalar...", "Vamos criar...").
-- Mostre onde o usuário vai chegar logo no início.
-- Entregue resultados visíveis com frequência e rapidez.
-- Reduza explicações teóricas ao mínimo essencial — coloque links para elas.
-- Foque no caso concreto e evite alternativas ou bifurcações.
-- Busque confiabilidade total (deve funcionar perfeitamente de primeira).
+- Use first-person plural ("We will install...", "Let's create...").
+- Show where the user will arrive right from the start.
+- Deliver visible results frequently and quickly.
+- Minimize theoretical explanations — link to them instead.
+- Stick to the concrete path and avoid forks or alternatives.
+- Ensure total reliability (it must work flawlessly on the first try).
 
-Consulte `references/tutorials.md` para o guia completo.
+See `references/tutorials.md` for the complete guide.
 
-### 2. Guias Práticos (How-to) — Orientados a Metas
+### 2. How-to Guides — Goal-Oriented
 
-Escreva guias práticos como receitas e instruções diretas para um usuário já competente atingir um objetivo específico do mundo real.
+Write how-to guides as recipes and direct instructions for an already competent user to solve a specific real-world problem.
 
-- Dê títulos claros: "Como [alcançar o objetivo X]".
-- Use imperativos condicionais ("Se desejar X, execute Y").
-- Assuma competência prévia — não ensine fundamentos básicos aqui.
-- Oculte detalhes desnecessários: usabilidade prática > completude enciclopédica.
-- Permita flexibilidade e cite alternativas viáveis.
+- Use clear titles: "How to [achieve goal X]".
+- Use conditional imperatives ("If you want X, run Y").
+- Assume prior competence — do not teach fundamentals here.
+- Omit unnecessary details: practical usability > encyclopedic completeness.
+- Allow flexibility and note viable alternatives.
 
-Consulte `references/how-to-guides.md` para o guia completo.
+See `references/how-to-guides.md` for the complete guide.
 
-### 3. Referência — Orientada à Informação
+### 3. Reference — Information-Oriented
 
-Escreva a documentação de referência como uma descrição técnica austera da arquitetura e das interfaces. Deve ser consultada pontualmente, não lida linearmente.
+Write reference documentation as austere technical descriptions of architecture and interfaces. It should be consulted on demand, not read linearly.
 
-- Apenas descreva de forma neutra e precisa — sem tom opinativo.
-- Adote padrões padronizados e consistentes em todas as páginas.
-- Espelhe a estrutura real do software (módulos, funções, parâmetros).
-- Forneça exemplos de código para ilustrar sintaxe, não para ensinar conceitos.
+- Describe neutrally and precisely — no conversational or opinionated tone.
+- Maintain consistent, standardized formatting across all entries.
+- Mirror the software's actual structure (modules, functions, parameters).
+- Provide code snippets to illustrate syntax, not to teach concepts.
 
-Consulte `references/reference.md` para o guia completo.
+See `references/reference.md` for the complete guide.
 
-### 4. Explicação — Orientada à Compreensão
+### 4. Explanation — Understanding-Oriented
 
-Escreva explicações para aprofundar o entendimento conceitual. Responda à pergunta: _"Pode me explicar como e por que isso funciona?"_
+Write explanations to deepen conceptual understanding. Answer the question: _"Can you explain how and why this works?"_
 
-- Conecte o tema a tópicos correlatos e arquitetura geral.
-- Forneça contexto histórico e motivação: por que foi feito dessa forma.
-- Fale _sobre_ o assunto (título: "Sobre o mecanismo X").
-- Admita perspectivas arquiteturais e trade-offs de design.
-- Mantenha limites bem definidos — não misture passos práticos de instalação.
+- Connect the topic to related areas and overall architecture.
+- Provide historical context and motivation: why it was built this way.
+- Talk _about_ the subject (title: "About mechanism X").
+- Discuss architectural perspectives and design trade-offs.
+- Maintain strict boundaries — do not mix in practical step-by-step installation steps.
 
-Consulte `references/explanation.md` para o guia completo.
+See `references/explanation.md` for the complete guide.
 
-## A Bússola: Como Decidir em Caso de Dúvida
+## The Compass: Deciding When in Doubt
 
-Faça duas perguntas simples para classificar qualquer conteúdo:
+Ask two simple questions to categorize any piece of content:
 
-1. **Ação ou Cognição?** O objetivo principal é _fazer_ algo ou _compreender_ algo?
-2. **Aquisição ou Aplicação?** O leitor está _aprendendo_ pela primeira vez ou _trabalhando_ para resolver uma demanda imediata?
+1. **Action or Cognition?** Is the primary objective to _do_ something or to _understand_ something?
+2. **Acquisition or Application?** Is the reader _learning_ for the first time or _working_ to solve an immediate problem?
 
-O cruzamento dessas respostas define o quadrante correto. Consulte `references/compass.md` para critérios detalhados.
+The intersection of these answers determines the correct quadrant. Consult `references/compass.md` for detailed criteria.
 
-## Como Aplicar no Dia a Dia
+## Day-to-Day Application
 
-1. **Classifique o conteúdo** usando as perguntas da bússola.
-2. **Identifique misturas indevidas** — o texto está tentando ensinar e resolver um problema avançado ao mesmo tempo?
-3. **Separe conteúdos mistos** — retire parágrafos teóricos de tutoriais e mova passos de comando para fora de referências puras.
-4. **Aplique os princípios do quadrante escolhido**.
-5. **Crie hiperlinks entre os documentos** em vez de embutir blocos de outros tipos.
+1. **Classify the content** using compass questions.
+2. **Identify improper mixing** — is the text trying to teach while simultaneously solving an advanced operational problem?
+3. **Separate mixed content** — strip theoretical paragraphs out of tutorials; move command steps out of pure references.
+4. **Apply the chosen quadrant's principles**.
+5. **Hyperlink between documents** rather than inlining alien blocks.
 
-Nunca crie pastas ou seções vazias de cada quadrante sem necessidade real. Deixe a estrutura emergir naturalmente do conteúdo do projeto.
+Never create empty folders or sections for each quadrant without real necessity. Let the structure emerge naturally from project needs.
 
-## Erros Mais Comuns
+## Common Mistakes
 
-| Erro                                         | Por que Falha                                                    | Correção                                                               |
-| -------------------------------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| Tutorial que explica teoria demais           | A explicação quebra o ritmo prático do aprendiz                  | Mova a teoria para um documento de Explicação e coloque um link        |
-| How-to que ensina comandos básicos           | Usuários experientes perdem tempo com introduções óbvias         | Assuma competência ou separe em Tutorial + How-to                      |
-| Referência com opiniões e conselhos          | Quem consulta a API precisa de fatos brutos e assinaturas        | Mova conselhos arquiteturais para uma Explicação                       |
-| Explicação misturada na Referência           | Dilui ambas: a referência fica verbosa e a explicação incompleta | Separe em arquivos distintos                                           |
-| "Começando" que é apenas um tour de recursos | Sem objetivo claro de aprendizado                                | Escolha um resultado prático para o usuário construir do início ao fim |
+| Mistake                                       | Why It Fails                                                    | Correction                                                         |
+| --------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------ |
+| Tutorial explaining too much theory           | Explanation breaks the learner's practical momentum             | Move theory to an Explanation document and link to it              |
+| How-to teaching basic commands                | Experienced users waste time reading obvious introductions      | Assume competence or separate into Tutorial + How-to               |
+| Reference with opinions and design advice     | API consumers need raw facts, parameters, and signatures        | Move architectural guidance to an Explanation document             |
+| Explanation mixed into Reference              | Dilutes both: reference becomes bloated, explanation incomplete | Split into distinct files                                          |
+| "Getting Started" that is just a feature tour | No clear learning outcome or deliverable                        | Pick a concrete project for the user to build from start to finish |
 
-## Regras Críticas
+## Critical Rules
 
-- **Nunca misture os quatro tipos no mesmo bloco de texto.** Cada tipo possui tom, finalidade e formato próprios.
-- **O estado mental do leitor importa.** Estudo vs. Trabalho é a distinção fundamental. Tutoriais e Explicações atendem ao modo de estudo; Guias How-to e Referência atendem ao modo de trabalho.
-- **Conecte com links** em vez de duplicar conteúdo entre seções.
+- **Never mix the four types in the same text block.** Each type has its own distinct tone, purpose, and structure.
+- **The reader's mental state matters.** Study vs. Work is the fundamental distinction. Tutorials and Explanations serve study mode; How-to Guides and References serve work mode.
+- **Connect with links** instead of duplicating content across sections.
 
-## Aprofundamento por Módulo
+## Deep Dive by Module
 
-Consulte os arquivos da pasta `references/` conforme necessário:
+Consult documents in `references/` as needed:
 
-| Tema                                    | Arquivo de Apoio                                  |
-| --------------------------------------- | ------------------------------------------------- |
-| Redação de tutoriais                    | `references/tutorials.md`                         |
-| Redação de guias práticos               | `references/how-to-guides.md`                     |
-| Redação de documentos de referência     | `references/reference.md`                         |
-| Redação de explicações e conceitos      | `references/explanation.md`                       |
-| Ferramenta da bússola decisória         | `references/compass.md`                           |
-| Diferença entre Tutorial e How-to       | `references/tutorials-how-to.md`                  |
-| Diferença entre Referência e Explicação | `references/reference-explanation.md`             |
-| Fundamentos e mapeamento bidimensional  | `references/map.md` e `references/foundations.md` |
+| Topic                                    | Supporting Document                                 |
+| ---------------------------------------- | --------------------------------------------------- |
+| Authoring tutorials                      | `references/tutorials.md`                           |
+| Authoring how-to guides                  | `references/how-to-guides.md`                       |
+| Authoring reference documentation        | `references/reference.md`                           |
+| Authoring explanations and concepts      | `references/explanation.md`                         |
+| Compass decision tool                    | `references/compass.md`                             |
+| Difference between Tutorial and How-to   | `references/tutorials-how-to.md`                    |
+| Difference between Reference and Explain | `references/reference-explanation.md`               |
+| Foundations and 2D mapping               | `references/map.md` and `references/foundations.md` |

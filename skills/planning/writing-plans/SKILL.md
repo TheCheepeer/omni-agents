@@ -1,68 +1,68 @@
 ---
 name: writing-plans
 description: >-
-    Escreva arquivos de planos de implementação autocontidos que um executor independente (mesmo outro modelo ou sessão limpa) consiga executar sem o contexto prévio do autor.
-    Divide o trabalho em planos do tamanho de um Pull Request, com portões de verificação (testes/lint), condições de PARADA (STOP conditions) e protocolo de memorandos para bifurcações de design.
-    Use ao ser solicitado a escrever ou criar planos, transformar especificações/tickets em planos de execução ou quando outra skill transferir o planejamento. Não serve para decidir arbitrariamente o que construir nem para executar diretamente.
+    Write self-contained implementation plan files that an independent executor (even another model or fresh session) can execute without prior author context.
+    Divides work into PR-sized plans with verification gates (tests/lint), STOP conditions, and a memo protocol for design forks.
+    Use when asked to write or create plans, turn specs/tickets into execution plans, or when another skill hands off planning. Not for arbitrarily deciding what to build or executing code directly.
 ---
 
-# Elaboração de Planos de Implementação (Writing Plans)
+# Writing Implementation Plans
 
-Você está escrevendo planos para um executor que não viu esta conversa, não acompanhou a exploração prévia da base de código e não conhece planos irmãos — podendo inclusive ser um modelo mais leve ou uma nova sessão limpa. Escreva sempre pensando nesse executor: o contexto da sessão se perde ao reiniciar, e um plano detalhado custa apenas uma leitura rápida, enquanto um plano ambíguo inviabiliza a execução correta.
+You are writing plans for an executor who has not seen this conversation, did not follow the prior codebase exploration, and does not know sibling plans — potentially even a smaller model or a fresh session. Always write with this executor in mind: session context is lost on restart, and a detailed plan costs only a brief read, whereas an ambiguous plan halts or derails execution.
 
-Planos são **baseados em intenção: resultados acima de prescrições rígidas**. Especifique o que deve ser verdadeiro ao final, aponte os arquivos e símbolos exatos, indique arquivos exemplares existentes no projeto para serem imitados e estabeleça um comando de verificação para cada etapa. Dê ao executor clareza do objetivo e espaço para aplicar a melhor implementação técnica.
+Plans are **intent-based: outcomes over rigid prescriptions**. Specify what must be true when finished, pinpoint exact files and symbols, reference exemplary existing files in the project to emulate, and provide an explicit verification command for each step. Give the executor goal clarity and the technical latitude to implement the cleanest solution.
 
-Esta skill inicia quando o _escopo_ ("o quê") já foi decidido, pelo menos em linhas gerais — um pedido do usuário, um ticket, um RFC ou alinhamento de design. Ela não é responsável pela ideação inicial ou debate arquitetural do zero. Se faltar uma decisão para o plano, investigue primeiro na base de código; apenas dúvidas que não puderem ser resolvidas pelo código devem ser perguntadas ao usuário — uma por vez, com sua recomendação clara.
+This skill begins when the _scope_ ("the what") has already been decided at least in broad strokes — a user request, an issue, an RFC, or an agreed design. It does not handle initial brainstorming or unilateral feature invention. If a decision is missing from the plan, research the codebase first; only questions that cannot be resolved from code should be asked of the user — one at a time, with your clear recommendation.
 
-Durante o planejamento, escreva apenas no diretório de destino dos planos. Não altere o código-fonte da aplicação enquanto estiver planejando.
+During planning, write only to the designated plans directory. Do not modify application source code while planning.
 
-## Onde os planos devem ser salvos
+## Where Plans Should Be Saved
 
-Resolva o destino nesta ordem de precedência (use o primeiro que existir):
+Resolve the destination in this order of precedence (use the first match):
 
-1. Convenção explícita do projeto — diretório existente com planos ou caminho indicado em `GEMINI.md` ou `AGENTS.md`.
-2. Variável de ambiente `$AGENTS_PLANS_DIR`, se definida.
-3. `./docs/plans/`, caso a pasta `./docs/` exista.
-4. `./plans/` (crie o diretório se não existir).
-5. Se não estiver claramente dentro de um projeto, pergunte ao usuário.
+1. Explicit project convention — an existing plans directory or path specified in `GEMINI.md` or `AGENTS.md`.
+2. `$AGENTS_PLANS_DIR` environment variable, if set.
+3. `./docs/plans/`, if `./docs/` exists.
+4. `./plans/` (create the directory if missing).
+5. If not clearly inside a project, ask the user.
 
-## Reconhecimento Prévio (Recon)
+## Prior Reconnaissance (Recon)
 
-Antes de redigir qualquer plano, descubra o que todo plano precisa conter:
+Before drafting any plan, uncover what every plan needs to contain:
 
-- **Comandos exatos de build, teste, lint e typecheck** — verificados na configuração real do repositório (`package.json`, `justfile`, `Makefile`, `noxfile`, CI), sem adivinhar. Eles serão os portões de verificação de cada etapa.
-- **Convenções e arquivos exemplares** — tratamento de erros, nomenclatura, estrutura de testes, com pelo menos um arquivo de exemplo real para cada padrão que o executor deverá seguir.
-- **VCS em uso e a revisão atual.** Registre no plano a versão/commit base e um comando de checagem de divergência (diff dos caminhos afetados).
+- **Exact build, test, lint, and typecheck commands** — verified in actual repository configuration (`package.json`, `justfile`, `Makefile`, `noxfile`, CI), not guessed. These form the verification gates for each step.
+- **Conventions and exemplar files** — error handling, naming, test structure, with at least one concrete example file for each pattern the executor must follow.
+- **VCS in use and current revision.** Record the base revision/commit and a drift check command (diff of affected paths) in the plan.
 
-Se o repositório não tiver comandos de verificação funcionando, aponte isso — configurar um portão de verificação pode precisar ser o primeiro plano.
+If the repository lacks working verification commands, call that out — establishing a verification baseline may need to be plan #1.
 
-## Decomposição do Trabalho
+## Work Decomposition
 
-**Um plano = uma alteração independente e revisável** — aproximadamente o tamanho de um Pull Request coeso, deixando a base de código estável e os testes passando ao término. Se a demanda for maior, divida-a em múltiplos planos numerados, explicitando as dependências (planos preparatórios que preparam o terreno antes da alteração principal).
+**One plan = one independent, reviewable change** — roughly the size of a cohesive Pull Request, leaving the codebase green and tests passing upon completion. If the task is larger, break it into multiple numbered plans with explicit dependencies (scaffolding/preparatory plans that lay ground before the main change).
 
-Você decide como fatiar o trabalho em unidades entregáveis; você não decide unilateralmente o escopo do que deve ser feito.
+You decide how to slice the work into deliverable units; you do not unilaterally invent new scope.
 
-## Estrutura de Arquivos
+## File Structure
 
-Dimensione a estrutura ao tamanho do esforço:
+Scale the structure to the scope of effort:
 
-- **Plano único**: arquivo único em `<destino>/<slug-do-plano>.md`. Sem índice nem numeração.
-- **Múltiplos planos**: subdiretório próprio — `<destino>/<slug-do-esforco>/NNN-<slug-da-etapa>.md` com um `README.md` que serve de índice. A numeração é sequencial, monotônica e nunca renumerada; a ordem de execução fica no índice.
-- Memorandos (memos) ficam ao lado dos planos como `memo-<slug>.md`.
+- **Single plan**: a single file at `<destination>/<plan-slug>.md`. No index or numbering.
+- **Multiple plans**: dedicated subdirectory — `<destination>/<effort-slug>/NNN-<step-slug>.md` with a `README.md` serving as the index. Numbering is sequential, monotonic, and never renumbered; execution order belongs in the index.
+- Memos sit alongside plans as `memo-<slug>.md`.
 
-## Redação
+## Drafting
 
-Consulte [references/plan-template.md](references/plan-template.md) antes de redigir o primeiro plano. Para projetos multiplano, escreva o índice por último usando [references/index-template.md](references/index-template.md).
+Consult [references/plan-template.md](references/plan-template.md) before writing the first plan. For multi-plan efforts, write the index last using [references/index-template.md](references/index-template.md).
 
-Código nos planos: **esboços e assinaturas em vez de implementações completas**. Pseudocódigo, assinaturas de funções, tipos e interfaces comunicam a intenção sem fingir que foram testados em runtime. Códigos em prosa excessivamente longos envelhecem rápido e podem induzir o executor a copiar erros literais. Escreva código integral apenas quando houver um requisito rígido inevitável, indicando o ponteiro `arquivo:linha` de referência.
+Code in plans: **sketches and signatures over full implementations**. Pseudocode, function signatures, types, and interfaces communicate intent without pretending to be runtime-tested. Overly verbose prose code rots quickly and encourages copy-paste bugs. Provide full code only when there is a strict, unavoidable constraint, citing the `file:line` pointer.
 
-## Protocolo de Memos: Decisões Durante a Execução
+## Memo Protocol: Decisions During Execution
 
-Planos que encontrem bifurcações imprevistas durante a execução acionam o protocolo de memorandos:
+Plans encountering unexpected design forks during execution trigger the memo protocol:
 
-- **Parte do executor**: embutida em cada plano (as condições de PARADA / STOP conditions). Ao encontrar uma decisão arquitetural não prevista, o executor para e registra o estado atual, objetivo e dúvidas pendentes.
-- **Sua parte**: ao receber o retorno da dúvida, investigue a base de código, elabore um `memo-<slug>.md` ao lado dos planos usando [references/memo-template.md](references/memo-template.md) — veredito primeiro, evidências com `arquivo:linha`, alternativas descartadas — e então ajuste ou crie os planos afetados, registrando no índice.
+- **Executor's part**: embedded in each plan (the STOP conditions). Upon hitting an unforeseen architectural decision, the executor pauses and records current state, objective, and open questions.
+- **Your part**: upon receiving the question, investigate the codebase, draft a `memo-<slug>.md` alongside the plans using [references/memo-template.md](references/memo-template.md) — verdict first, `file:line` evidence, discarded alternatives — and update or create affected plans, updating the index.
 
-## Reconciliação de Planos Existentes
+## Reconciling Existing Plans
 
-Antes de escrever, leia o diretório de destino. Se já existirem planos para esse esforço, reconcilie em vez de duplicar: modifique os planos existentes se for adição direta, marque planos superados no índice e numere o novo trabalho na sequência.
+Before writing, inspect the destination directory. If plans already exist for this effort, reconcile rather than duplicate: amend existing plans if additive, mark superseded plans in the index, and sequence new work monotonically.

@@ -1,60 +1,60 @@
 ---
 name: strategic-roadmap
 description: >-
-    Use quando o usuário perguntar "no que devo trabalhar neste repositório?", "o que vale a pena fazer a seguir?", pedir auditoria de repositório, prioridades de débito técnico, arquitetura ou descoberta estratégica de oportunidades fundamentadas no código.
-    Gera o artefato de roadmap com sequenciamento Agora/Próximo/Depois (Now/Next/Later), itens descartados com justificativa e recomendação do próximo artefato. Não é para roadmaps comerciais comuns de produto.
+    Use when the user asks "what should I work on in this repository?", "what is worth doing next?", requests a repository audit, technical debt priorities, architecture assessment, or strategic discovery of code-grounded opportunities.
+    Generates a roadmap artifact sequenced into Now/Next/Later, discarded items with rationale, and recommended next artifacts. Not for standard commercial product roadmaps.
 ---
 
-# Roadmap Estratégico do Repositório (Strategic Roadmap)
+# Strategic Repository Roadmap (Strategic Roadmap)
 
-Gere o planejamento do trabalho que realmente vale a pena ser executado em um repositório. Trata-se de uma etapa de julgamento sênior baseada em auditoria: minere a documentação do projeto, planos antigos, branches ativas e a arquitetura do código; analise oportunidades nas diversas categorias de melhoria; expanda as ideias trazidas pelo usuário; gere oportunidades não óbvias; descarte ideias de baixo valor e sequencie o trabalho mais vantajoso.
+Plan the work that is genuinely worth doing in a repository. This is a senior, audit-based judgment phase: mine project documentation, past plans, active branches, and code architecture; analyze opportunities across improvement categories; expand upon user-provided ideas; surface non-obvious improvements; discard low-value work; and sequence the highest-leverage initiatives.
 
-Trate este trabalho como meta-engenharia: prefira melhorias estruturais que aprimorem os ciclos futuros de trabalho, a verificação automatizada, as fronteiras de autonomia e a qualidade da base de código em vez de apenas tarefas pontuais.
+Treat this as meta-engineering: prefer structural improvements that enhance future development cycles, automated verification, autonomy boundaries, and codebase health over disconnected spot fixes.
 
-## Fontes e Referências
+## Sources and References
 
-Antes de produzir o roadmap, utilize as skills e referências correspondentes:
+Before producing the roadmap, leverage corresponding skills and references:
 
-- `improve` para auditoria orientada a evidências e vereditos de "não vale a pena fazer agora".
-- `coding-standards` como fonte canônica de vocabulário e padrões arquiteturais (módulos profundos, limites de estado, tradução de fronteira).
-- Documentação do projeto: `GEMINI.md`, `AGENTS.md`, `README.md`, ADRs e issues abertas.
+- `improve` for evidence-based auditing and "not worth doing now" verdicts.
+- `coding-standards` as the canonical source for vocabulary and architectural idioms (deep modules, state boundaries, boundary parsing).
+- Project documentation: `GEMINI.md`, `AGENTS.md`, `README.md`, ADRs, and open issues.
 
-## Fluxo de Trabalho
+## Workflow
 
-### 1. Definir o Escopo e os Objetivos do Repositório
+### 1. Define Scope and Repository Goals
 
-- Identifique o repositório específico e os artefatos existentes.
-- Defina o que significa "melhor" para este projeto: valor para o usuário final, velocidade de entrega, robustez da verificação de testes, redução de complexidade ou confiabilidade operacional.
-- Inclua as ideias trazidas pelo usuário como pontos de partida, e não como a lista definitiva.
-- Se o objetivo principal não estiver nítido, faça uma pergunta breve de alinhamento antes de classificar os itens.
+- Identify the specific repository and existing artifacts.
+- Clarify what "better" means for this project: end-user value, delivery velocity, test verification robustness, complexity reduction, or operational reliability.
+- Include user-suggested ideas as starting points, not the exhaustive list.
+- If primary goals are ambiguous, ask a brief alignment question before ranking items.
 
-### 2. Reconhecimento sem Alterações
+### 2. Non-Mutating Reconnaissance
 
-- Leia o contexto e planos existentes antes de julgar.
-- Identifique comandos de teste e build, branches ativas e áreas de maior alteração recente no Git.
-- **Não altere código-fonte.** Produza apenas o artefato de roadmap.
-- Se credenciais ou segredos forem encontrados, cite apenas o caminho e a linha; nunca transcreva valores sensíveis.
+- Read context and existing plans before judging.
+- Identify test and build commands, active branches, and hot areas of recent Git churn.
+- **Do not modify source code.** Produce only the roadmap artifact.
+- If credentials or secrets are spotted, cite only path and line; never transcribe secret values.
 
-### 3. Auditoria de Oportunidades
+### 3. Opportunity Audit
 
-- Avalie as categorias fundamentais: corretude/bugs, segurança, performance, testes, débito técnico, migrações, ferramentas e documentação.
-- Identifique decisões que a equipe fica rediscutindo repetidamente; proponha políticas estáveis ou ADRs para consolidar o alinhamento.
-- Use critérios objetivos de arquitetura: onde o entendimento exige pular entre dezenas de arquivos, onde a interface é quase tão complexa quanto a implementação interna e onde fronteiras vazam detalhes.
-- Não proponha interfaces finais nesta fase: registre o atrito, a direção recomendada e o próximo artefato de planejamento.
+- Audit core categories: correctness/bugs, security, performance, tests, technical debt, migrations, tooling, and documentation.
+- Identify decisions repeatedly re-debated by the team; propose stable policies or ADRs to settle them.
+- Apply objective architectural criteria: where comprehension requires jumping across dozens of files, where interfaces are nearly as complex as their implementations, and where boundaries leak internal details.
+- Do not propose final interfaces at this stage: capture friction, recommended direction, and the next planning artifact.
 
-### 4. Validação e Sequenciamento
+### 4. Validation and Sequencing
 
-- Abra o código citado para confirmar cada oportunidade; nunca confie cegamente em saídas não verificadas.
-- Ordene por **alavancagem**: impacto dividido pelo esforço provável, ponderado pela confiança técnica.
-- Estabeleça a autonomia por risco: o que pode ser delegado a executores rotineiros, o que exige revisão cuidadosa de design e o que exige aprovação humana direta.
-- Registre formalmente as ideias descartadas ou postergadas para evitar que sejam redescobertas e rediscutidas inutilmente em auditorias futuras.
+- Open cited code to verify each opportunity; never trust unverified tool outputs blindly.
+- Order by **leverage**: expected impact divided by probable effort, weighted by technical confidence.
+- Establish autonomy tiers: routine delegation to executors, design review, or direct human sign-off.
+- Formally record discarded or deferred ideas to prevent them from being redundantly rediscovered in future audits.
 
-### 5. Redigir o Roadmap
+### 5. Draft the Roadmap
 
-- Crie o arquivo `.agents/ROADMAP.md` (ou local equivalente do projeto) usando o modelo em [references/roadmap-template.md](references/roadmap-template.md).
-- Prefira a divisão temporal **Agora / Próximo / Depois** (Now / Next / Later) em vez de datas fictícias.
-- Todo item deve indicar o próximo artefato de encaminhamento: `roadmap-to-improve-plans`, `feature-planning-artifacts`, `spike de pesquisa`, `decisão do usuário` ou `descartar`.
+- Create `.agents/ROADMAP.md` (or project equivalent) using the template in [references/roadmap-template.md](references/roadmap-template.md).
+- Prefer **Now / Next / Later** sequencing over arbitrary dates.
+- Every item must indicate its next planning artifact: `roadmap-to-improve-plans`, `feature-planning-artifacts`, `research spike`, `user decision`, or `discard`.
 
-## Critérios de Conclusão
+## Completion Criteria
 
-O roadmap estratégico está concluído quando qualquer desenvolvedor ou agente futuro puder escolher o próximo item de trabalho sem precisar refazer toda a varredura do repositório: as melhores oportunidades estão ranqueadas com evidências, as ideias descartadas estão justificadas e a próxima etapa de planejamento está explícita.
+The strategic roadmap is complete when any developer or future agent can pick the next work item without re-scanning the entire repository: top opportunities are ranked with evidence, discarded ideas are documented with rationale, and the next planning step is explicit.

@@ -1,59 +1,59 @@
 ---
 name: salsa
 description: >-
-    Modelo mental e guia de arquitetura para o Salsa, o framework de computação incremental para Rust.
-    Use ao construir ou revisar bancos de dados Salsa, funções rastreadas (tracked functions), structs de entrada/rastreadas/internadas (input/tracked/interned structs), pipelines de consulta, acumuladores de diagnóstico, suporte a cancelamento em LSPs, algoritmos red-green e computação sob demanda reativa em compiladores.
+    Mental model and architectural guide for Salsa, the incremental computation framework for Rust.
+    Use when building or reviewing Salsa databases, tracked functions, input/tracked/interned structs, query pipelines, diagnostic accumulators, LSP cancellation support, red-green algorithms, and reactive on-demand compiler computation.
 ---
 
-# Salsa: Computação Incremental em Rust
+# Salsa: Incremental Computation in Rust
 
-Salsa é um framework para **recomputação incremental sob demanda** em Rust. Você define entradas puras e funções puras sobre essas entradas. O Salsa memoriza o resultado de cada chamada. Quando uma entrada muda, ele reexecuta apenas as funções cujas dependências realmente foram alteradas — ignorando e reutilizando todo o restante.
+Salsa is a framework for **on-demand incremental recomputation** in Rust. You define pure inputs and pure functions over those inputs. Salsa memoizes the result of every call. When an input changes, it re-executes only the functions whose dependencies actually changed — reusing the rest of the memoized dependency graph.
 
-O Salsa é o motor por trás do [rust-analyzer](https://rust-analyzer.github.io/) (o servidor de linguagem LSP oficial do Rust), do [ty/Ruff](https://docs.astral.sh/ty/) e do [Cairo](https://github.com/starkware-libs/cairo), permitindo respostas em milissegundos mesmo em bases de código gigantes após pequenas edições de texto.
+Salsa powers [rust-analyzer](https://rust-analyzer.github.io/) (the official Rust LSP language server), [ty/Ruff](https://docs.astral.sh/ty/), and [Cairo](https://github.com/starkware-libs/cairo), delivering sub-millisecond query responses across massive codebases after small text edits.
 
-## O Modelo Mental
+## The Mental Model
 
 ```text
-                    Banco de Dados Salsa (Salsa Database)
+                    Salsa Database
                     ┌──────────────────────────────────────────────┐
- Mundo externo      │                                              │
- (editor, CLI,      │  Entradas ──→ Funções Rastreadas ──→ Saída   │
-  sistema de arqs)  │    │                 │                       │
-        │           │    └──── memorizado ─┘                       │
-        │           │  dependências rastreadas automaticamente     │
+ External world     │                                              │
+ (editor, CLI,      │  Inputs ────→ Tracked Functions ────→ Output │
+  filesystem)       │    │                 │                       │
+        │           │    └──── memoized ───┘                       │
+        │           │    dependencies tracked automatically        │
         ▼           └──────────────────────────────────────────────┘
- Alterar entrada                            │
- (nova revisão)                             ▼
-                        Reexecuta APENAS o que mudou
+ Mutate input                               │
+ (new revision)                             ▼
+                        Re-executes ONLY what changed
 ```
 
-O ciclo central:
+The core cycle:
 
 ```rust
 let mut db = MyDatabase::default();
 
-// 1. Criar entradas
+// 1. Create inputs
 let file = SourceFile::new(&db, "fn main() {}".into(), path);
 
-// 2. Computar (Salsa memoriza tudo)
+// 2. Compute (Salsa memoizes outputs and dependencies)
 let result = analyze(&db, file);
 
-// 3. Alterar uma entrada (inicia uma nova "revisao")
+// 3. Mutate an input (increments the database revision)
 file.set_text(&mut db).to("fn main() { 42 }".into());
 
-// 4. Recomputar — Salsa reutiliza os nós estáveis
-let result = analyze(&db, file); // Só roda o que dependia do texto
+// 4. Recompute — Salsa reuses stable nodes
+let result = analyze(&db, file); // Only reruns what depended on the text
 ```
 
-## Conceitos Fundamentais
+## Core Concepts
 
-### O Banco de Dados (`#[salsa::db]`)
+### The Database (`#[salsa::db]`)
 
-A struct que armazena todos os caches e estados intermediários. É a fonte única da verdade — toda operação do Salsa recebe `&db` ou `&mut db`.
+The central struct storing all intermediate caches, revisions, and state. It is the single source of truth — every Salsa query receives `&db` or `&mut db`.
 
-### Entradas (`#[salsa::input]`)
+### Inputs (`#[salsa::input]`)
 
-Dados externos que alimentam o sistema (arquivos lidos do disco, flags de compilação). São os únicos nós que sofrem mutação direta.
+External data feeding the computational graph (files read from disk, build flags). Inputs are the only nodes that accept direct external mutation.
 
 ```rust
 #[salsa::input]
@@ -64,36 +64,36 @@ pub struct SourceFile {
 }
 ```
 
-### Funções Rastreadas (`#[salsa::tracked]`)
+### Tracked Functions (`#[salsa::tracked]`)
 
-Funções puras cujos retornos são armazenados em cache. O Salsa registra automaticamente quais entradas e campos foram lidos. Ao reexecutar, ele checa se alguma dependência mudou.
+Pure functions whose outputs are memoized in the database. Salsa automatically tracks which input fields and intermediate structs were accessed. On re-execution, it checks whether any dependency changed before recalculating.
 
-### Structs Rastreadas (`#[salsa::tracked] struct`)
+### Tracked Structs (`#[salsa::tracked] struct`)
 
-Entidades intermediárias geradas dentro de funções rastreadas (como uma função AST ou classe). Possuem rastreamento de alteração por campo e recebem o tempo de vida `'db`.
+Intermediate entities allocated inside tracked functions (e.g. AST nodes, symbol definitions). They feature field-level change tracking and carry a `'db` lifetime.
 
-### Structs Internadas (`#[salsa::interned]`)
+### Interned Structs (`#[salsa::interned]`)
 
-Dados idênticos recebem o mesmo ID numérico compacto (como símbolos, nomes de variáveis e identificadores de tipo). Permite comparações de igualdade extremamente rápidas.
+Deduplicated data mapped to compact numeric IDs (e.g. identifiers, path segments, type keys). Enables fast equality comparisons and hash lookups.
 
-### Acumuladores (`#[salsa::accumulator]`)
+### Accumulators (`#[salsa::accumulator]`)
 
-Canal lateral para emitir diagnósticos e avisos de compilação a partir de funções rastreadas sem poluir o tipo de retorno da função.
+Side-channel structures for emitting diagnostics, lints, and compiler warnings from tracked functions without changing function return types.
 
-### Algoritmo Red-Green e Backdating
+### Red-Green Algorithm and Backdating
 
-Cada mutação em uma entrada incrementa o contador de **revisão**. Ao consultar uma função rastreada, o Salsa avalia as dependências: se o resultado recalculado for idêntico ao valor antigo (**backdating**), a propagação de mudanças é interrompida, economizando tempo computacional nos nós dependentes.
+Every input mutation increments the database **revision**. When a tracked query is requested, Salsa evaluates upstream dependencies: if a recalculated intermediate result is identical to its previous value (**backdating**), change propagation terminates, saving compute time for downstream callers.
 
-## Onde se Aprofundar
+## Deep-Dive References
 
-| Objetivo                                       | Documento de Apoio                                   |
+| Objective                                      | Supporting Document                                  |
 | ---------------------------------------------- | ---------------------------------------------------- |
-| Escolher entre input, tracked e interned       | [struct-selection.md](struct-selection.md)           |
-| Projetar grafo de queries e funções rastreadas | [query-pipeline.md](query-pipeline.md)               |
-| Arquitetura do banco e traits em camadas       | [database-architecture.md](database-architecture.md) |
-| Lidar com consultas cíclicas/recursivas        | [cycle-handling.md](cycle-handling.md)               |
-| Suporte a cancelamento em LSPs                 | [cancellation.md](cancellation.md)                   |
-| Otimização com níveis de durabilidade          | [durability.md](durability.md)                       |
-| Testar reutilização incremental                | [incremental-testing.md](incremental-testing.md)     |
-| Integração com Language Server Protocol        | [lsp-integration.md](lsp-integration.md)             |
-| Padrões para escala de produção                | [production-patterns.md](production-patterns.md)     |
+| Choosing between input, tracked, and interned  | [struct-selection.md](struct-selection.md)           |
+| Designing query graphs and tracked functions   | [query-pipeline.md](query-pipeline.md)               |
+| Database architecture and layered traits       | [database-architecture.md](database-architecture.md) |
+| Handling cyclic / recursive queries            | [cycle-handling.md](cycle-handling.md)               |
+| Cancellation support in LSP servers            | [cancellation.md](cancellation.md)                   |
+| Fine-tuning cache reuse with durability levels | [durability.md](durability.md)                       |
+| Testing incremental recomputation              | [incremental-testing.md](incremental-testing.md)     |
+| Language Server Protocol integration           | [lsp-integration.md](lsp-integration.md)             |
+| Production-grade compiler patterns             | [production-patterns.md](production-patterns.md)     |

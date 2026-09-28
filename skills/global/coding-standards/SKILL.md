@@ -1,78 +1,78 @@
 ---
 name: coding-standards
 description: >-
-    Use ao revisar qualidade de código, avaliar se uma refatoração ou design é sólido, identificar code smells ou julgar trade-offs de arquitetura.
-    Identifica interfaces rasas, modelos de estado inválidos, fronteiras nebulosas, efeitos colaterais ocultos, contratos fracos de erro, excesso de mocks, abstrações prematuras e código aparentemente limpo que mascara modelos conceituais ruins.
+    Use when reviewing code quality, evaluating whether a refactoring or design is sound, identifying code smells, or judging architectural trade-offs.
+    Identifies shallow interfaces, invalid state models, fuzzy boundaries, hidden side effects, weak error contracts, mock-heavy tests, premature abstractions, and seemingly clean code masking poor mental models.
 ---
 
-# Padrões e Diretrizes de Código (Coding Standards)
+# Coding Standards and Architectural Guidelines
 
-> "Assim, programas devem ser escritos para que pessoas os leiam, e apenas incidentalmente para que máquinas os executem."  
-> — Abelson e Sussman, _Structure and Interpretation of Computer Programs_
+> "Programs must be written for people to read, and only incidentally for machines to execute."  
+> — Abelson and Sussman, _Structure and Interpretation of Computer Programs_
 
-> "A esse respeito, vale destacar que o objetivo de abstrair não é ser vago, mas criar um novo nível semântico no qual se possa ser absolutamente preciso."  
+> "The purpose of abstracting is not to be vague, but to create a new semantic level in which one can be absolutely precise."  
 > — Edsger W. Dijkstra, _The Humble Programmer_
 
-Código bom resolve um problema real através de um modelo que seres humanos conseguem entender, usar, alterar e consertar. Ele expressa a verdade na granularidade correta: conceitos nomeados onde importam, estados válidos explícitos, fronteiras bem traduzidas, consequências visíveis, falhas classificadas, comportamento verificado e estruturas desnecessárias deletadas.
+Good code solves a real problem through a model that humans can understand, use, change, and fix. It expresses truth at the right granularity: named concepts where they matter, explicit valid states, well-translated boundaries, visible consequences, classified failures, verified behavior, and deleted unnecessary scaffolding.
 
-Incorpore boas práticas conceituais sem o cerimonial vazio: torne estados ilegais irrepresentáveis (inspirado em linguagens com tipagem forte como Rust); crie módulos de domínio sólidos; construa barreiras anticorrupção nas integrações. Traduza essas ideias para os recursos nativos da linguagem do projeto.
+Incorporate sound conceptual patterns without empty ceremony: make illegal states unrepresentable (inspired by strongly typed languages like Rust); build deep domain modules; establish anti-corruption layers at integrations. Translate these principles using the idiomatic, native features of the project's language.
 
-## Princípios Fundamentais
+## Core Principles
 
-- **Código comunica um modelo mental.** Nomes, tipos, módulos, testes e interfaces devem revelar o que é verdadeiro no domínio de negócio e o que nunca deve acontecer.
-- **Represente o significado na granularidade correta.** Torne distinções importantes explícitas; não transforme cada tipo primitivo, detalhe de parser ou artefato de banco em vocabulário de domínio.
-- **Torne estados e transições válidas explícitos.** Prefira uniões discriminadas, enums ou máquinas de estado explícitas em vez de flags booleanas cegas, múltiplos campos nulos soltos e dependências temporais implícitas.
-- **Construa módulos profundos (Deep Modules).** Encapsule comportamentos coesos atrás de interfaces simples em fronteiras reais. Um wrapper superficial que apenas repassa chamadas só dá outro nome ao mesmo trabalho.
-- **Traduza dados nas fronteiras.** Dados externos, persistidos em banco, vindos de APIs ou de frameworks devem ser validados e convertidos (parse, don't validate) para o modelo interno antes de atingirem a lógica central.
-- **Torne as consequências e efeitos colaterais visíveis.** E/S, mutabilidade, tempo, requisições de rede, assincronicidade, retentativas e consumo de recursos devem ser evidentes onde afetam o raciocínio.
-- **Trate erros como parte integral do design.** Falhas de negócio esperadas pertencem aos contratos da interface; bugs de programação e falhas de infraestrutura exigem diagnóstico e recuperação distintos.
-- **Verifique o comportamento real.** Testes devem provar comportamento, invariantes, transições e modos de falha através de fronteiras reais observáveis, e não encenar coreografias de mocks internos frágeis.
-- **Delete o que não carrega significado.** Elimine generalizações especulativas, labirintos de indireção, camadas obsoletas e código exclusivo de teste que não protege nenhum contrato real.
+- **Code communicates a mental model.** Names, types, modules, tests, and interfaces must reveal what is true in the business domain and what must never happen.
+- **Represent meaning at the right granularity.** Make critical distinctions explicit; do not elevate every raw primitive, parser nuance, or database column into domain vocabulary.
+- **Make valid states and transitions explicit.** Prefer tagged unions, enums, or explicit state machines over blind boolean flags, loose nullable fields, and implicit temporal ordering.
+- **Build deep modules.** Encapsulate cohesive behaviors behind simple interfaces at real boundaries. A shallow wrapper that merely forwards calls just gives another name to the same work.
+- **Parse at boundaries.** External data, persisted database records, API payloads, and framework objects must be validated and converted (parse, don't validate) into the internal domain model before reaching core business logic.
+- **Make consequences and side effects visible.** I/O, mutability, time, network requests, asynchronous execution, retries, and resource consumption must be evident where they affect reasoning.
+- **Treat errors as an integral part of design.** Expected domain failures belong in interface contracts; programming bugs and infrastructure crashes require separate diagnostic and recovery paths.
+- **Verify real behavior.** Tests must prove behavior, invariants, state transitions, and failure modes across observable boundaries, rather than orchestrating fragile internal mock choreographies.
+- **Delete whatever carries no meaning.** Eliminate speculative generalizations, labyrinths of indirection, obsolete layers, and test-only scaffolding that protects no real contract.
 
-## Violações Críticas Não Negociáveis
+## Critical Non-Negotiable Violations
 
-A menos que haja uma restrição física documentada, trate como falha de design:
+Unless there is a documented physical or environmental constraint, treat as a design failure:
 
-- Dados brutos externos fluindo pela lógica de negócio central.
-- Estados ilegais ou impossíveis representáveis como valores normais em tempo de execução.
-- Detalhes privados de parsing, armazenamento ou infraestrutura vazando para o vocabulário público da API.
-- Camada intermediária que apenas repassa chamadas sem agregar valor (pass-through wrapper apresentado como "arquitetura").
-- Efeitos colaterais graves ou falhas esperadas ocultos de quem chama a função.
-- Testes que provam apenas o arranjo de mocks e espiões em vez do resultado observável.
+- Raw, unvalidated external data flowing directly into core business logic.
+- Illegal or impossible domain states representable as normal runtime values.
+- Private parsing, persistence, or infrastructure details leaking into the public API vocabulary.
+- Intermediary layers that merely pass calls through without adding value (pass-through wrappers disguised as "architecture").
+- Severe side effects or expected business failures hidden from the caller.
+- Tests that verify only mock arrangement and call counts rather than observable outcomes.
 
-## Falácias Comuns a Rejeitar
+## Common Fallacies to Reject
 
-- **"O dado já foi validado antes":** Faça o parsing na fronteira e passe o tipo refinado para dentro. Impeça que código interno possa ser chamado com o formato errado.
-- **"Este é apenas o formato do banco/API":** Formatos de borda devem ficar na borda; não os deixe contaminar o modelo de domínio sem necessidade.
-- **"O código antigo lança exceção solta, então lancei também":** Mantenha compatibilidade externa onde obrigatório, mas isole internamente novas lógicas diferenciando falhas esperadas de falhas críticas.
-- **"Essa interface nos dá flexibilidade futura":** Uma abstração só se justifica quando há variação real de comportamento, tradução de fronteira ou necessidade legítima de substituição em testes.
-- **"Mocks isolam o código":** Mocks excessivos geralmente isolam as coisas erradas e quebram ao menor refactor inofensivo. Prefira focar em entradas e saídas observáveis.
-- **"Um comentário de supressão de linter/tipo resolve":** Supressões exigem justificativa estrita e invariante de segurança demonstrada.
+- **"The data was already validated earlier":** Parse at the boundary and pass the refined type inward. Prevent internal functions from ever being invokable with invalid formats.
+- **"This is just the database/API schema format":** Boundary shapes belong at the edge; never let them contaminate the domain model unnecessarily.
+- **"Legacy code throws unhandled exceptions, so I did too":** Maintain external compatibility where mandatory, but isolate internal new logic by differentiating expected failures from unexpected panics.
+- **"This interface gives us future flexibility":** An abstraction is justified only when there is real behavioral variation, a boundary translation, or a legitimate test substitution need.
+- **"Mocks isolate the unit of code":** Excessive mocks isolate the wrong things and break on the most harmless refactoring. Focus on observable inputs and outputs.
+- **"A linter/type suppression comment solves it":** Suppressions require strict justification and a demonstrated safety invariant.
 
-## Como Conduzir uma Revisão
+## How to Conduct a Review
 
-1. **Entenda o contexto do código local.** Siga as convenções existentes quando elas comunicam bem o modelo; mude-as conscientemente quando perpetuam um modelo falho.
-2. **Classifique a preocupação:** modelo de domínio, estado, modularidade, fronteiras, efeitos, erros, testes ou complexidade.
-3. **Identifique o ônus para quem chama ou mantém o código.**
-4. **Proponha a menor alteração honesta.** Não simplifique mentindo sobre os requisitos; não hipermodele a ponto de obscurecer a intenção.
-5. **Verifique o comportamento com testes confiáveis.**
-6. **Remova andaimes obsoletos.**
+1. **Understand local context.** Respect established conventions when they communicate the model well; challenge them deliberately when they perpetuate a flawed model.
+2. **Classify the concern:** domain model, state, modularity, boundaries, side effects, error handling, verification, or complexity.
+3. **Identify the burden on the caller or future maintainer.**
+4. **Propose the smallest honest change.** Do not oversimplify by ignoring requirements; do not hyper-model to the point of obscuring intent.
+5. **Verify behavior with reliable tests.**
+6. **Remove obsolete scaffolding.**
 
-Um apontamento de revisão só é válido se indicar o trecho concreto, o impacto real para quem mantém, o princípio violado e a menor solução viável.
+A review finding is only valid if it points to a concrete code location, demonstrates real impact on maintainability, cites the violated principle, and offers the smallest viable solution.
 
-## Mapa de Referências Aprofundadas
+## Deep Dive Reference Map
 
-Para análises detalhadas, consulte apenas os arquivos relevantes em `references/`:
+For detailed analysis, consult only the relevant documents in `references/`:
 
-| Tópico                                                 | Documento de Apoio                                               |
-| ------------------------------------------------------ | ---------------------------------------------------------------- |
-| Vocabulário e termos compartilhados                    | [`references/vocabulary.md`](references/vocabulary.md)           |
-| Modelagem de domínio e granularidade                   | [`references/domain-modeling.md`](references/domain-modeling.md) |
-| Flags, campos nulos, combinações inválidas e estados   | [`references/state.md`](references/state.md)                     |
-| Módulos profundos, limites e responsabilidades         | [`references/modules.md`](references/modules.md)                 |
-| Fronteiras de API/Banco, parsing, DTOs e validação     | [`references/boundaries.md`](references/boundaries.md)           |
-| Efeitos colaterais, mutações, async e idempotência     | [`references/effects.md`](references/effects.md)                 |
-| Tratamento de erros esperados vs bugs e diagnósticos   | [`references/error-handling.md`](references/error-handling.md)   |
-| Testes comportamentais vs mocks frágeis                | [`references/verification.md`](references/verification.md)       |
-| Complexidade excessiva, overengineering e indireções   | [`references/complexity.md`](references/complexity.md)           |
-| Manutenibilidade, refatoração segura e compatibilidade | [`references/maintainability.md`](references/maintainability.md) |
+| Topic                                                | Supporting Document                                              |
+| ---------------------------------------------------- | ---------------------------------------------------------------- |
+| Shared vocabulary and terms                          | [`references/vocabulary.md`](references/vocabulary.md)           |
+| Domain modeling and granularity                      | [`references/domain-modeling.md`](references/domain-modeling.md) |
+| Flags, nullable fields, invalid states, and machines | [`references/state.md`](references/state.md)                     |
+| Deep modules, boundaries, and cohesion               | [`references/modules.md`](references/modules.md)                 |
+| API/DB boundaries, parsing, DTOs, and validation     | [`references/boundaries.md`](references/boundaries.md)           |
+| Side effects, mutations, async, and idempotency      | [`references/effects.md`](references/effects.md)                 |
+| Expected errors vs bugs and diagnostics              | [`references/error-handling.md`](references/error-handling.md)   |
+| Behavioral testing vs fragile mocks                  | [`references/verification.md`](references/verification.md)       |
+| Accidental complexity and premature indirections     | [`references/complexity.md`](references/complexity.md)           |
+| Maintainability, safe refactoring, and compatibility | [`references/maintainability.md`](references/maintainability.md) |

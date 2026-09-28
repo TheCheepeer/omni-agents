@@ -1,81 +1,81 @@
 ---
 name: feature-planning-artifacts
 description: >-
-    Use ao criar ou iterar artefatos de planejamento em etapas para funcionalidades complexas: discussão de design (design discussion), esboço estrutural (structure outline), plano final para executores (final plan) ou pesquisa técnica exploratória.
-    Fatia o trabalho em camadas verticais executáveis, estabelece portões de revisão com o usuário entre cada estágio e aprofunda itens de alto valor antes de escrever código.
+    Use when creating or iterating staged planning artifacts for complex features: design discussions, structure outlines, final execution plans, or exploratory technical research.
+    Slices work into executable vertical layers, establishes review gates with the user between stages, and derisks high-value items before code is written.
 ---
 
-# Artefatos de Planejamento de Funcionalidades (Feature Planning Artifacts)
+# Feature Planning Artifacts
 
-Crie ou atualize artefatos de planejamento estruturados em estágios para demandas que exigem pesquisa prévia, julgamento de arquitetura, fatiamento vertical e um plano seguro antes da implementação.
+Create or update structured, staged planning artifacts for requirements demanding prior research, architectural judgment, vertical slicing, and a verified plan before implementation.
 
-Esta skill **não** é um gerador de planos em passo único descartável. Ela deve receber um escopo, realizar reconhecimento prévio, redigir ou atualizar o artefato do estágio atual e **parar no portão de revisão**. Não avance para o próximo estágio até que o atual tenha sido aceito pelo usuário ou que ele peça explicitamente para prosseguir.
+This skill is **not** a throwaway, single-pass plan generator. It takes a scope, performs reconnaissance, drafts or updates the current-stage artifact, and **stops at the review gate**. Do not advance to the next stage until the current artifact is approved by the user or they explicitly request proceeding.
 
-Trate o planejamento como meta-engenharia: cada documento deve tornar a implementação futura mais segura ao definir critérios de sucesso, explicitar decisões de arquitetura e prever verificações contra regressão.
+Treat planning as meta-engineering: each document makes future implementation safer by specifying success criteria, clarifying architectural decisions, and designing regression gates.
 
-## Fontes e Referências
+## Sources and References
 
-Antes de produzir ou atualizar os artefatos, utilize:
+Before producing or updating artifacts, consult:
 
-- O item selecionado no roadmap, card de oportunidade ou plano preliminar.
-- Artefatos anteriores existentes para este mesmo esforço (discussão de design, esboço ou rascunhos de plano).
-- A skill `coding-standards` como fonte canônica de vocabulário e padrões de código.
-- Documentos do projeto: `GEMINI.md`, `AGENTS.md`, `README.md`, ADRs e estado atual do Git.
-- Modelos canônicos em [references/artifact-templates.md](references/artifact-templates.md).
+- The selected roadmap item, opportunity card, or preliminary brief.
+- Prior artifacts for this effort (design discussion, outline, or plan drafts).
+- The `coding-standards` skill as the canonical source for vocabulary and code idioms.
+- Project documents: `GEMINI.md`, `AGENTS.md`, `README.md`, ADRs, and current Git status.
+- Canonical templates in [references/artifact-templates.md](references/artifact-templates.md).
 
-## O Contrato dos Estágios
+## The Stage Contract
 
-Avance sempre pelo menor estágio que produza progresso sólido:
+Always advance via the smallest stage that yields solid progress:
 
-| Estágio                           | Quando Usar                                                 | Entrada                                        | Saída Resultante                                              | Portão de Parada                                            |
-| --------------------------------- | ----------------------------------------------------------- | ---------------------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------- |
-| **Perguntas de Pesquisa**         | Incertezas amplas sobre como o sistema funciona hoje        | Pedido do usuário ou item de roadmap           | Perguntas precisas sobre o comportamento atual do código      | Parar após as perguntas; aguardar aprovação para pesquisar  |
-| **Pesquisa Técnica**              | Dúvidas levantadas precisam ser respondidas pelo código     | Perguntas de pesquisa                          | Relatório puramente descritivo do código atual                | Parar após a pesquisa; recomendar discussão de design       |
-| **Discussão de Design**           | A funcionalidade exige decisões de arquitetura e trade-offs | Pesquisa ou contexto suficiente do repositório | Opções, recomendação, decisões resolvidas e dúvidas em aberto | Parar para revisão humana; NÃO fazer o esboço ainda         |
-| **Esboço de Estrutura (Outline)** | O design foi aprovado ou possui recomendação clara          | Discussão de design aceita                     | Fatias verticais de implementação                             | Parar para revisão humana; NÃO escrever o plano final ainda |
-| **Plano Final de Execução**       | O esboço estrutural foi aprovado                            | Esboço aceito                                  | Plano autocontido e seguro para qualquer executor             | Parar para transição de execução                            |
+| Stage                    | When to Use                                               | Input                                     | Resulting Output                                           | Stop Gate                                          |
+| ------------------------ | --------------------------------------------------------- | ----------------------------------------- | ---------------------------------------------------------- | -------------------------------------------------- |
+| **Research Questions**   | Broad uncertainty about how the system currently works    | User request or roadmap item              | Precise questions on current code behavior                 | Stop after questions; await approval to research   |
+| **Technical Research**   | Raised questions must be answered by the code             | Research questions                        | Purely descriptive report of current code                  | Stop after research; recommend design discussion   |
+| **Design Discussion**    | The feature requires architectural choices and trade-offs | Research or sufficient repository context | Options, recommendation, settled decisions, open questions | Stop for human review; DO NOT draft outline yet    |
+| **Structure Outline**    | Design is approved or has a clear direction               | Accepted design discussion                | Vertical implementation slices                             | Stop for human review; DO NOT draft final plan yet |
+| **Final Execution Plan** | Structure outline is approved                             | Accepted outline                          | Self-contained, safe execution plan for any executor       | Stop for execution handoff                         |
 
-Se o usuário disser apenas "planeje isso", comece por uma **discussão de design**, a menos que as incertezas sejam tão grandes que perguntas de pesquisa devam vir antes. Não gere tudo de uma vez sem pausas.
+If the user simply says "plan this", begin with a **design discussion**, unless uncertainties are so extensive that research questions must come first. Never generate everything at once without pauses.
 
-## Estrutura de Arquivos e Destino
+## File Structure and Destination
 
-Agrupe o pacote de artefatos em `.agents/plans/features/<slug-da-funcionalidade>/`:
-
-```txt
-.agents/plans/features/<slug-da-funcionalidade>/README.md
-.agents/plans/features/<slug-da-funcionalidade>/001-design-discussion.md
-.agents/plans/features/<slug-da-funcionalidade>/002-structure-outline.md
-.agents/plans/features/<slug-da-funcionalidade>/003-plan.md
-```
-
-Se pesquisas descritivas foram necessárias:
+Colocate the artifact bundle in `.agents/plans/features/<feature-slug>/`:
 
 ```txt
-.agents/plans/features/<slug-da-funcionalidade>/001-research-questions.md
-.agents/plans/features/<slug-da-funcionalidade>/002-research.md
-.agents/plans/features/<slug-da-funcionalidade>/003-design-discussion.md
+.agents/plans/features/<feature-slug>/README.md
+.agents/plans/features/<feature-slug>/001-design-discussion.md
+.agents/plans/features/<feature-slug>/002-structure-outline.md
+.agents/plans/features/<feature-slug>/003-plan.md
 ```
 
-Crie ou atualize exatamente **um artefato principal** por interação, junto com o `README.md` de índice do pacote.
+If descriptive research was required:
 
-## Fluxo Detalhado por Estágio
+```txt
+.agents/plans/features/<feature-slug>/001-research-questions.md
+.agents/plans/features/<feature-slug>/002-research.md
+.agents/plans/features/<feature-slug>/003-design-discussion.md
+```
 
-1. **Definir o Estágio Atual:** Avalie os arquivos existentes. Se houver uma discussão de design em revisão, itere sobre ela em vez de criar um esboço. Defina o critério de sucesso antes de escrever.
-2. **Pesquisa Técnica:** Mantenha a pesquisa estritamente descritiva (o que existe hoje no código, fluxos de dados, testes e restrições). Sem recomendações ou opiniões nessa etapa.
-3. **Discussão de Design:** Apresente o estado atual, o estado final desejado, não-objetivos explícitos, alternativas avaliadas, recomendação técnica e perguntas em aberto. Marque como `status: in-review` e solicite a validação do usuário.
-4. **Esboço Estrutural (Structure Outline):** Após aprovação do design, fatie a entrega em fases verticais. Aponte os arquivos tocados, assinaturas essenciais e testes por fase.
-5. **Plano Final:** A partir do esboço aceito, elabore o plano final à prova de executores, contendo comandos exatos de teste, condições de parada e limites de autonomia.
+Create or update exactly **one primary artifact** per interaction, along with the bundle index `README.md`.
 
-## Portões de Revisão com o Usuário
+## Detailed Workflow by Stage
 
-Use falas diretas ao encerrar o estágio:
+1. **Define the Current Stage:** Assess existing files. If a design discussion is under review, iterate on it rather than creating an outline. Define success criteria before writing.
+2. **Technical Research:** Keep research strictly descriptive (current code behavior, data flows, tests, and constraints). No solution recommendations or opinions in this phase.
+3. **Design Discussion:** Present current state, desired end state, explicit non-goals, evaluated alternatives, technical recommendation, and open questions. Set `status: in-review` and request user validation.
+4. **Structure Outline:** Once design is accepted, slice implementation into vertical phases. List touched files, core signatures, and per-phase tests.
+5. **Final Plan:** Derived from the accepted outline, draft an executor-ready plan with exact test commands, stop conditions, and autonomy boundaries.
 
-- **Após perguntas de pesquisa:** _"Estas são as dúvidas sobre o comportamento atual do sistema que investigarei a seguir."_
-- **Após pesquisa:** _"Aqui está o mapeamento descritivo do código atual; as recomendações de solução serão elaboradas na discussão de design."_
-- **Após discussão de design:** _"Por favor, revise a abordagem recomendada, as opções descartadas e as dúvidas pendentes antes de estruturarmos as fases de implementação."_
-- **Após esboço de estrutura:** _"Revise as fatias verticais de entrega e os testes de cada fase antes de gerarmos o plano detalhado."_
-- **Após plano final:** _"O plano está concluído e pronto para execução segura."_
+## User Review Gates
 
-## Critérios de Conclusão
+Use clear, direct handoff prompts when concluding a stage:
 
-O pacote de planejamento está finalizado quando cada documento cumpriu seu papel e passou pelo seu respectivo portão de validação, permitindo que a funcionalidade seja codificada sem atritos conceituais ou dúvidas ocultas.
+- **After research questions:** _"These are the questions regarding current system behavior I will investigate next."_
+- **After research:** _"Here is the descriptive mapping of existing code; solution recommendations will be detailed in the design discussion."_
+- **After design discussion:** _"Please review the recommended approach, discarded options, and open questions before we outline implementation phases."_
+- **After structure outline:** _"Please review the vertical delivery slices and phase-level tests before we generate the detailed execution plan."_
+- **After final plan:** _"The plan is complete and ready for safe execution."_
+
+## Completion Criteria
+
+The planning bundle is complete when each document has fulfilled its role and cleared its validation gate, allowing the feature to be implemented without hidden questions or architectural friction.

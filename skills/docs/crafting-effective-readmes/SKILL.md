@@ -1,83 +1,83 @@
 ---
 name: crafting-effective-readmes
 description: >-
-    Use ao redigir, estruturar ou melhorar arquivos README.md.
-    Nem todo README tem o mesmo objetivo — fornece modelos e diretrizes adequados ao público-alvo e ao tipo de projeto (código aberto, interno, pessoal ou de configuração).
+    Use when drafting, structuring, or improving README.md files.
+    Not every README serves the same purpose — provides templates and guidelines tailored to audience and project type (open source, internal, personal, or configuration).
 ---
 
-# Criação de READMEs Eficazes (Crafting Effective READMEs)
+# Crafting Effective READMEs
 
-## Visão Geral
+## Overview
 
-READMEs respondem às dúvidas que o seu público terá. Públicos diferentes exigem informações diferentes — um contribuidor de um projeto Open Source precisa de um contexto muito diferente do que você mesmo daqui a seis meses abrindo uma pasta de configurações.
+READMEs answer the questions your audience will have. Different audiences require different information — an open-source contributor needs fundamentally different context than you will six months from now opening a configuration folder.
 
-**Sempre pergunte:** Quem vai ler este arquivo e o que essa pessoa precisa saber para ter sucesso?
+**Always ask:** Who will read this file, and what do they need to know to succeed?
 
-## Processo
+## Process
 
-### Etapa 1: Identificar a Demanda
+### Step 1: Identify the Task
 
-Identifique qual tarefa de documentação está em andamento:
+Determine the active documentation task:
 
-| Tarefa          | Quando Usar                                                           |
-| --------------- | --------------------------------------------------------------------- |
-| **Criação**     | Projeto novo, sem nenhum README ainda                                 |
-| **Adição**      | Necessidade de documentar um novo recurso, comando ou guia            |
-| **Atualização** | Funcionalidades mudaram ou dependências/passos ficaram desatualizados |
-| **Revisão**     | Auditoria para validar se o README reflete a realidade do código      |
+| Task         | When to Use                                                          |
+| ------------ | -------------------------------------------------------------------- |
+| **Creation** | Brand new project with no existing README                            |
+| **Addition** | Need to document a new feature, command, or guide                    |
+| **Update**   | Features have changed or dependencies/instructions have become stale |
+| **Review**   | Audit to verify the README matches actual code reality               |
 
-### Etapa 2: Perguntas Específicas por Tarefa
+### Step 2: Task-Specific Questions
 
-**Ao criar o README inicial:**
+**When creating the initial README:**
 
-1. Qual é o tipo de projeto? (veja Tipos de Projeto abaixo)
-2. Que problema o projeto resolve em uma única frase?
-3. Qual é o caminho mais rápido para chegar a "está funcionando" (quickstart)?
-4. Há algum pré-requisito ou destaque essencial?
+1. What is the project type? (see Project Types below)
+2. What problem does the project solve in a single sentence?
+3. What is the fastest path to "it works" (quickstart)?
+4. Are there critical prerequisites or key highlights?
 
-**Ao adicionar uma nova seção:**
+**When adding a new section:**
 
-1. O que exatamente precisa ser documentado?
-2. Onde essa informação se encaixa logicamente na estrutura atual?
-3. Quem é o principal interessado nesta seção?
+1. What exact capability needs to be documented?
+2. Where does this fit logically in the existing structure?
+3. Who is the primary stakeholder for this section?
 
-**Ao atualizar conteúdo existente:**
+**When updating existing content:**
 
-1. O que mudou no código ou na arquitetura?
-2. Leia o README atual e aponte as seções obsoletas.
-3. Proponha as alterações pontuais sem remover o que ainda é válido.
+1. What changed in the codebase or architecture?
+2. Read the current README and identify obsolete sections.
+3. Propose targeted changes without removing still-valid material.
 
-**Ao revisar e auditar:**
+**When reviewing and auditing:**
 
-1. Leia o README atual.
-2. Compare com os arquivos de configuração reais (`package.json`, `Cargo.toml`, scripts de build).
-3. Sinalize discrepâncias ou comandos quebrados.
+1. Read the existing README.
+2. Compare against real configuration files (`package.json`, `Cargo.toml`, build scripts).
+3. Flag discrepancies or broken commands.
 
-### Etapa 3: Validação com o Usuário
+### Step 3: User Validation
 
-Ao concluir o rascunho, valide sempre: **"Há mais algum detalhe, restrição de ambiente ou contexto específico que você gostaria de incluir?"**
+Upon finishing a draft, always validate: **"Are there any additional details, environment constraints, or specific context you would like to include?"**
 
-## Tipos de Projeto
+## Project Types
 
-| Tipo                         | Público-Alvo                                 | Seções Principais                                                         | Modelo de Referência      |
-| ---------------------------- | -------------------------------------------- | ------------------------------------------------------------------------- | ------------------------- |
-| **Open Source**              | Contribuidores e usuários externos           | Instalação, Uso, Como Contribuir, Licença                                 | `templates/oss.md`        |
-| **Pessoal**                  | Você no futuro e visitantes de portfólio     | O que faz, Stack técnica, Decisões de design                              | `templates/personal.md`   |
-| **Interno / Corporativo**    | Colegas de equipe e novos desenvolvedores    | Setup local, Arquitetura, Runbooks, Variáveis de ambiente                 | `templates/internal.md`   |
-| **Configurações / Dotfiles** | Você no futuro (precisando lembrar do setup) | O que está aqui, Por que foi configurado assim, Como estender, Pegadinhas | `templates/xdg-config.md` |
+| Type                         | Target Audience                         | Primary Sections                                                        | Reference Template        |
+| ---------------------------- | --------------------------------------- | ----------------------------------------------------------------------- | ------------------------- |
+| **Open Source**              | External contributors and users         | Installation, Usage, Contributing, License                              | `templates/oss.md`        |
+| **Personal**                 | Future you and portfolio visitors       | What it does, Tech stack, Design decisions                              | `templates/personal.md`   |
+| **Internal / Corporate**     | Teammates and onboarding developers     | Local setup, Architecture, Runbooks, Environment variables              | `templates/internal.md`   |
+| **Configuration / Dotfiles** | Future you (reconstructing local setup) | What lives here, Why it was configured this way, How to extend, Gotchas | `templates/xdg-config.md` |
 
-Se o tipo de projeto não for evidente, esclareça antes de assumir um modelo genérico de Open Source.
+If the project type is unclear, clarify before assuming a generic open-source template.
 
-## Seções Essenciais (Presentes em Todo README)
+## Essential Sections (Present in Every README)
 
-Todo README precisa, no mínimo:
+Every README requires at minimum:
 
-1. **Nome do Projeto** — Título claro e autoexplicativo
-2. **Descrição** — O que é e por que existe, em 1 a 2 frases diretas
-3. **Uso / Início Rápido** — Como executar ou usar imediatamente com exemplos concretos
+1. **Project Name** — Clear, self-explanatory title
+2. **Description** — What it is and why it exists, in 1 to 2 direct sentences
+3. **Usage / Quickstart** — How to run or use it immediately with concrete examples
 
-## Documentos de Apoio
+## Supporting Documents
 
-- `section-checklist.md` — Checklist de seções recomendadas por tipo de projeto
-- `style-guide.md` — Erros comuns em READMEs e orientações de escrita
-- `using-references.md` — Guia de aprofundamento e modelos detalhados
+- `section-checklist.md` — Recommended section checklist by project type
+- `style-guide.md` — Common README mistakes and writing guidelines
+- `using-references.md` — Deep dive guide and detailed templates

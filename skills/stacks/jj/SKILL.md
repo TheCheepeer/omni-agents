@@ -1,99 +1,99 @@
 ---
 name: jj
 description: >-
-    Jujutsu (jj) — o sistema de controle de versão moderno compatível com Git.
-    Ative SOMENTE quando um diretório .jj/ estiver presente no projeto ou quando jj/jujutsu for citado explicitamente pelo usuário. NÃO ative em repositórios Git comuns sem a pasta .jj/.
-    Use para qualquer operação de VCS em projetos gerenciados por jj: commit, push, pull, branch, bookmark, rebase, squash, merge, diff, log, status, cópia de trabalho (working copy), Change ID, revsets e workspaces.
-compatibility: "Requer um repositório gerenciado pelo Jujutsu (.jj/ presente na raiz do projeto)"
+    Jujutsu (jj) — the modern Git-compatible version control system.
+    Activate ONLY when a .jj/ directory is present in the project or when jj/jujutsu is explicitly mentioned by the user. DO NOT activate in plain Git repos without .jj/.
+    Use for any VCS operation in jj-managed projects: commit, push, pull, branch, bookmark, rebase, squash, merge, diff, log, status, working copy, Change ID, revsets, and workspaces.
+compatibility: "Requires a Jujutsu-managed repository (.jj/ present in project root)"
 metadata:
     version: "1.0.0"
     requires-path: ".jj/"
 ---
 
-# Controle de Versão com Jujutsu (jj)
+# Version Control with Jujutsu (jj)
 
-Jujutsu é um sistema de controle de versão moderno, totalmente compatível com Git, que possui commits mutáveis, rastreamento automático de arquivos e um histórico de operações (`operation log`) que torna qualquer ação reversível.
+Jujutsu is a modern, Git-compatible version control system featuring first-class mutable history, automatic file tracking, and an operation log that makes every action reversible.
 
-**Versão alvo: jj 0.36+**
+**Target version: jj 0.36+**
 
-## Modelo Mental do Jujutsu
+## Jujutsu Mental Model
 
-1. **A cópia de trabalho já é um commit (`@`).** Não existe área de staging (`git add`). Qualquer alteração salva em arquivo é imediatamente registrada no commit atual (`@`) ao rodar qualquer comando do `jj`.
-2. **Change IDs são estáveis; Commit IDs mudam.** Cada commit tem dois identificadores:
-    - **Change ID:** estável mesmo após rebases, squashes e reescritas de histórico (identificado por letras de k a z, ex: `tqpwlqmp`). **Sempre prefira usar Change IDs.**
-    - **Commit ID:** hash de conteúdo SHA (muda a cada reescrita, equivale ao commit hash do Git).
-3. **Histórico é naturalmente mutável.** Commits podem ser reescritos sem medo; os commits filhos sofrem rebase automático. Versões antigas ficam salvas no histórico de operações (`jj op log`).
-4. **Bookmarks não são branches do Git.** Bookmarks não avançam sozinhos quando você cria novos commits. Eles acompanham reescritas, mas devem ser movidos explicitamente antes de fazer push.
-5. **Conflitos não travam o trabalho.** O Jujutsu permite criar commits com conflitos de mesclagem. Você pode resolver os marcadores de conflito com calma quando quiser, sem interromper o fluxo.
+1. **The working copy is already a commit (`@`).** There is no staging index (`git add`). File edits on disk are automatically tracked in the working copy commit (`@`) upon running any `jj` command.
+2. **Change IDs are stable; Commit IDs change.** Every commit has two identifiers:
+    - **Change ID:** remains stable across rebases, squashes, and history rewrites (rendered as lowercase letters k-z, e.g. `tqpwlqmp`). **Always prefer using Change IDs.**
+    - **Commit ID:** SHA content hash (changes on rewrite, identical to a Git commit hash).
+3. **History is inherently mutable.** Commits can be rewritten freely; child commits rebase automatically. Past states are preserved in the operation log (`jj op log`).
+4. **Bookmarks are not Git branches.** Bookmarks do not automatically move forward as you create new commits. They track rewrites, but must be explicitly advanced before pushing.
+5. **Conflicts do not halt work.** Jujutsu records merge conflicts directly in commits. You can resolve conflict markers whenever convenient without blocking unrelated work.
 
-## Regras Obrigatórias para Agentes Automatizados
+## Mandatory Rules for Automated Agents
 
-1. **Sempre passe `-m` para mensagens.** Nunca execute comandos interativos que abram o editor de texto do terminal (`nano`, `vim`). Comandos que exigem `-m`: `jj new -m "..."`, `jj describe -m "..."`, `jj commit -m "..."`, `jj squash -m "..."`.
-2. **Evite comandos interativos.** Comandos como `jj split` (sem especificar arquivos) ou `jj squash -i` congelam a execução. Especifique sempre os caminhos de arquivo explicitamente.
-3. **Verifique o estado após mutações.** Execute `jj st` após qualquer operação de `squash`, `rebase`, `abandon` ou `restore`.
-4. **Use aspas simples em revsets:** Sempre use aspas: `jj log -r 'mine() & ::@'`.
+1. **Always provide `-m` for messages.** Never invoke commands that open a terminal editor (`nano`, `vim`). Commands requiring `-m`: `jj new -m "..."`, `jj describe -m "..."`, `jj commit -m "..."`, `jj squash -m "..."`.
+2. **Avoid interactive subcommands.** Commands like bare `jj split` or `jj squash -i` block execution. Always specify explicit file paths.
+3. **Verify state after mutations.** Run `jj st` after any `squash`, `rebase`, `abandon`, or `restore` operation.
+4. **Single-quote revset expressions:** Always quote revsets: `jj log -r 'mine() & ::@'`.
 
-## Fluxo de Trabalho Diário
+## Daily Workflow
 
-O ciclo de desenvolvimento: **descrever → programar → novo commit → repetir.**
+The development loop: **describe -> code -> new commit -> repeat.**
 
 ```bash
-jj describe -m "feat: adicionar validacao de usuario"
-# edite os arquivos normalmente — sao rastreados automaticamente sem precisar de add
+jj describe -m "feat: add user validation"
+# edit files normally — tracked automatically without git add
 jj st && jj diff
-jj new -m "feat: adicionar tratamento de erros"
+jj new -m "feat: add error handling"
 ```
 
-### Limpar e Organizar o Histórico
+### Organizing and Cleaning History
 
 ```bash
-jj squash -m "feat: mensagem limpa final"  # une a copia de trabalho ao commit pai
-jj absorb                                   # distribui os hunks automaticamente para os ancestrais corretos
-jj abandon @                               # descarta um experimento que deu errado
+jj squash -m "feat: clean combined commit"  # squashes working copy into parent
+jj absorb                                   # automatically routes hunks to ancestors
+jj abandon @                               # discards a failed experiment
 ```
 
-### Enviar Alterações para o Remoto (GitHub/GitLab)
+### Pushing Changes to Remote (GitHub/GitLab)
 
 ```bash
-jj bookmark set minha-feature -r @
-jj git push -b minha-feature
+jj bookmark set my-feature -r @
+jj git push -b my-feature
 ```
 
-## Tabela de Comandos Essenciais
+## Essential Commands
 
-| Ação                           | Comando Jujutsu                                                  |
-| ------------------------------ | ---------------------------------------------------------------- |
-| Verificar status               | `jj st`                                                          |
-| Ver diff / log                 | `jj diff` / `jj log`                                             |
-| Descrever commit atual         | `jj describe -m "mensagem"`                                      |
-| Iniciar novo commit            | `jj new -m "descricao da tarefa"`                                |
-| Editar commit antigo           | `jj edit <change-id>`                                            |
-| Unir com commit pai            | `jj squash`                                                      |
-| Distribuir alterações nos pais | `jj absorb`                                                      |
-| Descartar commit               | `jj abandon <change-id>`                                         |
-| Desfazer última operação       | `jj undo`                                                        |
-| Ver histórico de operações     | `jj op log`                                                      |
-| Restaurar estado anterior      | `jj op restore <op-id>`                                          |
-| Criar/mover bookmark           | `jj bookmark create <nome> -r @` / `jj bookmark set <nome> -r @` |
-| Sincronizar com remoto         | `jj git push -b <bookmark>` / `jj git fetch`                     |
+| Action                        | Jujutsu Command                                                  |
+| ----------------------------- | ---------------------------------------------------------------- |
+| Check status                  | `jj st`                                                          |
+| View diff / log               | `jj diff` / `jj log`                                             |
+| Describe current commit       | `jj describe -m "message"`                                       |
+| Start new commit              | `jj new -m "task description"`                                   |
+| Edit an existing commit       | `jj edit <change-id>`                                            |
+| Squash into parent            | `jj squash`                                                      |
+| Distribute changes to parents | `jj absorb`                                                      |
+| Discard commit                | `jj abandon <change-id>`                                         |
+| Undo last operation           | `jj undo`                                                        |
+| View operation log            | `jj op log`                                                      |
+| Restore prior operation state | `jj op restore <op-id>`                                          |
+| Create / move bookmark        | `jj bookmark create <name> -r @` / `jj bookmark set <name> -r @` |
+| Sync with remote              | `jj git push -b <bookmark>` / `jj git fetch`                     |
 
-## Como Recuperar Estados Anteriores (Undo)
+## How to Undo Operations
 
 ```bash
-jj undo                      # desfaz a ultima operacao realizada
-jj op log                    # lista todas as operacoes recentes com seus IDs
-jj op restore <op-id>        # volta a base exatamente para como estava naquele op-id
-jj evolog -r <change-id>     # mostra a evolucao historica de uma mudanca especifica
+jj undo                      # undoes the most recent operation
+jj op log                    # lists recent operations with IDs
+jj op restore <op-id>        # restores repo to the exact state at that op-id
+jj evolog -r <change-id>     # displays the evolution history of a specific change
 ```
 
-## Identificação de Repositórios
+## Repository Identification
 
-- Pasta `.jj/` presente = repositório Jujutsu.
-- Pastas `.jj/` e `.git/` juntas = repositório colocalizado (colocated). Use sempre comandos `jj`. O aviso de "HEAD desacoplada" do Git é normal nesses repositórios; o estado real é o exibido por `jj log`.
+- `.jj/` present = Jujutsu repository.
+- Both `.jj/` and `.git/` present = colocated repository. Always use `jj` commands. Git's "detached HEAD" warning in colocated repositories is normal; actual state is reflected by `jj log`.
 
-## Documentos de Apoio
+## Supporting Documents
 
-- [references/git-to-jj.md](references/git-to-jj.md) — Dicionário de tradução de comandos do Git para o Jujutsu.
-- [references/bookmarks.md](references/bookmarks.md) — Guia completo de bookmarks e integração com GitHub.
-- [references/conflicts.md](references/conflicts.md) — Resolução de conflitos no Jujutsu.
-- [references/revsets.md](references/revsets.md) — Linguagem de consulta e filtros (revsets).
+- [references/git-to-jj.md](references/git-to-jj.md) — Git-to-Jujutsu command translation dictionary.
+- [references/bookmarks.md](references/bookmarks.md) — Complete guide to bookmarks and GitHub integration.
+- [references/conflicts.md](references/conflicts.md) — Resolving merge conflicts in Jujutsu.
+- [references/revsets.md](references/revsets.md) — Query language and filters (revsets).

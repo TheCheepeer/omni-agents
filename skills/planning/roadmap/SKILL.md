@@ -1,95 +1,95 @@
 ---
 name: roadmap
 description: >-
-    Construa roadmaps de produto ou software orientados a evidências a partir do estado do repositório, tickets, ideias, auditorias ou metas do usuário.
-    Prioriza e sequencia o trabalho em Agora/Próximo/Depois (Now/Next/Later), marcos (milestones), dependências, riscos e transição para execução.
-    Use ao ser solicitado a criar roadmaps técnicos, planos de release, priorização de backlog ou converter saídas de ideação/auditoria em uma sequência de entrega. Não serve para implementar código diretamente nem escrever planos no nível de PR.
+    Build evidence-based product or software roadmaps from repository state, tickets, ideas, audits, or user goals.
+    Prioritizes and sequences work into Now/Next/Later, milestones, dependencies, risks, and execution handoffs.
+    Use when asked to create technical roadmaps, release plans, backlog prioritization, or turn ideation/audit outputs into a delivery sequence. Not for directly implementing code or writing PR-level plans.
 ---
 
-# Roadmap de Produto e Software (Roadmap)
+# Product and Software Roadmap (Roadmap)
 
-Transforme metas, ideias candidatas, tickets, apontamentos de auditoria e documentos de design em uma visão clara e estratégica do que está por vir.
+Transform goals, candidate ideas, tickets, audit findings, and design documents into a clear, strategic view of upcoming work.
 
-Um roadmap é composto por: **Direcionamento + Priorização + Dependências**. Ele indica quais capacidades, resultados ou frentes estratégicas são as próximas prováveis, por que importam e o que precisa acontecer antes que se tornem realidade. Não é uma lista de desejos sem critério, nem promessa arbitrária de datas, nem despejo desordenado de backlog.
+A roadmap consists of: **Direction + Prioritization + Dependencies**. It indicates which capabilities, outcomes, or architectural tracks are likely next, why they matter, and what must happen before they become reality. It is not an unconstrained wish list, an arbitrary commitment of calendar dates, or an uncurated backlog dump.
 
-Mantenha-se uma camada acima da skill `writing-plans`: defina a ordenação, as fatias de entrega, os portões de validação e as transições de responsabilidade; não prescreva código em detalhes aqui. Se um item precisar de definição de produto, direcione para ideação/brainstorm. Se houver dúvidas técnicas abertas, promova uma discussão técnica. Se a implementação já estiver decidida, direcione para `writing-plans`.
+Operate one level above the `writing-plans` skill: establish sequencing, delivery slices, validation gates, and responsibility handoffs; do not prescribe code implementation details here. If an item needs product definition, route to ideation/brainstorming. If technical questions remain open, conduct a technical discussion. If implementation is decided, hand off to `writing-plans`.
 
-Nunca altere o código-fonte da aplicação. Escreva apenas os artefatos de roadmap.
+Never modify application source code. Write only roadmap artifacts.
 
-## Fluxo de Trabalho
+## Workflow
 
-### Fase 1 — Definir o Horizonte e a Audiência
+### Phase 1 — Define Horizon and Audience
 
-Identifique o contexto do roadmap:
+Identify the roadmap context:
 
-- **Audiência:** mantenedor, product owner, agentes de implementação, time de engenharia ou liderança.
-- **Horizonte temporal:** Agora / Próximo / Depois (Now / Next / Later) por padrão; use versões ou marcos com datas apenas se houver um calendário real de sprints/entregas.
-- **Escopo:** repositório completo, área de produto, família de funcionalidades, débito técnico, lançamento ou migração.
-- **Formato:** resposta direta no chat ou artefato persistido em arquivo.
+- **Audience:** maintainer, product owner, implementation agents, engineering team, or leadership.
+- **Time horizon:** Now / Next / Later by default; use versioned releases or dated milestones only when an actual delivery schedule exists.
+- **Scope:** full repository, product domain, feature family, technical debt, release, or migration.
+- **Format:** direct chat response or persisted file artifact.
 
-### Fase 2 — Reconhecimento (Recon)
+### Phase 2 — Reconnaissance (Recon)
 
-Reúna o material de origem antes de priorizar:
+Gather source material before prioritizing:
 
-- Leia os documentos do projeto: `README.md`, `GEMINI.md`, `AGENTS.md`, ADRs, issues abertas e roadmaps anteriores.
-- Se o roadmap derivar da skill `improve`, leia os apontamentos aprovados e notas de dependência.
-- Se nenhuma lista prévia existir, faça um reconhecimento leve em modo somente-leitura: temas recorrentes de TODO/FIXME no código, recursos pela metade, promessas documentadas não entregues e áreas de alta alteração recente.
-- Não invente itens genéricos sem evidência sólida no código ou nas metas do usuário.
+- Read project documents: `README.md`, `GEMINI.md`, `AGENTS.md`, ADRs, open issues, and prior roadmaps.
+- If the roadmap derives from the `improve` skill, read approved findings and dependency notes.
+- If no prior list exists, perform lightweight read-only recon: recurring TODO/FIXME patterns, half-finished features, unmet documented promises, and hot areas of recent Git churn.
+- Never invent generic items lacking concrete evidence in code or user goals.
 
-### Fase 3 — Padronizar os Candidatos
+### Phase 3 — Standardize Candidates
 
-Converta cada oportunidade para a mesma estrutura:
+Normalize each opportunity into a consistent schema:
 
-| Campo          | Significado                                                                            |
-| -------------- | -------------------------------------------------------------------------------------- |
-| Tipo           | Funcionalidade, marco (milestone), frente técnica, pesquisa/spike, migração ou decisão |
-| Resultado      | O que passa a ser verdade para os usuários, time ou arquitetura do sistema             |
-| Evidência      | Arquivo e linha citados, ticket, apontamento de auditoria ou meta do usuário           |
-| Primeira fatia | O menor incremento coeso e funcional que vale a pena entregar primeiro                 |
-| Dependência    | O que precisa estar pronto antes para que este item seja útil e seguro                 |
-| Risco          | Risco de entrega, técnico, de produto ou de migração                                   |
-| Confiança      | ALTA / MÉDIA / BAIXA com base na força das evidências                                  |
-| Próximo passo  | Discussão técnica, refinamento, pesquisa ou elaboração de plano (`writing-plans`)      |
+| Field       | Meaning                                                                |
+| ----------- | ---------------------------------------------------------------------- |
+| Type        | Feature, milestone, technical track, spike/research, migration, choice |
+| Outcome     | What becomes true for users, team, or system architecture              |
+| Evidence    | Cited file:line, issue, audit finding, or user goal                    |
+| First slice | Smallest cohesive, functional increment worth delivering first         |
+| Dependency  | What must be finished first for this item to be safe and useful        |
+| Risk        | Delivery, technical, product, or migration risk                        |
+| Confidence  | HIGH / MEDIUM / LOW based on strength of evidence                      |
+| Next step   | Technical discussion, refinement, spike, or plan (`writing-plans`)     |
 
-Elimine duplicatas. Divida itens grandes demais. Rejeite sugestões genéricas que caberiam em qualquer outro projeto aleatório.
+Eliminate duplicates. Split oversized items. Reject generic suggestions that could apply to any random project.
 
-### Fase 4 — Priorizar e Sequenciar
+### Phase 4 — Prioritize and Sequence
 
-Ordene pela **alavancagem real**:
+Order by **real leverage**:
 
-1. Trabalhos que desbloqueiam ou reduzem o risco de entregas futuras.
-2. Itens de alto impacto e baixo esforço apoiados em evidências sólidas.
-3. Spikes de pesquisa que eliminam grandes incertezas arquiteturais antes do compromisso.
-4. Itens arriscados ou complexos somente após os pré-requisitos e testes de validação existirem.
+1. Work that unblocks or derisks future deliveries.
+2. High-impact, low-effort items backed by solid evidence.
+3. Research spikes that eliminate major architectural uncertainties before commitment.
+4. Risky or complex items only after prerequisites and test gates exist.
 
-Utilize as colunas **Agora / Próximo / Depois / Não agora** (Now / Next / Later / Not now). Datas sem histórico de capacidade são apenas falsa precisão.
+Use **Now / Next / Later / Not now**. Dates without historical capacity metrics are false precision.
 
-### Fase 5 — Redigir e Atualizar o Artefato
+### Phase 5 — Draft and Update Artifact
 
-Para artefatos persistidos, resolva o destino nesta ordem:
+For persisted artifacts, resolve the destination in this order:
 
-1. Caminho especificado pelo usuário.
-2. Convenção existente no projeto.
-3. `./ROADMAP.md` na raiz do projeto (padrão principal).
+1. User-specified path.
+2. Existing project convention.
+3. `./ROADMAP.md` at project root (primary default).
 4. `./docs/roadmaps/<slug>.md`.
 
-Utilize o modelo em `assets/roadmap-template.md`. Se o arquivo já existir, atualize-o preservando o histórico e marcando itens superados em vez de apagar contexto silenciosamente.
+Use the template in `assets/roadmap-template.md`. If the file already exists, update it while preserving history and marking superseded items rather than silently deleting context.
 
-## Erros Comuns
+## Common Mistakes
 
-| Erro                                     | Como Corrigir                                                                                          |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| Tratar o roadmap como despejo de backlog | Corte agressivamente; mantenha apenas o trabalho de alto nível e registre itens adiados explicitamente |
-| Inventar datas fictícias                 | Use Agora/Próximo/Depois a menos que haja um cronograma com capacidade real                            |
-| Deixar passar ideias vagas               | Exija evidências no repositório, em tickets ou nas metas do usuário                                    |
-| Descrever a implementação detalhada      | Pare no sequenciamento e repasse para `writing-plans`                                                  |
-| Esconder incertezas técnicas             | Registre o nível de confiança e explicite as dúvidas                                                   |
+| Mistake                                  | Correction                                                                  |
+| ---------------------------------------- | --------------------------------------------------------------------------- |
+| Treating the roadmap as a backlog dump   | Cut aggressively; keep high-level work and explicitly record deferred items |
+| Inventing fictitious dates               | Use Now/Next/Later unless a real-capacity schedule is established           |
+| Letting vague ideas through              | Require concrete evidence in the repository, issues, or user goals          |
+| Prescribing detailed code implementation | Stop at sequencing and hand off to `writing-plans`                          |
+| Hiding technical uncertainties           | Record confidence level and make open questions explicit                    |
 
-## Checklist de Qualidade
+## Quality Checklist
 
-Antes de concluir:
+Before concluding:
 
-- O roadmap possui público, horizonte e escopo bem identificados.
-- Cada item em "Agora" possui evidência clara e próxima ação definida.
-- As dependências explicam por que essa sequência foi escolhida.
-- A seção "Não agora" registra itens descartados ou postergados com sua justificativa em uma linha.
+- Target audience, horizon, and scope are clearly identified.
+- Every item in "Now" has evidence and an explicit next action.
+- Dependencies explain why this sequence was selected.
+- The "Not now" section records discarded or deferred items with one-line justifications.

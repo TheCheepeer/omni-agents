@@ -1,82 +1,82 @@
 ---
 name: html-artifacts
 description: >-
-    Use quando o usuário solicitar criar, gerar, visualizar ou transformar um material em um artefato HTML independente, relatório .html em arquivo único autocontido, explicação visual interativa, passo a passo visual ou apresentação em slides HTML.
-    Ideal para explicar arquitetura de código, funcionalidades, revisões de PR/diff, linhas do tempo de incidentes ou comparações de decisões. Não serve para criar aplicações web completas em produção nem emails HTML.
+    Use when asked to create, generate, visualize, or convert material into a standalone HTML artifact, single-file self-contained .html report, interactive visual explanation, visual walkthrough, or HTML slide deck.
+    Ideal for explaining code architecture, features, PR/diff reviews, incident timelines, or decision comparisons. Not for building production web applications or HTML emails.
 ---
 
-# Artefatos HTML Visuais (HTML Artifacts)
+# Visual HTML Artifacts (HTML Artifacts)
 
-Gere documentos visuais que justifiquem o uso de HTML: o resultado deve ser mais fácil de analisar, comparar ou manipular do que texto puro. O padrão é gerar um arquivo `.html` local e autocontido.
+Generate visual documents that justify the use of HTML: the output must be easier to analyze, compare, or navigate than plain text. The default format is a local, self-contained `.html` file.
 
-## Diretrizes Fundamentais Não Negociáveis
+## Non-Negotiable Core Guidelines
 
-- **Fundamente-se no código primeiro:** Leia os arquivos de origem e rastreie o comportamento antes de desenhar a interface.
-- **Padrão em modo documento:** O documento deve ser completo e claro para leitura assíncrona. Use modo apresentação apenas se solicitado explicitamente.
-- **Narrativa estática completa:** A interatividade pode aprofundar a explicação, mas o leitor não deve depender de cliques para descobrir a conclusão principal.
-- **Interatividade orientada a dúvidas:** Cada controle deve responder a uma pergunta do leitor: dúvida → ação → resposta visível imediata.
-- **Arquivo 100% offline em arquivo único:** Embuta CSS, JavaScript vanilla, SVGs e dados no próprio arquivo. Não dependa de CDNs externas, fontes remotas ou chamadas a servidores.
-- **Mantenha local:** O arquivo pode conter dados do código ou arquitetura. Nunca publique externamente sem permissão expressa.
-- **Valide o arquivo final:** Certifique-se de que o HTML abre sem erros de script no console.
+- **Ground in code first:** Read source files and trace real behavior before designing the interface.
+- **Default to document mode:** The document must be complete and legible for asynchronous reading. Use presentation/slide mode only when explicitly requested.
+- **Complete static narrative:** Interactivity deepens understanding, but the reader should never have to click to discover the main takeaway.
+- **Question-driven interactivity:** Every interactive control must answer a specific reader question: question -> interaction -> immediate visible feedback.
+- **100% offline single-file:** Inline all CSS, vanilla JavaScript, SVGs, and data within the file itself. Never depend on external CDNs, remote web fonts, or live server endpoints.
+- **Keep it local:** The file may expose internal repository architecture or data. Never deploy externally without explicit permission.
+- **Validate the output:** Ensure the HTML loads cleanly without JavaScript errors in the browser console.
 
-## Modos de Apresentação
+## Presentation Modes
 
-| Modo                     | Finalidade                                                 | Estrutura                                                                                     |
-| ------------------------ | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| **Documento** (Padrão)   | Explicação de código, PR, incidente ou pesquisa            | Leitura contínua, com âncoras estáveis, texto completo, responsivo e amigável para impressão  |
-| **Documento Explorável** | Mecanismos causais, simulação de parâmetros e comparativos | Estado padrão completo acompanhado de controles para simular cenários e ver respostas visuais |
-| **Apresentação**         | Roteiro guiado para reuniões ou demonstrações              | Um conceito por tela, navegação por teclado e notas de apoio                                  |
+| Mode                    | Purpose                                                   | Structure                                                                                  |
+| ----------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| **Document** (Default)  | Codebase explanation, PR review, incident, or research    | Continuous reading, stable anchors, complete text, responsive layout, print-friendly       |
+| **Explorable Document** | Causal mechanisms, parameter simulations, and comparisons | Complete default state paired with interactive controls to simulate scenarios in real time |
+| **Presentation**        | Guided walkthrough for meetings or live demos             | One concept per slide, keyboard navigation, and presenter notes                            |
 
-## Fluxo de Trabalho
+## Workflow
 
-### 1. Definir o Escopo
+### 1. Define Scope
 
-- Quem lerá este artefato e qual é a dúvida central que ele deve responder?
-- Qual é o repositório, branch ou commit de referência?
-- O arquivo será temporário ou salvo em pasta de documentação do projeto?
+- Who will read this artifact, and what core question must it answer?
+- What repository, branch, or commit serves as the baseline?
+- Is this a temporary scratch artifact or intended for project documentation?
 
-### 2. Mapear as Evidências
+### 2. Map Evidence
 
-- Identifique os arquivos-chave e números de linha envolvidos.
-- Diferencie com precisão: fatos **observados no código**, conclusões **inferidas** e melhorias **propostas**.
-- Registre incertezas em vez de escondê-las.
+- Identify key files and line numbers.
+- Distinguish rigorously between: facts **observed in code**, conclusions **inferred**, and **proposed** improvements.
+- Document uncertainties rather than smoothing them over.
 
-### 3. Estruturar a Linha de Leitura
+### 3. Structure the Reading Flow
 
-1. Comece direto com a resposta principal ou o objetivo do documento.
-2. Forneça o contexto mínimo necessário.
-3. Apresente o modelo visual central (fluxo, topologia, comparação ou linha do tempo).
-4. Demonstre um exemplo concreto de ponta a ponta.
-5. Aponte riscos, limitações e pontos de decisão.
-6. Encerre com o índice de fontes e próximas ações recomendadas.
+1. Lead immediately with the primary answer or core finding.
+2. Provide minimal necessary context.
+3. Present the central visual model (diagram, state flow, topology, comparison, or timeline).
+4. Demonstrate a concrete end-to-end trace.
+5. Highlight trade-offs, risks, limitations, and decision forks.
+6. Conclude with source index and recommended next actions.
 
-### 4. Estilo Visual Sóbrio e Técnico
+### 4. Restrained Technical Visual Style
 
-Evite poluição visual e clichês de IA:
+Avoid visual clutter and AI design clichés:
 
-- Nada de gradientes exagerados ou efeitos de vidro (glassmorphism) desnecessários.
-- Nada de animações automáticas ou elementos que piscam sem valor explicativo.
-- Nada de diagramas gigantes e confusos: divida em uma visão panorâmica seguida de detalhes focados.
-- Use cores para transmitir significado funcional, nunca como mera decoração.
+- No exaggerated gradients or decorative glassmorphism.
+- No unprompted animations or blinking elements lacking explanatory value.
+- No massive, tangled diagrams: break into a high-level map followed by focused detail views.
+- Use color strictly for functional meaning, never for generic decoration.
 
-### 5. Implementação Técnica
+### 5. Technical Implementation
 
-- Utilize HTML semântico, CSS moderno estruturado e SVGs inline.
-- Suporte a acessibilidade: contraste adequado, foco visível no teclado e suporte a `prefers-reduced-motion`.
-- Estilos de impressão (`@media print`) limpos para exportação em PDF.
-- Higienize strings de código para evitar injeções e quebras de sintaxe.
+- Use semantic HTML5, clean structured CSS, and inline SVGs.
+- Ensure accessibility: adequate contrast, visible keyboard focus indicators, and `prefers-reduced-motion` compliance.
+- Include print styles (`@media print`) for clean PDF export.
+- Sanitize code strings to prevent script injection or broken markup.
 
-### 6. Entrega ao Usuário
+### 6. User Delivery
 
-Após gerar e validar o arquivo, abra-o ou forneça o comando para abrir:
+After generating and validating the artifact, open it or provide the command to open:
 
-- No Windows: `Start-Process "caminho\para\artefato.html"`
-- No Linux/macOS: `xdg-open /caminho/para/artefato.html`
+- On Windows: `Start-Process "path\to\artifact.html"`
+- On Linux/macOS: `xdg-open /path/to/artifact.html`
 
-Informe no chat: o caminho absoluto do arquivo, o modo do documento e os principais pontos validados. Não cole o código HTML inteiro no chat.
+In chat, share the absolute file path, presentation mode, and primary findings. Do not dump the entire raw HTML payload into the chat window.
 
-## Documentos de Apoio
+## Supporting Documents
 
-- [references/content-patterns.md](references/content-patterns.md) — Modelos de conteúdo para PRs, fluxos e comparações.
-- [references/component-contracts.md](references/component-contracts.md) — Especificações de componentes reutilizáveis e CSS canônico.
-- [references/quality-and-validation.md](references/quality-and-validation.md) — Checklist de refinamento visual e acessibilidade.
+- [references/content-patterns.md](references/content-patterns.md) — Content blueprints for PRs, systems flows, and decision comparisons.
+- [references/component-contracts.md](references/component-contracts.md) — Specifications for reusable UI components and canonical CSS.
+- [references/quality-and-validation.md](references/quality-and-validation.md) — Polish and accessibility verification checklist.
