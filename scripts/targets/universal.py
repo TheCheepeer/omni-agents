@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Adaptador Universal e derivados de padrao aberto (AGENTS.md).
-Atende:
-- Universal (AGENTS.md puro na raiz)
+Universal adapter and open standard derivatives (AGENTS.md).
+Supports:
+- Universal (pure AGENTS.md in project root)
 - Kiro (AGENTS.md + .kiro/)
 - OpenCode (AGENTS.md + .opencode/)
-- Codex (AGENTS.md para ecossistema OpenAI Codex)
+- Codex (AGENTS.md for OpenAI Codex ecosystem)
 """
 
 from __future__ import annotations
@@ -19,13 +19,15 @@ from .base import (
     safe_remove_file,
     safe_remove_tree,
     safe_write_text,
+    t_target,
 )
 
 
 class UniversalTarget(BaseTarget):
     target_id = "universal"
     display_name = "Universal (AGENTS.md)"
-    description = "Gera AGENTS.md agnostico e padronizado na raiz do projeto"
+    description = "Generates standardized AGENTS.md in project root"
+    description_pt = "Gera AGENTS.md padronizado na raiz do projeto"
     supports_global = False
 
     def generate_agents_md(
@@ -39,17 +41,17 @@ class UniversalTarget(BaseTarget):
     ) -> Path:
         agents_md = target_path / "AGENTS.md"
 
-        header_title = f"# Diretrizes do Projeto (AGENTS.md{title_suffix})"
+        header_title = f"# Project Guidelines (AGENTS.md{title_suffix})"
         sections = [
             header_title,
             "",
-            "> Este arquivo define padroes, regras e catalogo de ferramentas seguidos por agentes de IA.",
+            "> This file defines standards, rules, and tool catalogs followed by AI agents.",
             "",
         ]
 
-        # 1. Regras
+        # 1. Rules
         if rules:
-            sections.append("## Diretrizes Globais de Desenvolvimento")
+            sections.append("## Global Development Guidelines")
             sections.append("")
             for r in rules:
                 rule_path = Path(r["path"])
@@ -64,16 +66,16 @@ class UniversalTarget(BaseTarget):
                 except OSError:
                     pass
 
-        # 2. Subagentes
+        # 2. Subagents
         if agents:
-            sections.append("## Personas de Subagentes Especializados")
+            sections.append("## Specialized Subagent Personas")
             sections.append("")
             for a in agents:
                 agent_path = Path(a["path"])
                 name, desc = parse_frontmatter(agent_path)
                 sections.append(f"### {name}")
                 if desc:
-                    sections.append(f"**Descricao:** {desc}")
+                    sections.append(f"**Description:** {desc}")
                 try:
                     body = agent_path.read_text(encoding="utf-8")
                     if body.startswith("---"):
@@ -89,13 +91,13 @@ class UniversalTarget(BaseTarget):
         # 3. Skills
         total_skills = sum(len(v) for v in skills_by_cat.values())
         if total_skills > 0:
-            sections.append("## Catalogo de Habilidades e Procedimentos (Skills)")
+            sections.append("## Operating Procedures & Modular Skills")
             sections.append("")
             for cat_name in sorted(skills_by_cat.keys()):
                 skill_ids = skills_by_cat[cat_name]
                 if not skill_ids:
                     continue
-                sections.append(f"### Categoria: {cat_name.upper()}")
+                sections.append(f"### Category: {cat_name.upper()}")
                 for s_id in sorted(skill_ids):
                     skill_file = repo_root / "skills" / cat_name / s_id / "SKILL.md"
                     if skill_file.exists():
@@ -103,7 +105,7 @@ class UniversalTarget(BaseTarget):
                         desc_str = f" - {s_desc}" if s_desc else ""
                         sections.append(f"- **{s_id}**{desc_str}")
                         sections.append(
-                            f"  *Caminho:* `{skill_file.resolve().as_posix()}`"
+                            f"  *Path:* `{skill_file.resolve().as_posix()}`"
                         )
                 sections.append("")
 
@@ -119,24 +121,26 @@ class UniversalTarget(BaseTarget):
         agents: list[dict[str, Any]],
         rules: list[dict[str, Any]],
         skills_by_cat: dict[str, set[str]],
+        lang: str = "en",
     ) -> bool:
         dest = self.generate_agents_md(
             target_path, repo_root, agents, rules, skills_by_cat
         )
-        print(f"  [+] Universal: gerado arquivo {dest.name} na raiz do projeto.")
+        print(f"  [+] {t_target('universal_generated', lang, name=dest.name)}")
         return True
 
-    def clean_workspace(self, target_path: Path) -> bool:
+    def clean_workspace(self, target_path: Path, lang: str = "en") -> bool:
         agents_md = target_path / "AGENTS.md"
         safe_remove_file(agents_md)
-        print("  [-] Universal: AGENTS.md removido do workspace.")
+        print(f"  [-] {t_target('universal_clean_done', lang)}")
         return True
 
 
 class KiroTarget(UniversalTarget):
     target_id = "kiro"
     display_name = "Kiro"
-    description = "Gera AGENTS.md e estrutura de suporte em .kiro/"
+    description = "Generates AGENTS.md and support structure in .kiro/"
+    description_pt = "Gera AGENTS.md e estrutura de suporte em .kiro/"
     supports_global = False
 
     def configure_workspace(
@@ -147,28 +151,29 @@ class KiroTarget(UniversalTarget):
         agents: list[dict[str, Any]],
         rules: list[dict[str, Any]],
         skills_by_cat: dict[str, set[str]],
+        lang: str = "en",
     ) -> bool:
-        # Gera AGENTS.md padrao
         dest = self.generate_agents_md(
             target_path, repo_root, agents, rules, skills_by_cat, title_suffix=" - Kiro"
         )
         kiro_dir = target_path / ".kiro"
         kiro_dir.mkdir(parents=True, exist_ok=True)
-        print(f"  [+] Kiro: configurado {dest.name} e pasta .kiro/ criada.")
+        print(f"  [+] {t_target('kiro_generated', lang, name=dest.name)}")
         return True
 
-    def clean_workspace(self, target_path: Path) -> bool:
-        super().clean_workspace(target_path)
+    def clean_workspace(self, target_path: Path, lang: str = "en") -> bool:
+        super().clean_workspace(target_path, lang=lang)
         kiro_dir = target_path / ".kiro"
         safe_remove_tree(kiro_dir)
-        print("  [-] Kiro: pasta .kiro/ removida.")
+        print(f"  [-] {t_target('kiro_clean_done', lang)}")
         return True
 
 
 class OpenCodeTarget(UniversalTarget):
     target_id = "opencode"
     display_name = "OpenCode"
-    description = "Gera AGENTS.md e estrutura de suporte em .opencode/"
+    description = "Generates AGENTS.md and support structure in .opencode/"
+    description_pt = "Gera AGENTS.md e estrutura de suporte em .opencode/"
     supports_global = False
 
     def configure_workspace(
@@ -179,6 +184,7 @@ class OpenCodeTarget(UniversalTarget):
         agents: list[dict[str, Any]],
         rules: list[dict[str, Any]],
         skills_by_cat: dict[str, set[str]],
+        lang: str = "en",
     ) -> bool:
         dest = self.generate_agents_md(
             target_path,
@@ -190,21 +196,22 @@ class OpenCodeTarget(UniversalTarget):
         )
         opencode_dir = target_path / ".opencode"
         opencode_dir.mkdir(parents=True, exist_ok=True)
-        print(f"  [+] OpenCode: configurado {dest.name} e pasta .opencode/ criada.")
+        print(f"  [+] {t_target('opencode_generated', lang, name=dest.name)}")
         return True
 
-    def clean_workspace(self, target_path: Path) -> bool:
-        super().clean_workspace(target_path)
+    def clean_workspace(self, target_path: Path, lang: str = "en") -> bool:
+        super().clean_workspace(target_path, lang=lang)
         opencode_dir = target_path / ".opencode"
         safe_remove_tree(opencode_dir)
-        print("  [-] OpenCode: pasta .opencode/ removida.")
+        print(f"  [-] {t_target('opencode_clean_done', lang)}")
         return True
 
 
 class CodexTarget(UniversalTarget):
     target_id = "codex"
     display_name = "Codex (OpenAI)"
-    description = "Gera AGENTS.md otimizado para o ecossistema Codex"
+    description = "Generates AGENTS.md optimized for the OpenAI Codex ecosystem"
+    description_pt = "Gera AGENTS.md otimizado para o ecossistema OpenAI Codex"
     supports_global = False
 
     def configure_workspace(
@@ -215,6 +222,7 @@ class CodexTarget(UniversalTarget):
         agents: list[dict[str, Any]],
         rules: list[dict[str, Any]],
         skills_by_cat: dict[str, set[str]],
+        lang: str = "en",
     ) -> bool:
         dest = self.generate_agents_md(
             target_path,
@@ -224,8 +232,8 @@ class CodexTarget(UniversalTarget):
             skills_by_cat,
             title_suffix=" - Codex",
         )
-        print(f"  [+] Codex: configurado {dest.name} na raiz do projeto.")
+        print(f"  [+] {t_target('codex_generated', lang, name=dest.name)}")
         return True
 
-    def clean_workspace(self, target_path: Path) -> bool:
-        return super().clean_workspace(target_path)
+    def clean_workspace(self, target_path: Path, lang: str = "en") -> bool:
+        return super().clean_workspace(target_path, lang=lang)

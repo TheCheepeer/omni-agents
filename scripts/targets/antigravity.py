@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Adaptador para Google Antigravity.
-Configura subagentes, regras e manifesto skills.json na pasta .agents/ do workspace
-e vincula o core global em ~/.gemini/config/.
+Adapter for Google Antigravity.
+Configures subagents, rules, and skills.json in .agents/ workspace directory
+and links global core to ~/.gemini/config/.
 """
 
 from __future__ import annotations
@@ -20,6 +20,7 @@ from .base import (
     safe_remove_dir_if_empty,
     safe_remove_file,
     safe_remove_tree,
+    t_target,
     update_gitignore,
 )
 
@@ -27,7 +28,12 @@ from .base import (
 class AntigravityTarget(BaseTarget):
     target_id = "antigravity"
     display_name = "Google Antigravity"
-    description = "Configuracao via .agents/ (workspace) e ~/.gemini/config/ (global)"
+    description = (
+        "Configuration via .agents/ (workspace) and ~/.gemini/config/ (global)"
+    )
+    description_pt = (
+        "Configuração via .agents/ (workspace) e ~/.gemini/config/ (global)"
+    )
     supports_global = True
 
     def configure_workspace(
@@ -38,11 +44,12 @@ class AntigravityTarget(BaseTarget):
         agents: list[dict[str, Any]],
         rules: list[dict[str, Any]],
         skills_by_cat: dict[str, set[str]],
+        lang: str = "en",
     ) -> bool:
         agents_dir = target_path / ".agents"
         agents_dir.mkdir(parents=True, exist_ok=True)
 
-        # 1. Subagentes
+        # 1. Subagents
         if agents:
             subagents_dest = agents_dir / "agents"
             subagents_dest.mkdir(parents=True, exist_ok=True)
@@ -51,11 +58,9 @@ class AntigravityTarget(BaseTarget):
                 dest_file.write_text(
                     Path(a["path"]).read_text(encoding="utf-8"), encoding="utf-8"
                 )
-            print(
-                f"  [+] Antigravity: {len(agents)} subagente(s) copiado(s) em .agents/agents/"
-            )
+            print(f"  [+] {t_target('antigravity_agents', lang, count=len(agents))}")
 
-        # 2. Regras
+        # 2. Rules
         if rules:
             rules_dest = agents_dir / "rules"
             rules_dest.mkdir(parents=True, exist_ok=True)
@@ -64,11 +69,9 @@ class AntigravityTarget(BaseTarget):
                 dest_file.write_text(
                     Path(r["path"]).read_text(encoding="utf-8"), encoding="utf-8"
                 )
-            print(
-                f"  [+] Antigravity: {len(rules)} regra(s) copiada(s) em .agents/rules/"
-            )
+            print(f"  [+] {t_target('antigravity_rules', lang, count=len(rules))}")
 
-        # 3. Manifesto de Skills
+        # 3. Skills Manifest
         entries = []
         total_skills = 0
         for cat_name in sorted(skills_by_cat.keys()):
@@ -84,17 +87,15 @@ class AntigravityTarget(BaseTarget):
             json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
             encoding="utf-8",
         )
-        print(
-            f"  [+] Antigravity: manifesto skills.json gerado ({total_skills} skills)"
-        )
+        print(f"  [+] {t_target('antigravity_skills', lang, count=total_skills)}")
 
-        update_gitignore(target_path, [".agents/"])
+        update_gitignore(target_path, [".agents/"], lang=lang)
         return True
 
-    def clean_workspace(self, target_path: Path) -> bool:
+    def clean_workspace(self, target_path: Path, lang: str = "en") -> bool:
         agents_dir = target_path / ".agents"
         if not agents_dir.exists():
-            print("  [i] Antigravity: nada para limpar no workspace.")
+            print(f"  [i] {t_target('antigravity_clean_nothing', lang)}")
             return True
 
         safe_remove_tree(agents_dir / "agents")
@@ -102,10 +103,10 @@ class AntigravityTarget(BaseTarget):
         safe_remove_file(agents_dir / "skills.json")
 
         safe_remove_dir_if_empty(agents_dir)
-        print("  [-] Antigravity: configuracoes removidas de .agents/")
+        print(f"  [-] {t_target('antigravity_clean_done', lang)}")
         return True
 
-    def configure_global(self, repo_root: Path) -> bool:
+    def configure_global(self, repo_root: Path, lang: str = "en") -> bool:
         home = Path.home()
         global_dir = home / ".gemini" / "config"
         global_dir.mkdir(parents=True, exist_ok=True)
@@ -122,32 +123,28 @@ class AntigravityTarget(BaseTarget):
         success = True
         try:
             if agents_src.exists():
-                create_dir_link(agents_src, agents_dst)
-                print(
-                    "  [+] Antigravity Global: subagentes vinculados em ~/.gemini/config/agents"
-                )
+                create_dir_link(agents_src, agents_dst, lang=lang)
+                print(f"  [+] {t_target('antigravity_global_agents', lang)}")
             if skills_src.exists():
-                create_dir_link(skills_src, skills_dst)
-                print(
-                    "  [+] Antigravity Global: skills globais vinculadas em ~/.gemini/config/skills"
-                )
+                create_dir_link(skills_src, skills_dst, lang=lang)
+                print(f"  [+] {t_target('antigravity_global_skills', lang)}")
             if rules_src.exists():
-                create_dir_link(rules_src, rules_dst)
-                print(
-                    "  [+] Antigravity Global: regras vinculadas em ~/.gemini/config/rules"
-                )
+                create_dir_link(rules_src, rules_dst, lang=lang)
+                print(f"  [+] {t_target('antigravity_global_rules', lang)}")
         except (OSError, RuntimeError, subprocess.SubprocessError) as e:
-            print(f"  [x] Antigravity Global: falha ao vincular: {e}")
+            print(f"  [x] {t_target('antigravity_global_error', lang, error=e)}")
             success = False
 
         return success
 
-    def clean_global(self) -> bool:
+    def clean_global(self, lang: str = "en") -> bool:
         home = Path.home()
         global_dir = home / ".gemini" / "config"
         targets = [global_dir / "agents", global_dir / "skills", global_dir / "rules"]
         for t in targets:
             if is_link(t):
                 remove_dir_link(t)
-                print(f"  [-] Antigravity Global: link desfeito em {t.name}")
+                print(
+                    f"  [-] {t_target('antigravity_global_removed', lang, name=t.name)}"
+                )
         return True

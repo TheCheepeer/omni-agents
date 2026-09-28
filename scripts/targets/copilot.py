@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Adaptador para GitHub Copilot.
-Gera o arquivo consolidado .github/copilot-instructions.md com regras,
-diretrizes e catalogo de skills ativas.
+Adapter for GitHub Copilot.
+Generates consolidated .github/copilot-instructions.md with rules,
+guidelines, and modular skills catalog.
 """
 
 from __future__ import annotations
@@ -16,13 +16,17 @@ from .base import (
     safe_remove_dir_if_empty,
     safe_remove_file,
     safe_write_text,
+    t_target,
 )
 
 
 class CopilotTarget(BaseTarget):
     target_id = "copilot"
     display_name = "GitHub Copilot"
-    description = "Gera instrucoes consolidadas em .github/copilot-instructions.md"
+    description = (
+        "Generates consolidated instructions in .github/copilot-instructions.md"
+    )
+    description_pt = "Gera instruções consolidadas em .github/copilot-instructions.md"
     supports_global = False
 
     def configure_workspace(
@@ -33,6 +37,7 @@ class CopilotTarget(BaseTarget):
         agents: list[dict[str, Any]],
         rules: list[dict[str, Any]],
         skills_by_cat: dict[str, set[str]],
+        lang: str = "en",
     ) -> bool:
         github_dir = target_path / ".github"
         github_dir.mkdir(parents=True, exist_ok=True)
@@ -41,13 +46,13 @@ class CopilotTarget(BaseTarget):
         sections = [
             "# GitHub Copilot Custom Instructions",
             "",
-            "> Diretrizes e padroes de desenvolvimento sincronizados a partir do repositorio central.",
+            "> Engineering guidelines and development standards synchronized from omni-agent.",
             "",
         ]
 
-        # 1. Regras
+        # 1. Rules
         if rules:
-            sections.append("## Diretrizes de Desenvolvimento e Padroes")
+            sections.append("## Development Guidelines & Engineering Standards")
             sections.append("")
             for r in rules:
                 rule_path = Path(r["path"])
@@ -62,9 +67,9 @@ class CopilotTarget(BaseTarget):
                 except OSError:
                     pass
 
-        # 2. Subagentes
+        # 2. Subagents
         if agents:
-            sections.append("## Papeis e Personas Sugeridas")
+            sections.append("## Recommended Personas & Roles")
             sections.append("")
             for a in agents:
                 agent_path = Path(a["path"])
@@ -87,13 +92,13 @@ class CopilotTarget(BaseTarget):
         # 3. Skills
         total_skills = sum(len(v) for v in skills_by_cat.values())
         if total_skills > 0:
-            sections.append("## Procedimentos e Habilidades (Skills)")
+            sections.append("## Operating Procedures & Skills")
             sections.append("")
             for cat_name in sorted(skills_by_cat.keys()):
                 skill_ids = skills_by_cat[cat_name]
                 if not skill_ids:
                     continue
-                sections.append(f"### Categoria: {cat_name.upper()}")
+                sections.append(f"### Category: {cat_name.upper()}")
                 for s_id in sorted(skill_ids):
                     skill_file = repo_root / "skills" / cat_name / s_id / "SKILL.md"
                     if skill_file.exists():
@@ -105,14 +110,14 @@ class CopilotTarget(BaseTarget):
         output_text = "\n".join(sections).strip() + "\n"
         safe_write_text(copilot_file, output_text)
         print(
-            f"  [+] Copilot: instrucoes geradas em {copilot_file.relative_to(target_path)}"
+            f"  [+] {t_target('copilot_generated', lang, path=copilot_file.relative_to(target_path))}"
         )
         return True
 
-    def clean_workspace(self, target_path: Path) -> bool:
+    def clean_workspace(self, target_path: Path, lang: str = "en") -> bool:
         github_dir = target_path / ".github"
         copilot_file = github_dir / "copilot-instructions.md"
         safe_remove_file(copilot_file)
         safe_remove_dir_if_empty(github_dir)
-        print("  [-] Copilot: copilot-instructions.md removido.")
+        print(f"  [-] {t_target('copilot_clean_done', lang)}")
         return True

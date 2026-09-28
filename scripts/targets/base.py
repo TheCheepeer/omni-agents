@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Modulo base com utilitarios e classe abstrata para alvos de configuracao (Targets).
-Multiplataforma (Windows, Linux e macOS) sem dependencias externas.
+Base module with filesystem utilities and abstract base class for targets.
+Cross-platform (Windows, Linux, macOS) using only Python standard library.
 """
 
 from __future__ import annotations
@@ -14,9 +14,94 @@ import sys
 from pathlib import Path
 from typing import Any
 
+# Bilingual dictionary for target adapters (English & Portuguese)
+TARGET_MESSAGES: dict[str, dict[str, str]] = {
+    "en": {
+        "dir_not_link": "Existing directory is not a link: {dst}",
+        "moving_backup": "Moving to backup: {name}",
+        "updated_gitignore": "Updated .gitignore with: {entries}",
+        "removed_gitignore": "Removed from .gitignore: {entries}",
+        # Antigravity
+        "antigravity_agents": "Antigravity: {count} subagent(s) copied to .agents/agents/",
+        "antigravity_rules": "Antigravity: {count} rule(s) copied to .agents/rules/",
+        "antigravity_skills": "Antigravity: skills.json manifest generated ({count} skills)",
+        "antigravity_clean_nothing": "Antigravity: nothing to clean in workspace.",
+        "antigravity_clean_done": "Antigravity: configurations removed from .agents/",
+        "antigravity_global_agents": "Antigravity Global: subagents linked in ~/.gemini/config/agents",
+        "antigravity_global_skills": "Antigravity Global: global skills linked in ~/.gemini/config/skills",
+        "antigravity_global_rules": "Antigravity Global: rules linked in ~/.gemini/config/rules",
+        "antigravity_global_error": "Antigravity Global: linking failed: {error}",
+        "antigravity_global_removed": "Antigravity Global: link removed in {name}",
+        # Claude
+        "claude_generated": "Claude Code: generated {name}",
+        "claude_clean_done": "Claude Code: CLAUDE.md and .claude/ removed from workspace.",
+        "claude_global_done": "Claude Global: configured in {path}",
+        "claude_global_removed": "Claude Global: ~/.claude/CLAUDE.md removed.",
+        # Cursor
+        "cursor_generated": "Cursor: {count} rule(s) generated in .cursor/rules/",
+        "cursor_clean_done": "Cursor: configurations removed from .cursor/rules/",
+        # Copilot
+        "copilot_generated": "Copilot: instructions generated in {path}",
+        "copilot_clean_done": "Copilot: copilot-instructions.md removed.",
+        # Universal & derivatives
+        "universal_generated": "Universal: generated {name} in project root.",
+        "universal_clean_done": "Universal: AGENTS.md removed from workspace.",
+        "kiro_generated": "Kiro: configured {name} and .kiro/ directory.",
+        "kiro_clean_done": "Kiro: .kiro/ directory removed.",
+        "opencode_generated": "OpenCode: configured {name} and .opencode/ directory.",
+        "opencode_clean_done": "OpenCode: .opencode/ directory removed.",
+        "codex_generated": "Codex: configured {name} in project root.",
+    },
+    "pt": {
+        "dir_not_link": "Diretório existente não é um link: {dst}",
+        "moving_backup": "Movendo para backup: {name}",
+        "updated_gitignore": "Atualizado .gitignore com: {entries}",
+        "removed_gitignore": "Removido do .gitignore: {entries}",
+        # Antigravity
+        "antigravity_agents": "Antigravity: {count} subagente(s) copiado(s) para .agents/agents/",
+        "antigravity_rules": "Antigravity: {count} regra(s) copiada(s) para .agents/rules/",
+        "antigravity_skills": "Antigravity: manifesto skills.json gerado ({count} skills)",
+        "antigravity_clean_nothing": "Antigravity: nada para limpar no workspace.",
+        "antigravity_clean_done": "Antigravity: configurações removidas de .agents/",
+        "antigravity_global_agents": "Antigravity Global: subagentes vinculados em ~/.gemini/config/agents",
+        "antigravity_global_skills": "Antigravity Global: skills globais vinculadas em ~/.gemini/config/skills",
+        "antigravity_global_rules": "Antigravity Global: regras vinculadas em ~/.gemini/config/rules",
+        "antigravity_global_error": "Antigravity Global: falha ao criar links: {error}",
+        "antigravity_global_removed": "Antigravity Global: link removido em {name}",
+        # Claude
+        "claude_generated": "Claude Code: gerado {name}",
+        "claude_clean_done": "Claude Code: CLAUDE.md e .claude/ removidos do workspace.",
+        "claude_global_done": "Claude Global: configurado em {path}",
+        "claude_global_removed": "Claude Global: ~/.claude/CLAUDE.md removido.",
+        # Cursor
+        "cursor_generated": "Cursor: {count} regra(s) gerada(s) em .cursor/rules/",
+        "cursor_clean_done": "Cursor: configurações removidas de .cursor/rules/",
+        # Copilot
+        "copilot_generated": "Copilot: instruções geradas em {path}",
+        "copilot_clean_done": "Copilot: copilot-instructions.md removido.",
+        # Universal & derivatives
+        "universal_generated": "Universal: gerado {name} na raiz do projeto.",
+        "universal_clean_done": "Universal: AGENTS.md removido do workspace.",
+        "kiro_generated": "Kiro: configurado {name} e diretório .kiro/.",
+        "kiro_clean_done": "Kiro: diretório .kiro/ removido.",
+        "opencode_generated": "OpenCode: configurado {name} e diretório .opencode/.",
+        "opencode_clean_done": "OpenCode: diretório .opencode/ removido.",
+        "codex_generated": "Codex: configurado {name} na raiz do projeto.",
+    },
+}
+
+
+def t_target(key: str, lang: str = "en", **kwargs: Any) -> str:
+    """Helper for localized messages across target adapters."""
+    table = TARGET_MESSAGES.get(lang, TARGET_MESSAGES["en"])
+    template = table.get(key, TARGET_MESSAGES["en"].get(key, key))
+    if kwargs:
+        return template.format(**kwargs)
+    return template
+
 
 def is_link(path: Path) -> bool:
-    """Verifica se o caminho e um link simbolico ou junction no Windows/Unix."""
+    """Checks if the path is a symbolic link or junction on Windows/Unix."""
     if not path.exists():
         return path.is_symlink()
     if path.is_symlink():
@@ -32,7 +117,7 @@ def is_link(path: Path) -> bool:
 
 
 def remove_dir_link(path: Path):
-    """Remove um link com seguranca, sem deletar arquivos reais do alvo."""
+    """Safely removes a directory link without deleting real target files."""
     if not path.exists() and not path.is_symlink():
         return
     if sys.platform.startswith("win"):
@@ -47,16 +132,16 @@ def remove_dir_link(path: Path):
             path.rmdir()
 
 
-def create_dir_link(src: Path, dst: Path):
-    """Cria um link de diretorio multiplataforma (Junction no Windows, Symlink no Unix)."""
+def create_dir_link(src: Path, dst: Path, lang: str = "en"):
+    """Creates a cross-platform directory link (Junction on Windows, Symlink on Unix)."""
     dst.parent.mkdir(parents=True, exist_ok=True)
     if dst.exists() or dst.is_symlink():
         if is_link(dst):
             remove_dir_link(dst)
         else:
             backup_dst = dst.with_name(f"{dst.name}.backup")
-            print(f"  [!] Diretorio ja existente nao e um link: {dst}")
-            print(f"      Movendo para backup: {backup_dst.name}")
+            print(f"  [!] {t_target('dir_not_link', lang, dst=dst)}")
+            print(f"      {t_target('moving_backup', lang, name=backup_dst.name)}")
             dst.rename(backup_dst)
 
     if sys.platform.startswith("win"):
@@ -75,19 +160,19 @@ def create_dir_link(src: Path, dst: Path):
 
 
 def safe_write_text(path: Path, content: str):
-    """Grava conteudo em arquivo garantindo que o diretorio pai exista."""
+    """Writes text content to a file, ensuring parent directory exists."""
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
 
 
 def safe_remove_file(path: Path):
-    """Remove arquivo se existir."""
+    """Removes file if it exists."""
     if path.exists():
         path.unlink()
 
 
 def safe_remove_dir_if_empty(path: Path):
-    """Remove diretorio somente se estiver vazio."""
+    """Removes directory only if empty."""
     if path.exists() and path.is_dir():
         try:
             if not any(path.iterdir()):
@@ -97,7 +182,7 @@ def safe_remove_dir_if_empty(path: Path):
 
 
 def safe_remove_tree(path: Path):
-    """Remove diretorio e todo seu conteudo recursivamente."""
+    """Recursively removes directory and all its contents."""
     if not path.exists():
         if is_link(path):
             remove_dir_link(path)
@@ -110,8 +195,8 @@ def safe_remove_tree(path: Path):
         path.unlink()
 
 
-def update_gitignore(target_path: Path, entries: list[str]):
-    """Adiciona entradas ao .gitignore do projeto alvo caso ainda nao estejam presentes."""
+def update_gitignore(target_path: Path, entries: list[str], lang: str = "en"):
+    """Appends entries to target project's .gitignore if not already present."""
     if not entries:
         return
     gitignore_path = target_path / ".gitignore"
@@ -134,11 +219,11 @@ def update_gitignore(target_path: Path, entries: list[str]):
             f.write("\n")
         for item in to_add:
             f.write(f"{item}\n")
-    print(f"  [+] Atualizado .gitignore com: {', '.join(to_add)}")
+    print(f"  [+] {t_target('updated_gitignore', lang, entries=', '.join(to_add))}")
 
 
-def remove_from_gitignore(target_path: Path, entries: list[str]):
-    """Remove entradas do .gitignore do projeto alvo."""
+def remove_from_gitignore(target_path: Path, entries: list[str], lang: str = "en"):
+    """Removes entries from target project's .gitignore."""
     gitignore_path = target_path / ".gitignore"
     if not gitignore_path.exists():
         return
@@ -153,13 +238,15 @@ def remove_from_gitignore(target_path: Path, entries: list[str]):
             if new_content:
                 new_content += "\n"
             gitignore_path.write_text(new_content, encoding="utf-8")
-            print(f"  [-] Removido do .gitignore: {', '.join(entries)}")
+            print(
+                f"  [-] {t_target('removed_gitignore', lang, entries=', '.join(entries))}"
+            )
     except OSError:
         pass
 
 
 def parse_frontmatter(file_path: Path) -> tuple[str, str]:
-    """Extrai campos basicos de frontmatter YAML simples sem dependencias externas."""
+    """Extracts basic fields from simple YAML frontmatter without external dependencies."""
     default_name = file_path.stem
     try:
         content = file_path.read_text(encoding="utf-8")
@@ -203,10 +290,10 @@ def parse_frontmatter(file_path: Path) -> tuple[str, str]:
 
 
 def load_workspace_state(target_path: Path) -> dict[str, Any]:
-    """Carrega o estado e preferencias salvas no workspace alvo."""
+    """Loads saved state and preferences from target workspace."""
     state_file = target_path / ".agents" / "workspace_state.json"
     if not state_file.exists():
-        # Tenta carregar legado skills.json caso exista
+        # Fallback to legacy skills.json if present
         skills_file = target_path / ".agents" / "skills.json"
         selected_skills: dict[str, set[str]] = {}
         if skills_file.exists():
@@ -230,6 +317,7 @@ def load_workspace_state(target_path: Path) -> dict[str, Any]:
     try:
         data = json.loads(state_file.read_text(encoding="utf-8"))
         return {
+            "language": data.get("language"),
             "active_targets": data.get("active_targets", []),
             "selected_agents": data.get("selected_agents", []),
             "selected_rules": data.get("selected_rules", []),
@@ -237,6 +325,7 @@ def load_workspace_state(target_path: Path) -> dict[str, Any]:
         }
     except (json.JSONDecodeError, OSError):
         return {
+            "language": None,
             "active_targets": [],
             "selected_agents": [],
             "selected_rules": [],
@@ -245,7 +334,7 @@ def load_workspace_state(target_path: Path) -> dict[str, Any]:
 
 
 def save_workspace_state(target_path: Path, state: dict[str, Any]):
-    """Persiste o estado do workspace para permitir sincronizacao e limpeza posterior."""
+    """Persists workspace state to support synchronization and targeted uninstallation."""
     state_file = target_path / ".agents" / "workspace_state.json"
     state_file.parent.mkdir(parents=True, exist_ok=True)
     state_file.write_text(
@@ -256,12 +345,19 @@ def save_workspace_state(target_path: Path, state: dict[str, Any]):
 
 
 class BaseTarget:
-    """Classe base que define o contrato de um adaptador de ferramenta."""
+    """Base class defining the contract for a tool adapter."""
 
     target_id: str = ""
     display_name: str = ""
     description: str = ""
+    description_pt: str = ""
     supports_global: bool = False
+
+    def get_description(self, lang: str = "en") -> str:
+        """Returns localized description according to active language."""
+        if lang == "pt" and self.description_pt:
+            return self.description_pt
+        return self.description
 
     def configure_workspace(
         self,
@@ -271,18 +367,19 @@ class BaseTarget:
         agents: list[dict[str, Any]],
         rules: list[dict[str, Any]],
         skills_by_cat: dict[str, set[str]],
+        lang: str = "en",
     ) -> bool:
-        """Aplica a configuracao especifica da ferramenta no workspace alvo."""
+        """Applies tool-specific configuration to the target workspace."""
         raise NotImplementedError
 
-    def clean_workspace(self, target_path: Path) -> bool:
-        """Remove arquivos de configuracao criados para esta ferramenta no workspace alvo."""
+    def clean_workspace(self, target_path: Path, lang: str = "en") -> bool:
+        """Removes configuration files created for this tool in the target workspace."""
         raise NotImplementedError
 
-    def configure_global(self, repo_root: Path) -> bool:
-        """Aplica configuracao global da ferramenta no ambiente do usuario."""
+    def configure_global(self, repo_root: Path, lang: str = "en") -> bool:
+        """Applies global machine configuration for this tool."""
         return False
 
-    def clean_global(self) -> bool:
-        """Remove configuracao global da ferramenta."""
+    def clean_global(self, lang: str = "en") -> bool:
+        """Removes global machine configuration for this tool."""
         return False

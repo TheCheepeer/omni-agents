@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Registro central de alvos e adaptadores suportados pelo sistema de agentes.
+Central registry of supported targets and adapters for the omni-agent system.
 """
 
 from __future__ import annotations
@@ -30,17 +30,17 @@ TARGET_REGISTRY: dict[str, BaseTarget] = {
 
 
 def get_target(target_id: str) -> BaseTarget | None:
-    """Retorna a instancia do adaptador pelo identificador."""
+    """Returns the adapter instance for the given identifier."""
     return TARGET_REGISTRY.get(target_id.lower().strip())
 
 
 def get_all_targets() -> list[BaseTarget]:
-    """Retorna todas as instancias de adaptadores disponiveis na ordem recomendada."""
+    """Returns all available adapter instances in recommended order."""
     return list(TARGET_REGISTRY.values())
 
 
 def get_available_target_ids() -> list[str]:
-    """Retorna a lista de IDs de adaptadores registrados."""
+    """Returns the list of registered adapter IDs."""
     return list(TARGET_REGISTRY.keys())
 
 

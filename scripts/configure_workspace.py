@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import importlib.util
+import json
 import os
 import sys
 from pathlib import Path
@@ -111,6 +112,12 @@ MESSAGES: dict[str, dict[str, str]] = {
         "clean_target_done": "Configurations for {target} removed.",
         "cat_title": "CATEGORY: {cat} ({count} skills available)",
         "cat_nav": "How to select:\n  * Type numbers to toggle selection (e.g. 1, 3)\n  * 'all' to select all in this category\n  * 'clear' to uncheck all in this category\n  * 'v' to return to category list",
+        "lang_selection_title": "LANGUAGE SELECTION / SELEÇÃO DE IDIOMA",
+        "lang_en_option": "[1] English (default)",
+        "lang_pt_option": "[2] Português (Brasil)",
+        "lang_toggle_hint": "[Enter] Toggle language (current: {current})",
+        "lang_cancel_hint": "[v] Return to main menu",
+        "lang_saved": "Language set to {lang}. Saved in config.json.",
     },
     "pt": {
         "app_title": "CONFIGURADOR MULTI-TOOL DE AGENTES, REGRAS E SKILLS",
@@ -176,6 +183,12 @@ MESSAGES: dict[str, dict[str, str]] = {
         "clean_target_done": "Configurações de {target} removidas.",
         "cat_title": "CATEGORIA: {cat} ({count} skills disponíveis)",
         "cat_nav": "Como selecionar:\n  * Digite números para alternar seleção (ex: 1, 3)\n  * 'all' para marcar todas desta categoria\n  * 'limpar' para desmarcar todas desta categoria\n  * 'v' para voltar à lista de categorias",
+        "lang_selection_title": "SELEÇÃO DE IDIOMA / LANGUAGE SELECTION",
+        "lang_en_option": "[1] Inglês / English (padrão)",
+        "lang_pt_option": "[2] Português (Brasil)",
+        "lang_toggle_hint": "[Enter] Alternar idioma (atual: {current})",
+        "lang_cancel_hint": "[v] Voltar ao menu principal",
+        "lang_saved": "Idioma definido para {lang}. Salvo em config.json.",
     },
 }
 
@@ -187,6 +200,29 @@ def t(key: str, lang: str = "en", **kwargs: Any) -> str:
     if kwargs:
         return template.format(**kwargs)
     return template
+
+
+def load_app_config(repo_root: Path) -> dict[str, Any]:
+    """Loads persistent local application preferences (config.json)."""
+    cfg_file = repo_root / "config.json"
+    if not cfg_file.exists():
+        return {}
+    try:
+        return json.loads(cfg_file.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
+def save_app_config(repo_root: Path, config: dict[str, Any]):
+    """Persists local application preferences to config.json."""
+    cfg_file = repo_root / "config.json"
+    try:
+        cfg_file.write_text(
+            json.dumps(config, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+    except OSError:
+        pass
 
 
 def detect_system_language() -> str:
@@ -385,6 +421,7 @@ def apply_workspace_to_targets(
                     agents=active_agents,
                     rules=active_rules,
                     skills_by_cat=skills_by_cat,
+                    lang=lang,
                 )
             except (OSError, RuntimeError, ValueError, KeyError) as e:
                 print(
@@ -426,7 +463,7 @@ def handle_target_selection(
         for idx, target in enumerate(all_targets, 1):
             is_active = "[x]" if target.target_id in active_set else "[ ]"
             print(
-                f"  [{idx}] {is_active} {target.display_name:<26} - {target.description}"
+                f"  [{idx}] {is_active} {target.display_name:<26} - {target.get_description(lang)}"
             )
 
         print("\n" + "-" * 65)
@@ -519,7 +556,7 @@ def handle_global_configuration(repo_root: Path, lang: str = "en"):
         target for target in get_all_targets() if target.supports_global
     ]
     for idx, target in enumerate(targets_with_global, 1):
-        print(f"  [{idx}] {target.display_name:<26} - {target.description}")
+        print(f"  [{idx}] {target.display_name:<26} - {target.get_description(lang)}")
 
     print("\n" + "-" * 65)
     print(t("global_options", lang))
@@ -536,7 +573,7 @@ def handle_global_configuration(repo_root: Path, lang: str = "en"):
     if choice == "all":
         for target in targets_with_global:
             print(f"\n-> {t('linking', lang, tool=target.display_name)}")
-            target.configure_global(repo_root)
+            target.configure_global(repo_root, lang=lang)
         try:
             input(f"\n{t('press_enter', lang)}")
         except (EOFError, KeyboardInterrupt):
@@ -546,7 +583,7 @@ def handle_global_configuration(repo_root: Path, lang: str = "en"):
     if choice in ("limpar", "clear"):
         print(f"\n-> {t('cleaning_global', lang)}")
         for target in targets_with_global:
-            target.clean_global()
+            target.clean_global(lang=lang)
         try:
             input(f"\n{t('press_enter', lang)}")
         except (EOFError, KeyboardInterrupt):
@@ -558,7 +595,7 @@ def handle_global_configuration(repo_root: Path, lang: str = "en"):
         if 1 <= num <= len(targets_with_global):
             target = targets_with_global[num - 1]
             print(f"\n-> {t('linking', lang, tool=target.display_name)}")
-            target.configure_global(repo_root)
+            target.configure_global(repo_root, lang=lang)
             try:
                 input(f"\n{t('press_enter', lang)}")
             except (EOFError, KeyboardInterrupt):
@@ -960,7 +997,7 @@ def handle_clean_workspace(
 
     if choice == "all":
         for target in all_targets:
-            target.clean_workspace(target_path)
+            target.clean_workspace(target_path, lang=lang)
         current_state["active_targets"] = []
         save_workspace_state(target_path, current_state)
         print(f"\n[OK] {t('clean_all_done', lang)}")
@@ -974,7 +1011,7 @@ def handle_clean_workspace(
         num = int(choice)
         if 1 <= num <= len(all_targets):
             target = all_targets[num - 1]
-            target.clean_workspace(target_path)
+            target.clean_workspace(target_path, lang=lang)
             if target.target_id in active_targets:
                 active_targets.remove(target.target_id)
                 current_state["active_targets"] = active_targets
@@ -984,6 +1021,60 @@ def handle_clean_workspace(
                 input(f"\n{t('press_enter', lang)}")
             except (EOFError, KeyboardInterrupt):
                 pass
+
+
+def handle_language_selection(
+    repo_root: Path,
+    target_path: Path | None,
+    current_lang: str,
+    app_config: dict[str, Any],
+    workspace_state: dict[str, Any],
+) -> str:
+    """Interactively allows user to toggle or choose UI language and persists it in config.json."""
+    clear_screen()
+    print("\n" + "=" * 65)
+    print(f"  {t('lang_selection_title', current_lang)}")
+    print("=" * 65)
+    print(f"\n  {t('lang_en_option', current_lang)}")
+    print(f"  {t('lang_pt_option', current_lang)}")
+    print("\n" + "-" * 65)
+    curr_badge = "PT-BR" if current_lang == "pt" else "EN"
+    print(f"  {t('lang_toggle_hint', current_lang, current=curr_badge)}")
+    print(f"  {t('lang_cancel_hint', current_lang)}")
+    print("-" * 65)
+
+    try:
+        choice = input(f"\n{t('choose_option', current_lang)}").strip().lower()
+    except (EOFError, KeyboardInterrupt):
+        return current_lang
+
+    if choice in ("v", "voltar"):
+        return current_lang
+
+    if choice in ("1", "en", "english", "ingles", "inglês"):
+        new_lang = "en"
+    elif choice in ("2", "pt", "pt-br", "portugues", "português"):
+        new_lang = "pt"
+    elif choice == "":
+        new_lang = "en" if current_lang == "pt" else "pt"
+    else:
+        return current_lang
+
+    app_config["language"] = new_lang
+    save_app_config(repo_root, app_config)
+
+    if target_path:
+        workspace_state["language"] = new_lang
+        save_workspace_state(target_path, workspace_state)
+
+    lang_name = "English" if new_lang == "en" else "Português (Brasil)"
+    print(f"\n[OK] {t('lang_saved', new_lang, lang=lang_name)}")
+    try:
+        input(f"\n{t('press_enter', new_lang)}")
+    except (EOFError, KeyboardInterrupt):
+        pass
+
+    return new_lang
 
 
 def main():
@@ -1052,9 +1143,14 @@ def main():
         )
         sys.exit(1)
 
+    app_config = load_app_config(repo_root)
     workspace_state = load_workspace_state(target_path) if target_path else {}
+    # Default is ALWAYS English ('en'), unless specified via args, config.json, or workspace_state
     current_lang = (
-        args.lang or workspace_state.get("language") or detect_system_language()
+        args.lang
+        or app_config.get("language")
+        or workspace_state.get("language")
+        or "en"
     )
 
     if args.list_tools:
@@ -1078,7 +1174,7 @@ def main():
         for target in tools:
             if target:
                 print(f"\n-> {t('linking', current_lang, tool=target.display_name)}")
-                target.configure_global(repo_root)
+                target.configure_global(repo_root, lang=current_lang)
         sys.exit(0)
 
     scanned = scan_repository(repo_root)
@@ -1094,7 +1190,7 @@ def main():
         for tid in tool_ids:
             adapter = get_target(tid)
             if adapter:
-                adapter.clean_workspace(target_path)
+                adapter.clean_workspace(target_path, lang=current_lang)
                 if tid in state.get("active_targets", []):
                     state["active_targets"].remove(tid)
         save_workspace_state(target_path, state)
@@ -1131,7 +1227,11 @@ def main():
     while True:
         clear_screen()
         workspace_state = load_workspace_state(target_path) if target_path else {}
-        if not args.lang and workspace_state.get("language"):
+        if (
+            not args.lang
+            and not app_config.get("language")
+            and workspace_state.get("language")
+        ):
             current_lang = workspace_state["language"]
 
         active_tools_display = (
@@ -1228,10 +1328,13 @@ def main():
                 handle_clean_workspace(target_path, workspace_state, lang=current_lang)
 
         elif choice in ("l", "lang", "idioma", "language"):
-            current_lang = "en" if current_lang == "pt" else "pt"
-            if target_path:
-                workspace_state["language"] = current_lang
-                save_workspace_state(target_path, workspace_state)
+            current_lang = handle_language_selection(
+                repo_root=repo_root,
+                target_path=target_path,
+                current_lang=current_lang,
+                app_config=app_config,
+                workspace_state=workspace_state,
+            )
 
         elif choice in ("5", "sair", "exit", "q", "quit"):
             print(f"\n{t('exit_msg', current_lang)}\n")

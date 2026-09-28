@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Adaptador para Cursor IDE.
-Gera arquivos de regras modernas no formato .cursor/rules/<nome>.mdc
-com metadados de globs e alwaysApply, alem de fallback legado .cursorrules.
+Adapter for Cursor IDE.
+Generates modern rule files in .cursor/rules/<name>.mdc format
+with globs and alwaysApply metadata, plus legacy .cursorrules fallback.
 """
 
 from __future__ import annotations
@@ -17,13 +17,19 @@ from .base import (
     safe_remove_file,
     safe_remove_tree,
     safe_write_text,
+    t_target,
 )
 
 
 class CursorTarget(BaseTarget):
     target_id = "cursor"
     display_name = "Cursor IDE"
-    description = "Gera regras modernas .cursor/rules/*.mdc e fallback .cursorrules"
+    description = (
+        "Generates modern .cursor/rules/*.mdc rules and legacy .cursorrules fallback"
+    )
+    description_pt = (
+        "Gera regras modernas em .cursor/rules/*.mdc e fallback legacy .cursorrules"
+    )
     supports_global = False
 
     def configure_workspace(
@@ -34,12 +40,13 @@ class CursorTarget(BaseTarget):
         agents: list[dict[str, Any]],
         rules: list[dict[str, Any]],
         skills_by_cat: dict[str, set[str]],
+        lang: str = "en",
     ) -> bool:
         cursor_rules_dir = target_path / ".cursor" / "rules"
         cursor_rules_dir.mkdir(parents=True, exist_ok=True)
 
         count = 0
-        # 1. Regras em formato .mdc
+        # 1. Rules in .mdc format
         if rules:
             for r in rules:
                 rule_path = Path(r["path"])
@@ -69,16 +76,16 @@ class CursorTarget(BaseTarget):
                 safe_write_text(dest_file, "\n".join(mdc_content) + "\n")
                 count += 1
 
-        # 2. Subagentes como regra de personas
+        # 2. Subagents as persona rule
         if agents:
             subagent_sections = [
                 "---",
-                'description: "Subagentes e personas especializadas para desenvolvimento"',
+                'description: "Specialized subagent personas for software development"',
                 "globs: *",
                 "alwaysApply: false",
                 "---",
                 "",
-                "# Personas Especializadas de Subagentes",
+                "# Specialized Subagent Personas",
                 "",
             ]
             for a in agents:
@@ -86,7 +93,7 @@ class CursorTarget(BaseTarget):
                 name, desc = parse_frontmatter(agent_path)
                 subagent_sections.append(f"## {name}")
                 if desc:
-                    subagent_sections.append(f"**Descricao:** {desc}")
+                    subagent_sections.append(f"**Description:** {desc}")
                 try:
                     body = agent_path.read_text(encoding="utf-8")
                     if body.startswith("---"):
@@ -103,24 +110,24 @@ class CursorTarget(BaseTarget):
             safe_write_text(dest_agent, "\n".join(subagent_sections).strip() + "\n")
             count += 1
 
-        # 3. Skills como regra de catalogo
+        # 3. Skills catalog rule
         total_skills = sum(len(v) for v in skills_by_cat.values())
         if total_skills > 0:
             skill_sections = [
                 "---",
-                'description: "Catalogo de skills modulares e procedimentos operacionais"',
+                'description: "Catalog of modular skills and operating procedures"',
                 "globs: *",
                 "alwaysApply: true",
                 "---",
                 "",
-                "# Procedimentos e Skills Modulares",
+                "# Operating Procedures & Modular Skills",
                 "",
             ]
             for cat_name in sorted(skills_by_cat.keys()):
                 skill_ids = skills_by_cat[cat_name]
                 if not skill_ids:
                     continue
-                skill_sections.append(f"### Categoria: {cat_name.upper()}")
+                skill_sections.append(f"### Category: {cat_name.upper()}")
                 for s_id in sorted(skill_ids):
                     skill_file = repo_root / "skills" / cat_name / s_id / "SKILL.md"
                     if skill_file.exists():
@@ -128,7 +135,7 @@ class CursorTarget(BaseTarget):
                         desc_str = f" - {s_desc}" if s_desc else ""
                         skill_sections.append(f"- **{s_id}**{desc_str}")
                         skill_sections.append(
-                            f"  *Local:* `{skill_file.resolve().as_posix()}`"
+                            f"  *Path:* `{skill_file.resolve().as_posix()}`"
                         )
                 skill_sections.append("")
 
@@ -136,15 +143,15 @@ class CursorTarget(BaseTarget):
             safe_write_text(dest_skill, "\n".join(skill_sections).strip() + "\n")
             count += 1
 
-        print(f"  [+] Cursor: {count} regra(s) gerada(s) em .cursor/rules/")
+        print(f"  [+] {t_target('cursor_generated', lang, count=count)}")
         return True
 
-    def clean_workspace(self, target_path: Path) -> bool:
+    def clean_workspace(self, target_path: Path, lang: str = "en") -> bool:
         cursor_dir = target_path / ".cursor"
         cursorrules_file = target_path / ".cursorrules"
         safe_remove_file(cursorrules_file)
         if cursor_dir.exists():
             safe_remove_tree(cursor_dir / "rules")
             safe_remove_dir_if_empty(cursor_dir)
-        print("  [-] Cursor: configuracoes removidas de .cursor/rules/")
+        print(f"  [-] {t_target('cursor_clean_done', lang)}")
         return True
