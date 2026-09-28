@@ -27,9 +27,6 @@ class CursorTarget(BaseTarget):
     description = (
         "Generates modern .cursor/rules/*.mdc rules and legacy .cursorrules fallback"
     )
-    description_pt = (
-        "Gera regras modernas em .cursor/rules/*.mdc e fallback legacy .cursorrules"
-    )
     supports_global = False
 
     def configure_workspace(

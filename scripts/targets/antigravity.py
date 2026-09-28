@@ -31,9 +31,6 @@ class AntigravityTarget(BaseTarget):
     description = (
         "Configuration via .agents/ (workspace) and ~/.gemini/config/ (global)"
     )
-    description_pt = (
-        "Configuração via .agents/ (workspace) e ~/.gemini/config/ (global)"
-    )
     supports_global = True
 
     def configure_workspace(

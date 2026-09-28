@@ -35,6 +35,8 @@ omni-agent/
 │   └── AGENTS.md
 ├── scripts/                         # Configurador declarativo e adaptadores
 │   ├── configure_workspace.py       # Menu interativo e orquestrador CLI
+│   ├── i18n.py                      # Mecanismo desacoplado de internacionalização
+│   ├── languages/                   # Catálogos de tradução localizados (en.json, pt.json...)
 │   └── targets/                     # Módulos adaptadores por ferramenta
 │       ├── __init__.py              # Registro central de adaptadores
 │       ├── base.py                  # Contratos e utilitários de filesystem

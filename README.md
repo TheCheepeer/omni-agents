@@ -35,6 +35,8 @@ omni-agent/
 │   └── AGENTS.md
 ├── scripts/                         # Automation configurator and target adapters
 │   ├── configure_workspace.py       # Interactive TUI and CLI orchestrator
+│   ├── i18n.py                      # Decoupled internationalization engine
+│   ├── languages/                   # Localized translation catalogs (en.json, pt.json...)
 │   └── targets/                     # Specialized target adapter modules
 │       ├── __init__.py              # Central target registry
 │       ├── base.py                  # Adapter contracts and filesystem utilities

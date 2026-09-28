@@ -1,0 +1,151 @@
+{
+    "_meta": {
+        "code": "pt",
+        "name": "Português (Brasil)",
+        "badge": "PT-BR",
+        "aliases": [
+            "pt",
+            "pt-br",
+            "pt_br",
+            "portugues",
+            "português",
+            "brasil",
+            "brazil"
+        ]
+    },
+    "ui": {
+        "app_title": "CONFIGURADOR MULTI-TOOL DE AGENTES, REGRAS E SKILLS",
+        "target_workspace": "Workspace Alvo",
+        "active_tools": "Ferramentas Ativas",
+        "none_default": "Nenhuma (padrão: Antigravity)",
+        "not_defined": "[Não definido - digite 'w' ou selecione uma opção]",
+        "menu_select_tools": "[t] Selecionar Ferramentas Alvo (Antigravity, Cursor, Claude...)",
+        "menu_global": "[1] Configuração Global da Máquina (Antigravity e Claude)",
+        "menu_agents": "[2] Subagentes para o Workspace",
+        "menu_rules": "[3] Regras para o Workspace",
+        "menu_skills": "[4] Skills Modulares para o Workspace",
+        "menu_sync": "[s] Sincronizar Tudo (Sync em todas as ferramentas ativas)",
+        "menu_clean": "[c] Limpeza / Desinstalação por Ferramenta",
+        "menu_lang": "[l] Idioma / Language: [{current}]",
+        "menu_exit": "[5] Sair",
+        "menu_change_workspace": "[w] Definir / Alterar Workspace Alvo",
+        "choose_option": "Escolha uma opção: ",
+        "press_enter": "Pressione Enter para continuar...",
+        "press_enter_menu": "Pressione Enter para voltar ao menu...",
+        "sync_success": "Sincronização concluída com sucesso!",
+        "exit_msg": "Encerrando configurador. Até logo!",
+        "invalid_option": "Opção inválida. Digite uma opção válida do menu.",
+        "no_active_tools": "Nenhuma ferramenta ativa selecionada no workspace.",
+        "applying_configs": "Aplicando configurações para {count} ferramenta(s)...",
+        "processing": "Processando",
+        "error_applying": "Erro ao aplicar {target}: {error}",
+        "workspace_selector_title": "Selecione o Repositório do Projeto",
+        "prompt_path": "Digite o caminho do projeto alvo (ou 'v' para voltar): ",
+        "path_invalid": "O caminho informado não existe ou não é uma pasta válida: {path}",
+        "path_selected": "Pasta selecionada: {path}",
+        "target_selection_title": "SELEÇÃO DE FERRAMENTAS ALVO (MULTI-TOOL)",
+        "target_available": "Ferramentas disponíveis:",
+        "target_commands": "Comandos:\n  * Digite números separados por vírgula para alternar seleção (ex: 1, 3)\n  * 'all' para marcar TODAS as ferramentas (Multi-Tool)\n  * 'limpar' para desmarcar todas\n  * 's' ou 'salvar' para confirmar e sincronizar\n  * 'v' para voltar sem salvar",
+        "your_choice": "Sua escolha: ",
+        "must_select_one_tool": "Pelo menos uma ferramenta deve estar selecionada.",
+        "targets_updated": "Ferramentas alvo atualizadas com sucesso!",
+        "global_title": "CONFIGURAÇÃO GLOBAL DA MÁQUINA",
+        "global_subtitle": "Vincula agentes, regras e skills essenciais nas pastas globais do usuário.\n",
+        "global_options": "Opções:\n  * Digite o número da ferramenta para vincular\n  * 'all' para vincular todas as ferramentas globais\n  * 'limpar' para desinstalar links globais\n  * 'v' para voltar ao menu principal",
+        "linking": "Vinculando {tool}...",
+        "cleaning_global": "Removendo links globais...",
+        "agents_title": "SUBAGENTES DISPONÍVEIS PARA O WORKSPACE",
+        "no_agents_found": "Nenhum subagente encontrado na pasta agents/.",
+        "how_to_select_agents": "Como selecionar:\n  * Digite os números para alternar seleção (ex: 1, 2)\n  * 'all' para marcar todos\n  * 'limpar' para desmarcar todos\n  * 's' ou 'salvar' para aplicar nas ferramentas ativas\n  * 'v' para voltar ao menu principal",
+        "agents_activated": "{count} subagente(s) ativado(s) com sucesso!",
+        "all_agents_marked": "Todos os subagentes foram marcados.",
+        "all_agents_cleared": "Todos os subagentes foram desmarcados.",
+        "rules_title": "REGRAS DISPONÍVEIS PARA O WORKSPACE",
+        "no_rules_found": "Nenhuma regra encontrada na pasta rules/.",
+        "how_to_select_rules": "Como selecionar:\n  * Digite os números para alternar seleção (ex: 1)\n  * 'all' para marcar todas\n  * 'limpar' para desmarcar todas\n  * 's' ou 'salvar' para aplicar nas ferramentas ativas\n  * 'v' para voltar ao menu principal",
+        "rules_activated": "{count} regra(s) ativada(s) com sucesso!",
+        "skills_title": "SKILLS MODULARES POR CATEGORIA",
+        "no_skills_found": "Nenhuma categoria de skills encontrada na pasta skills/.",
+        "categories_available": "Categorias Disponíveis:",
+        "total_skills_sel": "Total selecionado no Workspace: {skills} skill(s) em {cats} categoria(s)",
+        "skills_nav": "Como navegar:\n  * Digite o número da categoria para abrir seu submenu (ex: 1)\n  * 's' ou 'salvar' para aplicar nas ferramentas ativas\n  * 'all' para marcar todas as skills de todas as categorias\n  * 'limpar' para desmarcar todas\n  * 'v' para voltar ao Menu Principal",
+        "skills_synced": "Skills sincronizadas nas ferramentas ativas!",
+        "clean_title": "LIMPEZA / DESINSTALAÇÃO POR FERRAMENTA",
+        "configured_tools": "Ferramentas configuradas:",
+        "clean_options": "Opções:\n  * Digite o número da ferramenta para remover suas configurações\n  * 'all' para remover configurações de TODAS as ferramentas\n  * 'v' para voltar ao menu principal",
+        "clean_all_done": "Todas as configurações foram removidas do workspace.",
+        "clean_target_done": "Configurações de {target} removidas.",
+        "cat_title": "CATEGORIA: {cat} ({count} skills disponíveis)",
+        "cat_nav": "Como selecionar:\n  * Digite números para alternar seleção (ex: 1, 3)\n  * 'all' para marcar todas desta categoria\n  * 'limpar' para desmarcar todas desta categoria\n  * 'v' para voltar à lista de categorias",
+        "lang_selection_title": "SELEÇÃO DE IDIOMA / LANGUAGE SELECTION",
+        "lang_toggle_hint": "[Enter] Alternar para o próximo idioma (atual: {current})",
+        "lang_cancel_hint": "[v] Voltar ao menu principal",
+        "lang_saved": "Idioma definido para {name}. Salvo em config.json.",
+        "unsaved_changes_warning": "Você tem alterações não salvas. Deseja sair sem salvar? (s/N): "
+    },
+    "targets": {
+        "dir_not_link": "Diretório existente não é um link: {dst}",
+        "moving_backup": "Movendo para backup: {name}",
+        "updated_gitignore": "Atualizado .gitignore com: {entries}",
+        "removed_gitignore": "Removido do .gitignore: {entries}",
+        "antigravity_agents": "Antigravity: {count} subagente(s) copiado(s) para .agents/agents/",
+        "antigravity_rules": "Antigravity: {count} regra(s) copiada(s) para .agents/rules/",
+        "antigravity_skills": "Antigravity: manifesto skills.json gerado ({count} skills)",
+        "antigravity_clean_nothing": "Antigravity: nada para limpar no workspace.",
+        "antigravity_clean_done": "Antigravity: configurações removidas de .agents/",
+        "antigravity_global_agents": "Antigravity Global: subagentes vinculados em ~/.gemini/config/agents",
+        "antigravity_global_skills": "Antigravity Global: skills globais vinculadas em ~/.gemini/config/skills",
+        "antigravity_global_rules": "Antigravity Global: regras vinculadas em ~/.gemini/config/rules",
+        "antigravity_global_error": "Antigravity Global: falha ao criar links: {error}",
+        "antigravity_global_removed": "Antigravity Global: link removido em {name}",
+        "claude_generated": "Claude Code: gerado {name}",
+        "claude_clean_done": "Claude Code: CLAUDE.md e .claude/ removidos do workspace.",
+        "claude_global_done": "Claude Global: configurado em {path}",
+        "claude_global_removed": "Claude Global: ~/.claude/CLAUDE.md removido.",
+        "cursor_generated": "Cursor: {count} regra(s) gerada(s) em .cursor/rules/",
+        "cursor_clean_done": "Cursor: configurações removidas de .cursor/rules/",
+        "copilot_generated": "Copilot: instruções geradas em {path}",
+        "copilot_clean_done": "Copilot: copilot-instructions.md removido.",
+        "universal_generated": "Universal: gerado {name} na raiz do projeto.",
+        "universal_clean_done": "Universal: AGENTS.md removido do workspace.",
+        "kiro_generated": "Kiro: configurado {name} e diretório .kiro/.",
+        "kiro_clean_done": "Kiro: diretório .kiro/ removido.",
+        "opencode_generated": "OpenCode: configurado {name} e diretório .opencode/.",
+        "opencode_clean_done": "OpenCode: diretório .opencode/ removido.",
+        "codex_generated": "Codex: configurado {name} na raiz do projeto."
+    },
+    "target_descriptions": {
+        "antigravity": {
+            "display_name": "Google Antigravity",
+            "description": "Configuração via .agents/ (workspace) e ~/.gemini/config/ (global)"
+        },
+        "claude": {
+            "display_name": "Claude Code (Anthropic)",
+            "description": "Gera CLAUDE.md na raiz do workspace e instruções globais em ~/.claude/"
+        },
+        "cursor": {
+            "display_name": "Cursor IDE",
+            "description": "Gera regras .cursor/rules/*.mdc com metadados de globs e alwaysApply"
+        },
+        "copilot": {
+            "display_name": "GitHub Copilot",
+            "description": "Gera .github/copilot-instructions.md consolidado"
+        },
+        "universal": {
+            "display_name": "Universal",
+            "description": "Gera AGENTS.md padronizado na raiz do projeto"
+        },
+        "kiro": {
+            "display_name": "Kiro",
+            "description": "Gera AGENTS.md e estrutura de suporte em .kiro/"
+        },
+        "opencode": {
+            "display_name": "OpenCode",
+            "description": "Gera AGENTS.md e estrutura de suporte em .opencode/"
+        },
+        "codex": {
+            "display_name": "Codex (OpenAI)",
+            "description": "Gera AGENTS.md otimizado para o ecossistema OpenAI Codex"
+        }
+    }
+}

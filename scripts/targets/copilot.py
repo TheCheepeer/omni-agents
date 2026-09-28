@@ -26,7 +26,6 @@ class CopilotTarget(BaseTarget):
     description = (
         "Generates consolidated instructions in .github/copilot-instructions.md"
     )
-    description_pt = "Gera instruções consolidadas em .github/copilot-instructions.md"
     supports_global = False
 
     def configure_workspace(

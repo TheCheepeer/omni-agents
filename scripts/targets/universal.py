@@ -27,7 +27,6 @@ class UniversalTarget(BaseTarget):
     target_id = "universal"
     display_name = "Universal (AGENTS.md)"
     description = "Generates standardized AGENTS.md in project root"
-    description_pt = "Gera AGENTS.md padronizado na raiz do projeto"
     supports_global = False
 
     def generate_agents_md(
@@ -140,7 +139,6 @@ class KiroTarget(UniversalTarget):
     target_id = "kiro"
     display_name = "Kiro"
     description = "Generates AGENTS.md and support structure in .kiro/"
-    description_pt = "Gera AGENTS.md e estrutura de suporte em .kiro/"
     supports_global = False
 
     def configure_workspace(
@@ -173,7 +171,6 @@ class OpenCodeTarget(UniversalTarget):
     target_id = "opencode"
     display_name = "OpenCode"
     description = "Generates AGENTS.md and support structure in .opencode/"
-    description_pt = "Gera AGENTS.md e estrutura de suporte em .opencode/"
     supports_global = False
 
     def configure_workspace(
@@ -211,7 +208,6 @@ class CodexTarget(UniversalTarget):
     target_id = "codex"
     display_name = "Codex (OpenAI)"
     description = "Generates AGENTS.md optimized for the OpenAI Codex ecosystem"
-    description_pt = "Gera AGENTS.md otimizado para o ecossistema OpenAI Codex"
     supports_global = False
 
     def configure_workspace(

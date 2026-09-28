@@ -26,9 +26,6 @@ class ClaudeTarget(BaseTarget):
     description = (
         "Generates CLAUDE.md in workspace root and global instructions in ~/.claude/"
     )
-    description_pt = (
-        "Gera CLAUDE.md na raiz do workspace e instruções globais em ~/.claude/"
-    )
     supports_global = True
 
     def configure_workspace(

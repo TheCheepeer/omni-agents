@@ -14,90 +14,11 @@ import sys
 from pathlib import Path
 from typing import Any
 
-# Bilingual dictionary for target adapters (English & Portuguese)
-TARGET_MESSAGES: dict[str, dict[str, str]] = {
-    "en": {
-        "dir_not_link": "Existing directory is not a link: {dst}",
-        "moving_backup": "Moving to backup: {name}",
-        "updated_gitignore": "Updated .gitignore with: {entries}",
-        "removed_gitignore": "Removed from .gitignore: {entries}",
-        # Antigravity
-        "antigravity_agents": "Antigravity: {count} subagent(s) copied to .agents/agents/",
-        "antigravity_rules": "Antigravity: {count} rule(s) copied to .agents/rules/",
-        "antigravity_skills": "Antigravity: skills.json manifest generated ({count} skills)",
-        "antigravity_clean_nothing": "Antigravity: nothing to clean in workspace.",
-        "antigravity_clean_done": "Antigravity: configurations removed from .agents/",
-        "antigravity_global_agents": "Antigravity Global: subagents linked in ~/.gemini/config/agents",
-        "antigravity_global_skills": "Antigravity Global: global skills linked in ~/.gemini/config/skills",
-        "antigravity_global_rules": "Antigravity Global: rules linked in ~/.gemini/config/rules",
-        "antigravity_global_error": "Antigravity Global: linking failed: {error}",
-        "antigravity_global_removed": "Antigravity Global: link removed in {name}",
-        # Claude
-        "claude_generated": "Claude Code: generated {name}",
-        "claude_clean_done": "Claude Code: CLAUDE.md and .claude/ removed from workspace.",
-        "claude_global_done": "Claude Global: configured in {path}",
-        "claude_global_removed": "Claude Global: ~/.claude/CLAUDE.md removed.",
-        # Cursor
-        "cursor_generated": "Cursor: {count} rule(s) generated in .cursor/rules/",
-        "cursor_clean_done": "Cursor: configurations removed from .cursor/rules/",
-        # Copilot
-        "copilot_generated": "Copilot: instructions generated in {path}",
-        "copilot_clean_done": "Copilot: copilot-instructions.md removed.",
-        # Universal & derivatives
-        "universal_generated": "Universal: generated {name} in project root.",
-        "universal_clean_done": "Universal: AGENTS.md removed from workspace.",
-        "kiro_generated": "Kiro: configured {name} and .kiro/ directory.",
-        "kiro_clean_done": "Kiro: .kiro/ directory removed.",
-        "opencode_generated": "OpenCode: configured {name} and .opencode/ directory.",
-        "opencode_clean_done": "OpenCode: .opencode/ directory removed.",
-        "codex_generated": "Codex: configured {name} in project root.",
-    },
-    "pt": {
-        "dir_not_link": "Diretório existente não é um link: {dst}",
-        "moving_backup": "Movendo para backup: {name}",
-        "updated_gitignore": "Atualizado .gitignore com: {entries}",
-        "removed_gitignore": "Removido do .gitignore: {entries}",
-        # Antigravity
-        "antigravity_agents": "Antigravity: {count} subagente(s) copiado(s) para .agents/agents/",
-        "antigravity_rules": "Antigravity: {count} regra(s) copiada(s) para .agents/rules/",
-        "antigravity_skills": "Antigravity: manifesto skills.json gerado ({count} skills)",
-        "antigravity_clean_nothing": "Antigravity: nada para limpar no workspace.",
-        "antigravity_clean_done": "Antigravity: configurações removidas de .agents/",
-        "antigravity_global_agents": "Antigravity Global: subagentes vinculados em ~/.gemini/config/agents",
-        "antigravity_global_skills": "Antigravity Global: skills globais vinculadas em ~/.gemini/config/skills",
-        "antigravity_global_rules": "Antigravity Global: regras vinculadas em ~/.gemini/config/rules",
-        "antigravity_global_error": "Antigravity Global: falha ao criar links: {error}",
-        "antigravity_global_removed": "Antigravity Global: link removido em {name}",
-        # Claude
-        "claude_generated": "Claude Code: gerado {name}",
-        "claude_clean_done": "Claude Code: CLAUDE.md e .claude/ removidos do workspace.",
-        "claude_global_done": "Claude Global: configurado em {path}",
-        "claude_global_removed": "Claude Global: ~/.claude/CLAUDE.md removido.",
-        # Cursor
-        "cursor_generated": "Cursor: {count} regra(s) gerada(s) em .cursor/rules/",
-        "cursor_clean_done": "Cursor: configurações removidas de .cursor/rules/",
-        # Copilot
-        "copilot_generated": "Copilot: instruções geradas em {path}",
-        "copilot_clean_done": "Copilot: copilot-instructions.md removido.",
-        # Universal & derivatives
-        "universal_generated": "Universal: gerado {name} na raiz do projeto.",
-        "universal_clean_done": "Universal: AGENTS.md removido do workspace.",
-        "kiro_generated": "Kiro: configurado {name} e diretório .kiro/.",
-        "kiro_clean_done": "Kiro: diretório .kiro/ removido.",
-        "opencode_generated": "OpenCode: configurado {name} e diretório .opencode/.",
-        "opencode_clean_done": "OpenCode: diretório .opencode/ removido.",
-        "codex_generated": "Codex: configurado {name} na raiz do projeto.",
-    },
-}
+SCRIPTS_DIR = Path(__file__).resolve().parent.parent
+if str(SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_DIR))
 
-
-def t_target(key: str, lang: str = "en", **kwargs: Any) -> str:
-    """Helper for localized messages across target adapters."""
-    table = TARGET_MESSAGES.get(lang, TARGET_MESSAGES["en"])
-    template = table.get(key, TARGET_MESSAGES["en"].get(key, key))
-    if kwargs:
-        return template.format(**kwargs)
-    return template
+from i18n import get_target_description, t_target
 
 
 def is_link(path: Path) -> bool:
@@ -350,14 +271,13 @@ class BaseTarget:
     target_id: str = ""
     display_name: str = ""
     description: str = ""
-    description_pt: str = ""
     supports_global: bool = False
 
     def get_description(self, lang: str = "en") -> str:
         """Returns localized description according to active language."""
-        if lang == "pt" and self.description_pt:
-            return self.description_pt
-        return self.description
+        return get_target_description(
+            self.target_id, locale=lang, fallback=self.description
+        )
 
     def configure_workspace(
         self,
