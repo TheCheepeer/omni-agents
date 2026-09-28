@@ -73,52 +73,73 @@ Para manter o consumo de tokens baixo e evitar que o modelo hesite entre dezenas
 
 ---
 
-## Configuração Global do Antigravity (Windows)
+## Configuração e Automação Multiplataforma
 
-Execute uma única vez no PowerShell para vincular as regras, subagentes e o core de skills globais:
+O script [`scripts/configure_workspace.py`](scripts/configure_workspace.py) roda nativamente em **Windows, Linux e macOS** sem dependências externas (usa apenas a biblioteca padrão do Python). Ele oferece um menu interativo completo para gerenciar tanto a **Configuração Global** quanto a **Configuração por Workspace (Projeto)**.
 
-```powershell
-# Cria junctions para os subagentes e regras globais
-New-Item -ItemType Junction -Path "C:\Users\User\.gemini\config\agents" -Target "D:\Bibliotecas\GitHub\agents\agents"
-New-Item -ItemType Junction -Path "C:\Users\User\.gemini\config\rules" -Target "D:\Bibliotecas\GitHub\agents\rules"
+```bash
+# Iniciar o menu interativo:
+python scripts/configure_workspace.py
 
-# Vincula EXCLUSIVAMENTE a pasta global de skills
-New-Item -ItemType Junction -Path "C:\Users\User\.gemini\config\skills" -Target "D:\Bibliotecas\GitHub\agents\skills\global"
+# Ou já informando a pasta do projeto alvo diretamente:
+python scripts/configure_workspace.py /caminho/do/projeto
+python scripts/configure_workspace.py .
 ```
-
-> **Se precisar atualizar uma junction já existente:**
->
-> ```powershell
-> cmd /c rmdir "C:\Users\User\.gemini\config\skills"
-> New-Item -ItemType Junction -Path "C:\Users\User\.gemini\config\skills" -Target "D:\Bibliotecas\GitHub\agents\skills\global"
-> ```
 
 ---
 
-## Como Selecionar e Ativar Skills por Projeto (Workspace Target)
+### Estrutura do Menu Interativo:
 
-Você pode escolher e ativar as skills, subagentes e regras de forma totalmente declarativa ou automática.
-
-### Método 1: Configurador Automático Multiplataforma (Recomendado)
-
-O script [`scripts/configure_workspace.py`](file:///d:/Bibliotecas/GitHub/agents/scripts/configure_workspace.py) roda nativamente em **Windows e Linux**, sem precisar instalar nenhuma biblioteca adicional (usa a biblioteca padrão do Python):
-
-```bash
-# Execute no terminal:
-python scripts/configure_workspace.py
+```text
+=================================================================
+  CONFIGURADOR DE AGENTES, REGRAS E SKILLS - ANTIGRAVITY
+=================================================================
+  Workspace Alvo: [Caminho do Projeto ou 'Não definido']
+-----------------------------------------------------------------
+  [1] Configuração Global (Vincular core global ao Antigravity)
+  [2] Agents (Subagentes para o Workspace)
+  [3] Rules (Regras para o Workspace)
+  [4] Skills (Skills modulares para o Workspace)
+  [5] Sair
+-----------------------------------------------------------------
+  [w] Definir / Alterar Workspace Alvo
+=================================================================
 ```
 
-#### O que o script faz:
+> **Navegação:** Todas as opções contam com a opção `v` para voltar ao menu principal a qualquer momento.
 
-1. **Janela de Seleção:** Abre automaticamente uma janela gráfica nativa do sistema operacional para você selecionar a pasta do seu repositório alvo (ou aceita o argumento `-t /caminho/do/projeto`).
-2. **Escaneamento Dinâmico de Categorias:** Lê a pasta `skills/` e identifica automaticamente as categorias existentes com base no nome das pastas (`stacks`, `planning`, `docs`, `frontend`, `meta`, etc.), além dos `agents` e `rules`.
-3. **Seleção Interativa:** Exibe um menu numerado no terminal permitindo selecionar:
-    - Por números (ex.: `1, 4, 12`)
-    - Por categorias inteiras (ex.: `stacks, planning`)
-    - Ou selecionar tudo com `all`
-4. **Gera o Manifesto Declarativo:** Cria o arquivo `.agents/skills.json` no projeto alvo apontando para as categorias e skills escolhidas.
-5. **Copia Agentes e Regras:** Se você selecionou subagentes ou regras, copia os arquivos `.md` correspondentes para `.agents/agents/` e `.agents/rules/`.
-6. **Atualiza o `.gitignore`:** Verifica se o arquivo `.gitignore` do projeto alvo já ignora `.agents/`. Se não estiver ignorando, adiciona a linha automaticamente.
+---
+
+### Detalhes das Opções:
+
+#### 1. Configuração Global (Opção 1)
+
+Automatiza a vinculação do core do repositório à pasta global de configurações do Antigravity (`~/.gemini/config/`), substituindo comandos manuais de terminal:
+
+- **Pré-visualização Segura:** Lista primeiro todas as pastas de origem e destino antes de executar qualquer alteração.
+- **Proteção de Regras Globais:** Os subagentes e o core de skills são atualizados diretamente, mas a pasta de **regras globais (`rules/`) possui confirmação obrigatória antes de substituir**, exibindo as regras existentes para que você nunca sobrescreva regras customizadas acidentalmente.
+- **Execução Multiplataforma:** Cria automaticamente **Junctions** no Windows (`_winapi.CreateJunction` / `mklink /J`) e **Links Simbólicos** no Linux/macOS:
+    - `~/.gemini/config/agents` $\leftarrow$ `agents/`
+    - `~/.gemini/config/rules` $\leftarrow$ `rules/`
+    - `~/.gemini/config/skills` $\leftarrow$ `skills/global/`
+
+#### 2. Subagentes para o Workspace (Opção 2)
+
+- Lista os subagentes disponíveis com títulos e descrições.
+- Permite selecionar por números (ex: `1, 3`), por ID ou `all` para todos.
+- Copia os subagentes para `.agents/agents/` e atualiza o `.gitignore` do projeto.
+
+#### 3. Regras para o Workspace (Opção 3)
+
+- Lista as diretrizes essenciais de desenvolvimento e padrões de código.
+- Copia as regras selecionadas para `.agents/rules/` e atualiza o `.gitignore`.
+
+#### 4. Skills Modulares para o Workspace (Opção 4)
+
+- **100% Dinâmico e Sem Hardcode:** Escaneia a pasta `skills/` e monta automaticamente menus e submenus para cada categoria existente (seja `stacks`, `docs`, `planning` ou qualquer nova categoria que for adicionada ao repositório).
+- **Submenus Individuais por Categoria:** Ao entrar em uma categoria, exibe suas skills com status visual (`[x]` ou `[ ]`), permitindo marcar/desmarcar itens por número, marcar todas (`all`), desmarcar (`limpar`) e voltar (`v`).
+- **Persistência de Estado:** Carrega automaticamente as skills que já estavam configuradas no `.agents/skills.json` do workspace para que você possa inspecionar e alternar sem perder o que já havia configurado.
+- Gera ou atualiza o manifesto declarativo `.agents/skills.json` e ajusta o `.gitignore`.
 
 ---
 
