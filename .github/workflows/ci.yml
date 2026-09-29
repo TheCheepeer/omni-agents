@@ -31,7 +31,11 @@ jobs:
 
             - name: Verify Code Compilation
               run: |
-                  python -m compileall scripts
+                  python -m compileall src
+
+            - name: Run Unit Tests
+              run: |
+                  python -m unittest discover -s tests -p "test_*.py" -v
 
             - name: Build Source and Wheel Distributions
               run: |
@@ -48,9 +52,9 @@ jobs:
                   with zipfile.ZipFile(wheels[0]) as z:
                       files = z.namelist()
                       print(f"Total files in wheel: {len(files)}")
-                      assert any(f.startswith("scripts/") for f in files), "scripts/ missing in wheel"
-                      assert any(f.startswith("agents/") for f in files), "agents/ missing in wheel"
-                      assert any(f.startswith("rules/") for f in files), "rules/ missing in wheel"
-                      assert any(f.startswith("skills/") for f in files), "skills/ missing in wheel"
-                      assert len(files) > 500, f"Expected >500 files, found {len(files)}"
+                      assert any(f.startswith("omni_agents/") for f in files), "omni_agents/ missing in wheel"
+                      assert any(f.endswith("cli.py") for f in files), "cli.py missing in wheel"
+                      assert any("languages/en.json" in f for f in files), "languages/en.json missing in wheel"
+                      assert any("languages/pt.json" in f for f in files), "languages/pt.json missing in wheel"
+                      assert any("languages/es.json" in f for f in files), "languages/es.json missing in wheel"
                   print("[OK] Wheel distribution verified successfully!")
