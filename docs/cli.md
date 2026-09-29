@@ -74,13 +74,17 @@ Supported AI Assistants:
 
 The menu supports commands and shortcuts in English, Portuguese, and Spanish:
 
-| Action             | English                  | Portuguese                        | Spanish                           |
-| :----------------- | :----------------------- | :-------------------------------- | :-------------------------------- |
-| **Confirm & Save** | `save`, `s`, `enter`     | `salvar`, `guardar`, `s`, `enter` | `guardar`, `salvar`, `g`, `enter` |
-| **Go Back**        | `back`, `b`              | `voltar`, `v`                     | `volver`, `atras`, `v`            |
-| **Clear / Clean**  | `clean`, `clear`, `c`    | `limpar`, `l`                     | `limpiar`, `l`                    |
-| **Exit**           | `exit`, `quit`, `q`, `0` | `sair`, `q`, `0`                  | `salir`, `q`, `0`                 |
-| **Select All**     | `all`, `a`               | `todos`, `t`                      | `todos`, `t`                      |
+| Action                          | English                  | Portuguese                        | Spanish                            |
+| :------------------------------ | :----------------------- | :-------------------------------- | :--------------------------------- |
+| **Confirm & Save**              | `save`, `s`, `enter`     | `salvar`, `guardar`, `s`, `enter` | `guardar`, `salvar`, `g`, `enter`  |
+| **Go Back**                     | `back`, `b`              | `voltar`, `v`                     | `volver`, `atras`, `v`             |
+| **Clear / Clean**               | `clean`, `clear`, `c`    | `limpar`, `l`                     | `limpiar`, `l`                     |
+| **Exit**                        | `exit`, `quit`, `q`, `0` | `sair`, `q`, `0`                  | `salir`, `q`, `0`                  |
+| **Select All**                  | `all`, `a`               | `todos`, `t`                      | `todos`, `t`                       |
+| **Open / Show Personal Folder** | `open`, `custom`, `o`    | `abrir`, `pessoal`, `custom`, `o` | `abrir`, `personal`, `custom`, `o` |
+
+> **Desktop vs Headless Environment Detection**:
+> When accessing the personal folder (`[o]`), `omni-agents` automatically detects whether a graphical display environment is available. On desktop systems, it opens the operating system's default file manager at `Documents/omni-agent/`. On headless environments (e.g., remote SSH sessions, CI/CD runners, or containers), it outputs the absolute directory path directly to stdout without attempting to launch desktop processes.
 
 ---
 

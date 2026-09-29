@@ -1656,7 +1656,10 @@ def main():
         print(f"  {t('menu_rules', current_lang)}")
         print(f"  {t('menu_skills', current_lang)}")
         print(f"  {t('menu_ext', current_lang)}")
-        print(f"  {t('menu_custom_folder', current_lang)}")
+        if has_graphical_display():
+            print(f"  {t('menu_custom_folder', current_lang)}")
+        else:
+            print(f"  {t('menu_custom_folder_headless', current_lang)}")
         print(f"  {t('menu_sync', current_lang)}")
         print(f"  {t('menu_clean', current_lang)}")
         print(f"  {t('menu_lang', current_lang, current=lang_badge)}")
@@ -1712,8 +1715,20 @@ def main():
             scanned = scan_repository(repo_root, documents_dir=omni_docs_dir)
 
         elif choice in ("o", "open", "custom", "pessoal", "personal"):
-            open_folder_in_explorer(omni_docs_dir)
-            print(f"\n[OK] {t('folder_opened', current_lang, path=omni_docs_dir)}")
+            if has_graphical_display():
+                opened = open_folder_in_explorer(omni_docs_dir)
+                if opened:
+                    print(
+                        f"\n[OK] {t('folder_opened', current_lang, path=omni_docs_dir)}"
+                    )
+                else:
+                    print(
+                        f"\n[i] {t('folder_path_info', current_lang, path=omni_docs_dir)}"
+                    )
+            else:
+                print(
+                    f"\n[i] {t('folder_path_info', current_lang, path=omni_docs_dir)}"
+                )
             try:
                 input(f"\n{t('press_enter', current_lang)}")
             except (EOFError, KeyboardInterrupt):
