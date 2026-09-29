@@ -131,6 +131,12 @@
     "targets": {
         "dir_not_link": "El directorio existente no es un enlace simbólico: {dst}",
         "moving_backup": "Moviendo a copia de seguridad: {name}",
+        "link_broken_found": "El enlace existente '{name}' está roto (apunta a una ruta inexistente: {target}).",
+        "link_broken_prompt": "¿Desea reemplazar el enlace roto por '{src}'? [S/n]: ",
+        "link_different_target": "El enlace existente '{name}' apunta actualmente a: {target}",
+        "link_replace_prompt": "¿Desea reemplazarlo por '{src}'? [s/N]: ",
+        "link_preserved": "Enlace existente para '{name}' preservado (no reemplazado).",
+        "link_replaced": "Enlace para '{name}' actualizado a: {src}",
         "updated_gitignore": ".gitignore actualizado con: {entries}",
         "removed_gitignore": "Removido de .gitignore: {entries}",
         "antigravity_agents": "Antigravity: {count} subagente(s) copiado(s) a .agents/agents/",

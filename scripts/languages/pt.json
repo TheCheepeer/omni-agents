@@ -129,6 +129,12 @@
     "targets": {
         "dir_not_link": "Diretório existente não é um link: {dst}",
         "moving_backup": "Movendo para backup: {name}",
+        "link_broken_found": "O link existente '{name}' está quebrado (aponta para local inexistente: {target}).",
+        "link_broken_prompt": "Deseja substituir o link quebrado por '{src}'? [S/n]: ",
+        "link_different_target": "O link existente '{name}' aponta atualmente para: {target}",
+        "link_replace_prompt": "Deseja substituí-lo por '{src}'? [s/N]: ",
+        "link_preserved": "Link existente para '{name}' mantido (não substituído).",
+        "link_replaced": "Link para '{name}' atualizado para: {src}",
         "updated_gitignore": "Atualizado .gitignore com: {entries}",
         "removed_gitignore": "Removido do .gitignore: {entries}",
         "antigravity_agents": "Antigravity: {count} subagente(s) copiado(s) para .agents/agents/",

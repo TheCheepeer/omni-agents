@@ -96,9 +96,10 @@ Different operating systems and developer environments have varying permissions 
 | **Linux / macOS**  | Symbolic Link (`os.symlink`)                           | Symbolic Link (`os.symlink`) | **No**                                                        |
 | **Fallback (Any)** | Recursive Directory Copy                               | File Copy                    | **No**                                                        |
 
-### Link Preservation & Junction Handling
+### Link Preservation, Replacement & Junction Handling
 
-- On Windows, directory junctions report as directories rather than symlinks under older APIs. The removal routines in `scripts/configure_workspace.py` explicitly check for junctions (`os.path.islink()` or directory reparse points) and unbind them using `os.rmdir()` without deleting the source directory content.
+- On Windows, directory junctions report as directories rather than symlinks under older APIs. The filesystem routines in `scripts/targets/base.py` explicitly identify reparse points (`FILE_ATTRIBUTE_REPARSE_POINT = 0x400`) and symlinks, safely unbinding them via `os.rmdir()` or `path.unlink()` without deleting real target data.
+- **Target Inspection & Broken Link Repair**: `get_link_target()` inspects the link destination via `os.readlink()`. If an existing link points to a deleted directory (`is_link_broken()`), or points to a different installation/clone, `omni-agents` warns the user and prompts for confirmation before safely replacing the link (or automatically with `-y` / `--yes`).
 - When physical copying is selected or required, an `omni-manifest.json` file is generated inside the target configuration directory. During cleanup or synchronization, only files registered in the manifest are removed or overwritten, safeguarding user modifications.
 
 ---

@@ -1436,6 +1436,13 @@ def main():
         help="Rule profile ID to apply (e.g. pt-br-dev, general)",
     )
     parser.add_argument(
+        "-y",
+        "--yes",
+        dest="assume_yes",
+        action="store_true",
+        help="Automatically answer yes to confirmation prompts (e.g. link overwrite)",
+    )
+    parser.add_argument(
         "--lang",
         default=None,
         help="UI Language (e.g. en, pt, pt-BR, etc.)",
@@ -1569,7 +1576,10 @@ def main():
             if target:
                 print(f"\n-> {t('linking', current_lang, tool=target.display_name)}")
                 target.configure_global(
-                    repo_root, lang=current_lang, selected_rule=selected_rule
+                    repo_root,
+                    lang=current_lang,
+                    selected_rule=selected_rule,
+                    assume_yes=args.assume_yes,
                 )
         sys.exit(0)
 

@@ -115,6 +115,7 @@ class AntigravityTarget(BaseTarget):
         repo_root: Path,
         lang: str = "en",
         selected_rule: dict[str, Any] | None = None,
+        assume_yes: bool = False,
     ) -> bool:
         home = Path.home()
         global_dir = home / ".gemini" / "config"
@@ -130,11 +131,14 @@ class AntigravityTarget(BaseTarget):
 
         success = True
         try:
-            if agents_src.exists():
-                create_dir_link(agents_src, agents_dst, lang=lang)
+            if agents_src.exists() and create_dir_link(
+                agents_src, agents_dst, lang=lang, assume_yes=assume_yes
+            ):
                 print(f"  [+] {t_target('antigravity_global_agents', lang)}")
-            if skills_src.exists():
-                create_dir_link(skills_src, skills_dst, lang=lang)
+
+            if skills_src.exists() and create_dir_link(
+                skills_src, skills_dst, lang=lang, assume_yes=assume_yes
+            ):
                 print(f"  [+] {t_target('antigravity_global_skills', lang)}")
 
             rule_src = None
@@ -149,47 +153,15 @@ class AntigravityTarget(BaseTarget):
             if not rule_src:
                 rule_src = repo_root / "rules"
 
-            if rule_src.exists():
-                should_link_rules = True
-                if rules_dst.exists():
-                    try:
-                        is_same_target = (
-                            is_link(rules_dst)
-                            and rules_dst.resolve() == rule_src.resolve()
-                        )
-                    except OSError:
-                        is_same_target = False
-
-                    if not is_same_target:
-                        try:
-                            ans = (
-                                input(
-                                    f"\n  [?] {t_target('antigravity_rules_overwrite_prompt', lang)}"
-                                )
-                                .strip()
-                                .lower()
-                            )
-                            should_link_rules = ans in (
-                                "s",
-                                "sim",
-                                "y",
-                                "yes",
-                                "si",
-                                "sí",
-                            )
-                        except (EOFError, KeyboardInterrupt):
-                            should_link_rules = False
-
-                if should_link_rules:
-                    create_dir_link(rule_src, rules_dst, lang=lang)
-                    if selected_rule:
-                        print(
-                            f"  [+] {t_target('antigravity_global_rules_linked', lang, profile=selected_rule['id'])}"
-                        )
-                    else:
-                        print(f"  [+] {t_target('antigravity_global_rules', lang)}")
+            if rule_src.exists() and create_dir_link(
+                rule_src, rules_dst, lang=lang, assume_yes=assume_yes
+            ):
+                if selected_rule:
+                    print(
+                        f"  [+] {t_target('antigravity_global_rules_linked', lang, profile=selected_rule['id'])}"
+                    )
                 else:
-                    print(f"  [i] {t_target('antigravity_global_rules_kept', lang)}")
+                    print(f"  [+] {t_target('antigravity_global_rules', lang)}")
         except (OSError, RuntimeError, subprocess.SubprocessError) as e:
             print(f"  [x] {t_target('antigravity_global_error', lang, error=e)}")
             success = False

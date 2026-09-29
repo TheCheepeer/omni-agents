@@ -7,6 +7,7 @@ subagents, and modular skills catalog, plus ~/.claude/ global support.
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -132,21 +133,26 @@ class ClaudeTarget(BaseTarget):
         repo_root: Path,
         lang: str = "en",
         selected_rule: dict[str, Any] | None = None,
+        assume_yes: bool = False,
     ) -> bool:
         claude_global = Path.home() / ".claude"
         claude_global.mkdir(parents=True, exist_ok=True)
         global_rule = claude_global / "CLAUDE.md"
 
         if global_rule.exists():
-            try:
-                ans = (
-                    input(f"\n  [?] {t_target('claude_rules_overwrite_prompt', lang)}")
-                    .strip()
-                    .lower()
-                )
-                should_overwrite = ans in ("s", "sim", "y", "yes", "si", "sí")
-            except (EOFError, KeyboardInterrupt):
-                should_overwrite = False
+            should_overwrite = bool(assume_yes)
+            if not assume_yes and sys.stdin.isatty():
+                try:
+                    ans = (
+                        input(
+                            f"\n  [?] {t_target('claude_rules_overwrite_prompt', lang)}"
+                        )
+                        .strip()
+                        .lower()
+                    )
+                    should_overwrite = ans in ("s", "sim", "y", "yes", "si", "sí")
+                except (EOFError, KeyboardInterrupt):
+                    should_overwrite = False
             if not should_overwrite:
                 print(f"  [i] {t_target('claude_global_rules_kept', lang)}")
                 return True

@@ -32,12 +32,13 @@ When run without arguments, `omni-agents` detects the current working directory 
 
 ### Operational Modes
 
-| Option              | Description                                                                                                                                |
-| :------------------ | :----------------------------------------------------------------------------------------------------------------------------------------- |
-| `--sync`            | Fast synchronization mode: applies selected components immediately without opening the interactive menu. Ideal for CI/CD or setup scripts. |
-| `--clean`           | Unbinds and removes configurations for the specified tool (or all tools) from the workspace.                                               |
-| `--update`          | Explicitly checks for newer releases and executes self-upgrade via pip or git pull.                                                        |
-| `--no-update-check` | Suppresses automatic background update check upon CLI startup.                                                                             |
+| Option              | Shorthand | Description                                                                                                                                |
+| :------------------ | :-------- | :----------------------------------------------------------------------------------------------------------------------------------------- |
+| `--sync`            | _(none)_  | Fast synchronization mode: applies selected components immediately without opening the interactive menu. Ideal for CI/CD or setup scripts. |
+| `--clean`           | _(none)_  | Unbinds and removes configurations for the specified tool (or all tools) from the workspace.                                               |
+| `--yes`             | `-y`      | Automatically answers yes to confirmation prompts (e.g. replacing existing links or repairing broken links).                               |
+| `--update`          | _(none)_  | Explicitly checks for newer releases and executes self-upgrade via pip or git pull.                                                        |
+| `--no-update-check` | _(none)_  | Suppresses automatic background update check upon CLI startup.                                                                             |
 
 ### Diagnostics & Information
 
@@ -112,6 +113,20 @@ Link configurations to global user tool directories across all installed assista
 ```bash
 omni-agents --global --tool all --sync
 ```
+
+Link a specific rule profile globally with automatic overwrite confirmation:
+
+```bash
+omni-agents --global --tool antigravity --rule pt-br-dev -y
+```
+
+> **Smart Link Replacement & Broken Link Repair**:
+> When linking global directories (such as Antigravity `agents`, `skills`, or `rules`), `omni-agents` automatically inspects existing directory junctions and symbolic links:
+>
+> - **Same Target**: If a link already points to the requested source directory, no changes or prompts are made.
+> - **Different Target**: If an existing link points to another directory (e.g. switching between an installed copy in `Documents/omni-agent` and a local development clone, or switching rule profiles), `omni-agents` displays the current path and asks for confirmation before replacing it.
+> - **Broken / Dangling Link**: If an existing link points to a nonexistent directory (e.g. after moving or deleting an older clone), `omni-agents` detects the broken link and offers to repair and repoint it.
+> - **Physical Directory**: If a real directory already exists at the destination, it is safely backed up with a `.backup` suffix before creating the link.
 
 ### Workspace Cleanup
 

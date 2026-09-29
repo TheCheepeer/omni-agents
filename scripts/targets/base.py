@@ -39,15 +39,48 @@ def is_link(path: Path) -> bool:
     return False
 
 
+def get_link_target(path: Path) -> Path | None:
+    """Returns the target Path of a symlink or junction, or None if not a link."""
+    if not os.path.lexists(path) or not is_link(path):
+        return None
+    try:
+        raw = os.readlink(path)
+        clean = str(raw).removeprefix("\\\\?\\")
+        target_path = Path(clean)
+        if not target_path.is_absolute():
+            target_path = path.parent / target_path
+        return target_path
+    except (OSError, ValueError, TypeError):
+        try:
+            return path.resolve()
+        except OSError:
+            return None
+
+
+def is_link_broken(path: Path) -> bool:
+    """Checks if a symlink or junction exists but points to a nonexistent target."""
+    if not os.path.lexists(path) or not is_link(path):
+        return False
+    if not path.exists():
+        return True
+    target = get_link_target(path)
+    return bool(target is not None and not target.exists())
+
+
 def remove_dir_link(path: Path):
-    """Safely removes a directory link without deleting real target files."""
+    """Safely removes a directory link or junction without deleting real target files."""
     if not os.path.lexists(path):
         return
     if sys.platform.startswith("win"):
         try:
             os.rmdir(path)
         except OSError:
-            subprocess.run(["cmd", "/c", "rmdir", str(path)], check=True, shell=True)
+            try:
+                path.unlink()
+            except OSError:
+                subprocess.run(
+                    ["cmd", "/c", "rmdir", str(path)], check=True, shell=True
+                )
     else:
         if path.is_symlink():
             path.unlink()
@@ -55,12 +88,88 @@ def remove_dir_link(path: Path):
             path.rmdir()
 
 
-def create_dir_link(src: Path, dst: Path, lang: str = "en"):
-    """Creates a cross-platform directory link (Junction on Windows, Symlink on Unix)."""
+def create_dir_link(
+    src: Path,
+    dst: Path,
+    lang: str = "en",
+    prompt_overwrite: bool = True,
+    assume_yes: bool = False,
+) -> bool:
+    """
+    Creates a cross-platform directory link (Junction on Windows, Symlink on Unix).
+
+    If the link already points to src, returns True without changes.
+    If the link is broken or points to a different target, prompts before replacing.
+    """
     dst.parent.mkdir(parents=True, exist_ok=True)
+    src_resolved = src.resolve()
+
     if os.path.lexists(dst):
         if is_link(dst):
-            remove_dir_link(dst)
+            if is_link_broken(dst):
+                broken_target = get_link_target(dst)
+                target_str = str(broken_target) if broken_target else "unknown"
+                print(
+                    f"\n  [!] {t_target('link_broken_found', lang, name=dst.name, target=target_str)}"
+                )
+
+                replace = True
+                if prompt_overwrite and not assume_yes and sys.stdin.isatty():
+                    try:
+                        ans = (
+                            input(
+                                f"  [?] {t_target('link_broken_prompt', lang, src=src)}"
+                            )
+                            .strip()
+                            .lower()
+                        )
+                        replace = ans not in ("n", "no", "nao", "não")
+                    except (EOFError, KeyboardInterrupt):
+                        replace = False
+
+                if not replace:
+                    print(f"  [i] {t_target('link_preserved', lang, name=dst.name)}")
+                    return False
+
+                remove_dir_link(dst)
+            else:
+                current_target = get_link_target(dst)
+                is_same = False
+                if current_target is not None:
+                    try:
+                        is_same = current_target.resolve() == src_resolved
+                    except OSError:
+                        is_same = (
+                            str(current_target).lower() == str(src_resolved).lower()
+                        )
+
+                if is_same:
+                    return True
+
+                target_str = str(current_target) if current_target else "unknown"
+                print(
+                    f"\n  [!] {t_target('link_different_target', lang, name=dst.name, target=target_str)}"
+                )
+
+                replace = bool(assume_yes)
+                if prompt_overwrite and not assume_yes and sys.stdin.isatty():
+                    try:
+                        ans = (
+                            input(
+                                f"  [?] {t_target('link_replace_prompt', lang, src=src)}"
+                            )
+                            .strip()
+                            .lower()
+                        )
+                        replace = ans in ("s", "sim", "y", "yes", "si", "sí")
+                    except (EOFError, KeyboardInterrupt):
+                        replace = False
+
+                if not replace:
+                    print(f"  [i] {t_target('link_preserved', lang, name=dst.name)}")
+                    return False
+
+                remove_dir_link(dst)
         else:
             backup_dst = dst.with_name(f"{dst.name}.backup")
             print(f"  [!] {t_target('dir_not_link', lang, dst=dst)}")
@@ -80,6 +189,8 @@ def create_dir_link(src: Path, dst: Path, lang: str = "en"):
             )
     else:
         dst.symlink_to(src, target_is_directory=True)
+
+    return True
 
 
 def safe_write_text(path: Path, content: str):
@@ -315,6 +426,7 @@ class BaseTarget:
         repo_root: Path,
         lang: str = "en",
         selected_rule: dict[str, Any] | None = None,
+        assume_yes: bool = False,
     ) -> bool:
         """Applies global machine configuration for this tool."""
         return False

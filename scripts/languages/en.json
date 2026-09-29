@@ -122,6 +122,12 @@
     "targets": {
         "dir_not_link": "Existing directory is not a link: {dst}",
         "moving_backup": "Moving to backup: {name}",
+        "link_broken_found": "Existing link '{name}' is broken (points to nonexistent: {target}).",
+        "link_broken_prompt": "Replace broken link with '{src}'? [Y/n]: ",
+        "link_different_target": "Existing link '{name}' currently points to: {target}",
+        "link_replace_prompt": "Do you want to replace it with '{src}'? [y/N]: ",
+        "link_preserved": "Existing link for '{name}' preserved (not replaced).",
+        "link_replaced": "Link for '{name}' updated to: {src}",
         "updated_gitignore": "Updated .gitignore with: {entries}",
         "removed_gitignore": "Removed from .gitignore: {entries}",
         "antigravity_agents": "Antigravity: {count} subagent(s) copied to .agents/agents/",
