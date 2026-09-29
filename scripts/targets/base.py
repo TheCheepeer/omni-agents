@@ -23,9 +23,11 @@ from i18n import get_target_description, t_target
 
 def is_link(path: Path) -> bool:
     """Checks if the path is a symbolic link or junction on Windows/Unix."""
-    if not path.exists():
-        return path.is_symlink()
+    if not os.path.lexists(path):
+        return False
     if path.is_symlink():
+        return True
+    if hasattr(path, "is_junction") and path.is_junction():
         return True
     if sys.platform.startswith("win"):
         try:
@@ -39,13 +41,13 @@ def is_link(path: Path) -> bool:
 
 def remove_dir_link(path: Path):
     """Safely removes a directory link without deleting real target files."""
-    if not path.exists() and not path.is_symlink():
+    if not os.path.lexists(path):
         return
     if sys.platform.startswith("win"):
         try:
             os.rmdir(path)
         except OSError:
-            subprocess.run(["cmd", "/c", "rmdir", str(path)], check=True)
+            subprocess.run(["cmd", "/c", "rmdir", str(path)], check=True, shell=True)
     else:
         if path.is_symlink():
             path.unlink()
@@ -56,7 +58,7 @@ def remove_dir_link(path: Path):
 def create_dir_link(src: Path, dst: Path, lang: str = "en"):
     """Creates a cross-platform directory link (Junction on Windows, Symlink on Unix)."""
     dst.parent.mkdir(parents=True, exist_ok=True)
-    if dst.exists() or dst.is_symlink():
+    if os.path.lexists(dst):
         if is_link(dst):
             remove_dir_link(dst)
         else:
@@ -104,9 +106,7 @@ def safe_remove_dir_if_empty(path: Path):
 
 def safe_remove_tree(path: Path):
     """Recursively removes directory and all its contents."""
-    if not path.exists():
-        if is_link(path):
-            remove_dir_link(path)
+    if not os.path.lexists(path):
         return
     if is_link(path):
         remove_dir_link(path)

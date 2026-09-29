@@ -1175,6 +1175,7 @@ def main():
         try:
             choice = input(f"\n{t('choose_option', current_lang)}").strip().lower()
         except (EOFError, KeyboardInterrupt):
+            clear_screen()
             print(f"\n{t('exit_msg', current_lang)}\n")
             sys.exit(0)
 
@@ -1245,6 +1246,7 @@ def main():
             )
 
         elif choice in ("5", "sair", "exit", "q", "quit"):
+            clear_screen()
             print(f"\n{t('exit_msg', current_lang)}\n")
             sys.exit(0)
 

@@ -127,18 +127,27 @@ class AntigravityTarget(BaseTarget):
                 print(f"  [+] {t_target('antigravity_global_skills', lang)}")
             if rules_src.exists():
                 should_link_rules = True
-                if rules_dst.exists() or is_link(rules_dst):
+                if rules_dst.exists():
                     try:
-                        ans = (
-                            input(
-                                f"\n  [?] {t_target('antigravity_rules_overwrite_prompt', lang)}"
-                            )
-                            .strip()
-                            .lower()
+                        is_same_target = (
+                            is_link(rules_dst)
+                            and rules_dst.resolve() == rules_src.resolve()
                         )
-                        should_link_rules = ans in ("s", "sim", "y", "yes")
-                    except (EOFError, KeyboardInterrupt):
-                        should_link_rules = False
+                    except OSError:
+                        is_same_target = False
+
+                    if not is_same_target:
+                        try:
+                            ans = (
+                                input(
+                                    f"\n  [?] {t_target('antigravity_rules_overwrite_prompt', lang)}"
+                                )
+                                .strip()
+                                .lower()
+                            )
+                            should_link_rules = ans in ("s", "sim", "y", "yes")
+                        except (EOFError, KeyboardInterrupt):
+                            should_link_rules = False
 
                 if should_link_rules:
                     create_dir_link(rules_src, rules_dst, lang=lang)
