@@ -13,6 +13,8 @@
 omni-agents [TARGET_PATH] [OPTIONS]
 # or
 omni [TARGET_PATH] [OPTIONS]
+# or
+python -m omni_agents [TARGET_PATH] [OPTIONS]
 ```
 
 When run without arguments, `omni-agents` automatically detects the current working directory as the target workspace and opens an interactive Terminal User Interface (TUI). When executed with operational flags like `--sync` or `--clean`, it runs headlessly without user intervention.

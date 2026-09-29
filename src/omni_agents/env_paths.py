@@ -99,13 +99,27 @@ def get_omni_documents_dir() -> Path:
     return modern_dir
 
 
+def find_repo_root(start_path: Path | None = None) -> Path:
+    """Finds repository root by searching parent directories for .git and content folders."""
+    current = (start_path or Path(__file__)).resolve()
+    for candidate in [current] + list(current.parents):
+        if (
+            (candidate / ".git").exists()
+            and (candidate / "agents").is_dir()
+            and (candidate / "rules").is_dir()
+            and (candidate / "skills").is_dir()
+        ):
+            return candidate
+    return Path(__file__).resolve().parent.parent.parent
+
+
 def is_dev_mode(repo_root: Path | None = None) -> bool:
     """
     Detects if the script is running from the cloned source Git repository.
     Verifies that the root folder contains .git and the core content directories.
     """
     if repo_root is None:
-        repo_root = Path(__file__).resolve().parent.parent
+        repo_root = find_repo_root()
 
     git_dir = repo_root / ".git"
     agents_dir = repo_root / "agents"
@@ -218,13 +232,11 @@ def ensure_omni_documents_structure() -> tuple[Path, dict[str, Any]]:
 
     ext_manifest = ext_dir / "manifest.json"
     if not ext_manifest.exists():
-        try:
+        with contextlib.suppress(OSError):
             ext_manifest.write_text(
                 json.dumps({"installed": {}, "last_check": None}, indent=2) + "\n",
                 encoding="utf-8",
             )
-        except OSError:
-            pass
 
     # Persistent configuration file
     config_file = base_dir / "config.json"
@@ -253,13 +265,11 @@ def ensure_omni_documents_structure() -> tuple[Path, dict[str, Any]]:
                 merged_config["repository"][k] = v
 
     if not config_file.exists() or config != merged_config:
-        try:
+        with contextlib.suppress(OSError):
             config_file.write_text(
                 json.dumps(merged_config, indent=2, ensure_ascii=False) + "\n",
                 encoding="utf-8",
             )
-        except OSError:
-            pass
 
     return base_dir, merged_config
 

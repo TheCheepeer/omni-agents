@@ -25,9 +25,9 @@ classifiers = [
 ]
 
 [project.scripts]
-omni-agents = "scripts.configure_workspace:main"
-omni-agent = "scripts.configure_workspace:main"
-omni = "scripts.configure_workspace:main"
+omni-agents = "omni_agents.cli:main"
+omni-agent = "omni_agents.cli:main"
+omni = "omni_agents.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/TheCheepeer/omni-agents"
@@ -36,10 +36,12 @@ Issues = "https://github.com/TheCheepeer/omni-agents/issues"
 "João Sales (GitHub)" = "https://github.com/joao626"
 
 [tool.setuptools.packages.find]
-where = ["."]
-include = ["scripts*", "scripts.*"]
+where = ["src"]
+include = ["omni_agents*", "omni_agents.*"]
 exclude = ["*__pycache__*", "build*", "dist*"]
 namespaces = true
 
 [tool.setuptools.package-data]
-"scripts" = ["*.*", "**/*.*", "**/**/*.*"]
+"omni_agents" = ["*.*", "**/*.*", "**/**/*.*"]
+
+

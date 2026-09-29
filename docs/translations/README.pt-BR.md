@@ -36,18 +36,23 @@ omni-agents/
 │   │   └── AGENTS.md
 │   └── pt-br-dev/                   # Diretrizes para desenvolvimento em Português Brasileiro
 │       └── AGENTS.md
-├── scripts/                         # Configurador declarativo e adaptadores
-│   ├── configure_workspace.py       # Menu interativo e orquestrador CLI
-│   ├── i18n.py                      # Mecanismo desacoplado de internacionalização
-│   ├── languages/                   # Catálogos de tradução localizados (en.json, pt.json...)
-│   └── targets/                     # Módulos adaptadores por ferramenta
-│       ├── __init__.py              # Registro central de adaptadores
-│       ├── base.py                  # Contratos e utilitários de filesystem
-│       ├── antigravity.py           # Adaptador Google Antigravity
-│       ├── claude.py                # Adaptador Claude Code (CLAUDE.md)
-│       ├── cursor.py                # Adaptador Cursor (.cursor/rules/*.mdc)
-│       ├── copilot.py               # Adaptador GitHub Copilot
-│       └── universal.py             # Adaptador Universal, Kiro, OpenCode e Codex
+├── src/                                 # Pacote de código-fonte (Src Layout)
+│   └── omni_agents/                     # Pacote principal da CLI
+│       ├── cli.py                       # Ponto de entrada da CLI, parser e dispatch
+│       ├── core/                        # Regras de negócio (scanner, linker, config)
+│       ├── tui/                         # Menus interativos no terminal
+│       ├── commands/                    # Handlers de comandos headless
+│       ├── i18n.py                      # Mecanismo desacoplado de internacionalização
+│       ├── languages/                   # Catálogos de tradução localizados (en.json, pt.json...)
+│       └── targets/                     # Módulos adaptadores por ferramenta
+│           ├── __init__.py              # Registro central de adaptadores
+│           ├── base.py                  # Contratos e utilitários de filesystem
+│           ├── antigravity.py           # Adaptador Google Antigravity
+│           ├── claude.py                # Adaptador Claude Code (CLAUDE.md)
+│           ├── cursor.py                # Adaptador Cursor (.cursor/rules/*.mdc)
+│           ├── copilot.py               # Adaptador GitHub Copilot
+│           └── universal.py             # Adaptador Universal, Kiro, OpenCode e Codex
+├── tests/                               # Suíte de testes unitários automatizados
 ├── skills/
 │   ├── global/                      # CORE GLOBAL (~800 tokens) - Essenciais para qualquer projeto
 │   │   ├── coding-standards/        # Qualidade técnica, Clean Code e padrões de engenharia
@@ -128,16 +133,21 @@ Uma vez instalado, execute `omni-agents` (ou simplesmente `omni`) em qualquer te
 
 ## Configuração e Automação Multiplataforma
 
-A ferramenta pode ser executada globalmente através do comando **`omni-agents`** (ou `omni`), ou diretamente pelo script fonte [`scripts/configure_workspace.py`](../../scripts/configure_workspace.py) dentro do repositório clonado (zero dependências externas).
+A ferramenta pode ser executada globalmente através do comando **`omni-agents`** (ou pelo atalho `omni`).
+
+Para desenvolvimento local dentro do repositório clonado, instale em modo editável:
+
+```bash
+pip install -e .
+```
 
 ### 1. Modo Interativo (TUI / GUI)
 
 ```bash
 # Iniciar o menu interativo globalmente:
 omni-agents
-
-# Ou dentro do repositório clonado:
-python scripts/configure_workspace.py
+# ou pelo atalho:
+omni
 
 # Ou informando a pasta do projeto alvo diretamente:
 omni-agents /caminho/do/projeto
@@ -175,30 +185,30 @@ O configurador pode ser executado diretamente em scripts ou rotinas de CI/CD:
 
 ```bash
 # Listar todas as ferramentas suportadas:
-python scripts/configure_workspace.py --list-tools
+omni-agents --list-tools
 
 # Sincronizar workspace para todas as ferramentas ativas salvas:
-python scripts/configure_workspace.py /caminho/do/projeto --sync
+omni-agents /caminho/do/projeto --sync
 
 # Configurar para uma ferramenta específica:
-python scripts/configure_workspace.py /caminho/do/projeto --tool cursor --sync
-python scripts/configure_workspace.py /caminho/do/projeto --tool claude --sync
-python scripts/configure_workspace.py /caminho/do/projeto --tool copilot --sync
+omni-agents /caminho/do/projeto --tool cursor --sync
+omni-agents /caminho/do/projeto --tool claude --sync
+omni-agents /caminho/do/projeto --tool copilot --sync
 
 # Configurar todas as ferramentas simultaneamente (Multi-Tool):
-python scripts/configure_workspace.py /caminho/do/projeto --tool all --sync
+omni-agents /caminho/do/projeto --tool all --sync
 
 # Limpar/desinstalar configurações de uma ferramenta sem afetar as outras:
-python scripts/configure_workspace.py /caminho/do/projeto --tool cursor --clean
-python scripts/configure_workspace.py /caminho/do/projeto --clean  # Remove todas
+omni-agents /caminho/do/projeto --tool cursor --clean
+omni-agents /caminho/do/projeto --clean  # Remove todas
 
 # Aplicar configuração global da máquina:
-python scripts/configure_workspace.py --global
-python scripts/configure_workspace.py --tool claude --global
+omni-agents --global
+omni-agents --tool claude --global
 
 # Forçar idioma da interface:
-python scripts/configure_workspace.py --lang pt
-python scripts/configure_workspace.py --lang en
+omni-agents --lang pt
+omni-agents --lang en
 ```
 
 ---

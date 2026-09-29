@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Lightweight, decoupled Internationalization (i18n) module for omni-agents.
-Dynamically loads language catalogs from scripts/languages/*.json.
+Dynamically loads language catalogs from omni_agents/languages/*.json.
 """
 
 from __future__ import annotations

@@ -88,7 +88,7 @@ All tool adapters reside in `scripts/targets/` and subclass `TargetConfigurator`
     ```
 
 2. **Register the Adapter**:
-   Import and append your class to `AVAILABLE_TARGETS` in `scripts/configure_workspace.py`.
+   Import and register your class in `TARGET_REGISTRY` in `src/omni_agents/targets/__init__.py`.
 
 3. **Validate Linking**:
    Ensure directory junctions are used on Windows and symbolic links on Unix/macOS, falling back to physical copy with an `omni-manifest.json` file.
@@ -102,35 +102,43 @@ All user messages are localized across English (`en`), Brazilian Portuguese (`pt
 ### Localization Workflow
 
 1. **Add Keys to JSON Catalogs**:
-   Add identical keys across all three catalogs in `scripts/languages/`:
-    - `scripts/languages/en.json` (Canonical reference)
-    - `scripts/languages/pt.json`
-    - `scripts/languages/es.json`
+   Add identical keys across all three catalogs in `src/omni_agents/languages/`:
+    - `src/omni_agents/languages/en.json` (Canonical reference)
+    - `src/omni_agents/languages/pt.json`
+    - `src/omni_agents/languages/es.json`
 
 2. **Retrieve Strings via `t()`**:
-   In Python files, import `t` from `scripts.i18n`:
+   In Python files, import `t` from `omni_agents.i18n`:
 
     ```python
-    from scripts.i18n import t
+    from omni_agents.i18n import t
 
     print(t("my_new_message_key", count=5))
     ```
 
 3. **Interactive Control Synonyms**:
-   If adding interactive prompts, ensure keyboard shortcuts and word synonyms are mapped for all three languages in `scripts/configure_workspace.py`.
+   If adding interactive prompts, ensure keyboard shortcuts and word synonyms are mapped for all three languages in `src/omni_agents/tui/`.
 
 ---
 
 ## 5. Testing & Verification
 
-Before submitting changes, verify that all files compile and pass static analysis:
+Before submitting changes, run the automated test suite and check Python compilation:
 
 ```bash
-# Verify Python syntax and bytecode compilation
-python -m compileall scripts
+# Run unit test suite
+python -m unittest discover -s tests -p "test_*.py" -v
+
+# Verify Python bytecode compilation across src
+python -m compileall src
+```
 
 # Verify CLI commands and help outputs
+
 omni-agents --help
 omni-agents --info
 omni-agents --list-tools
+
+```
+
 ```

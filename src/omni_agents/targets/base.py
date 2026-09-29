@@ -14,11 +14,13 @@ import sys
 from pathlib import Path
 from typing import Any
 
-SCRIPTS_DIR = Path(__file__).resolve().parent.parent
-if str(SCRIPTS_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPTS_DIR))
-
-from i18n import get_target_description, t_target
+try:
+    from omni_agents.i18n import get_target_description, t_target
+except ImportError:
+    SCRIPTS_DIR = Path(__file__).resolve().parent.parent
+    if str(SCRIPTS_DIR) not in sys.path:
+        sys.path.insert(0, str(SCRIPTS_DIR))
+    from i18n import get_target_description, t_target
 
 
 def is_link(path: Path) -> bool:

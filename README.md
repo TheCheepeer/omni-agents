@@ -36,18 +36,23 @@ omni-agents/
 │   │   └── AGENTS.md
 │   └── pt-br-dev/                   # Brazilian Portuguese development guidelines
 │       └── AGENTS.md
-├── scripts/                         # Automation configurator and target adapters
-│   ├── configure_workspace.py       # Interactive TUI and CLI orchestrator
-│   ├── i18n.py                      # Decoupled internationalization engine
-│   ├── languages/                   # Localized translation catalogs (en.json, pt.json...)
-│   └── targets/                     # Specialized target adapter modules
-│       ├── __init__.py              # Central target registry
-│       ├── base.py                  # Adapter contracts and filesystem utilities
-│       ├── antigravity.py           # Google Antigravity adapter
-│       ├── claude.py                # Claude Code adapter (CLAUDE.md)
-│       ├── cursor.py                # Cursor IDE adapter (.cursor/rules/*.mdc)
-│       ├── copilot.py               # GitHub Copilot adapter
-│       └── universal.py             # Universal, Kiro, OpenCode, and Codex adapter
+├── src/                                 # Application source package (Src Layout)
+│   └── omni_agents/                     # Main CLI package
+│       ├── cli.py                       # CLI entry point, argument parsing & dispatch
+│       ├── core/                        # Core domain logic (scanner, linker, config)
+│       ├── tui/                         # Interactive terminal UI menus
+│       ├── commands/                    # Headless CLI command handlers
+│       ├── i18n.py                      # Decoupled internationalization engine
+│       ├── languages/                   # Localized translation catalogs (en.json, pt.json...)
+│       └── targets/                     # Specialized target adapter modules
+│           ├── __init__.py              # Central target registry
+│           ├── base.py                  # Adapter contracts and filesystem utilities
+│           ├── antigravity.py           # Google Antigravity adapter
+│           ├── claude.py                # Claude Code adapter (CLAUDE.md)
+│           ├── cursor.py                # Cursor IDE adapter (.cursor/rules/*.mdc)
+│           ├── copilot.py               # GitHub Copilot adapter
+│           └── universal.py             # Universal, Kiro, OpenCode, and Codex adapter
+├── tests/                               # Automated unit test suite
 ├── skills/
 │   ├── global/                      # GLOBAL CORE (~800 tokens) - Essential for all projects
 │   │   ├── coding-standards/        # Technical excellence, Clean Code, and engineering patterns
@@ -128,16 +133,21 @@ Once installed, execute `omni-agents` (or simply `omni`) anywhere in your termin
 
 ## Cross-Platform Configuration & Automation
 
-The tool can be executed globally via the **`omni-agents`** command (or `omni`), or directly through the source script [`scripts/configure_workspace.py`](scripts/configure_workspace.py) when working in the cloned repository (zero external dependencies).
+The tool can be executed globally via the **`omni-agents`** command (or shorthand alias `omni`).
+
+When working in the cloned repository during development, install in editable mode:
+
+```bash
+pip install -e .
+```
 
 ### 1. Interactive Mode (TUI / GUI)
 
 ```bash
 # Launch interactive menu globally:
 omni-agents
-
-# Or within the cloned repository:
-python scripts/configure_workspace.py
+# or shorthand:
+omni
 
 # Or specify target project directory directly:
 omni-agents /path/to/project
@@ -175,30 +185,30 @@ Execute commands directly within scripts or CI/CD pipelines:
 
 ```bash
 # List all supported tools:
-python scripts/configure_workspace.py --list-tools
+omni-agents --list-tools
 
 # Synchronize workspace across all active tools:
-python scripts/configure_workspace.py /path/to/project --sync
+omni-agents /path/to/project --sync
 
 # Configure for a specific tool:
-python scripts/configure_workspace.py /path/to/project --tool cursor --sync
-python scripts/configure_workspace.py /path/to/project --tool claude --sync
-python scripts/configure_workspace.py /path/to/project --tool copilot --sync
+omni-agents /path/to/project --tool cursor --sync
+omni-agents /path/to/project --tool claude --sync
+omni-agents /path/to/project --tool copilot --sync
 
 # Configure for all tools simultaneously (Multi-Tool):
-python scripts/configure_workspace.py /path/to/project --tool all --sync
+omni-agents /path/to/project --tool all --sync
 
 # Remove configuration for a single tool without affecting others:
-python scripts/configure_workspace.py /path/to/project --tool cursor --clean
-python scripts/configure_workspace.py /path/to/project --clean  # Remove all
+omni-agents /path/to/project --tool cursor --clean
+omni-agents /path/to/project --clean  # Remove all
 
 # Apply global machine configuration:
-python scripts/configure_workspace.py --global
-python scripts/configure_workspace.py --tool claude --global
+omni-agents --global
+omni-agents --tool claude --global
 
 # Force UI language:
-python scripts/configure_workspace.py --lang en
-python scripts/configure_workspace.py --lang pt
+omni-agents --lang en
+omni-agents --lang pt
 ```
 
 ---

@@ -16,12 +16,13 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
-# Ensure scripts/ is in sys.path
-SCRIPTS_DIR = Path(__file__).resolve().parent
-if str(SCRIPTS_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPTS_DIR))
-
-from i18n import t
+try:
+    from omni_agents.i18n import t
+except ImportError:
+    SCRIPTS_DIR = Path(__file__).resolve().parent
+    if str(SCRIPTS_DIR) not in sys.path:
+        sys.path.insert(0, str(SCRIPTS_DIR))
+    from i18n import t
 
 __version__ = "1.0.1"
 

@@ -36,18 +36,23 @@ omni-agents/
 │   │   └── AGENTS.md
 │   └── pt-br-dev/                   # Directrices para desarrollo en Portugués Brasileño
 │       └── AGENTS.md
-├── scripts/                         # Configurador automatizado y adaptadores de destino
-│   ├── configure_workspace.py       # Orquestador interactivo TUI y CLI
-│   ├── i18n.py                      # Motor de internacionalización desacoplado
-│   ├── languages/                   # Catálogos de traducción (en.json, pt.json, es.json...)
-│   └── targets/                     # Módulos adaptadores por herramienta
-│       ├── __init__.py              # Registro central de destinos
-│       ├── base.py                  # Contratos base y utilidades de sistema de archivos
-│       ├── antigravity.py           # Adaptador para Google Antigravity
-│       ├── claude.py                # Adaptador para Claude Code (CLAUDE.md)
-│       ├── cursor.py                # Adaptador para Cursor IDE (.cursor/rules/*.mdc)
-│       ├── copilot.py               # Adaptador para GitHub Copilot
-│       └── universal.py             # Adaptador para Universal, Kiro, OpenCode y Codex
+├── src/                                 # Paquete de código fuente (Src Layout)
+│   └── omni_agents/                     # Paquete principal de la CLI
+│       ├── cli.py                       # Punto de entrada de la CLI, parser y dispatch
+│       ├── core/                        # Reglas de negocio (scanner, linker, config)
+│       ├── tui/                         # Menús interactivos en terminal
+│       ├── commands/                    # Handlers de comandos headless
+│       ├── i18n.py                      # Motor de internacionalización desacoplado
+│       ├── languages/                   # Catálogos de traducción (en.json, pt.json, es.json...)
+│       └── targets/                     # Módulos adaptadores por herramienta
+│           ├── __init__.py              # Registro central de destinos
+│           ├── base.py                  # Contratos base y utilidades de sistema de archivos
+│           ├── antigravity.py           # Adaptador para Google Antigravity
+│           ├── claude.py                # Adaptador para Claude Code (CLAUDE.md)
+│           ├── cursor.py                # Adaptador para Cursor IDE (.cursor/rules/*.mdc)
+│           ├── copilot.py               # Adaptador para GitHub Copilot
+│           └── universal.py             # Adaptador para Universal, Kiro, OpenCode y Codex
+├── tests/                               # Suite de pruebas unitarias automatizadas
 ├── skills/
 │   ├── global/                      # GLOBAL CORE (~800 tokens) - Esenciales para todos los proyectos
 │   │   ├── coding-standards/        # Excelencia técnica, Clean Code y patrones de ingeniería
@@ -128,16 +133,21 @@ Una vez instalado, ejecute `omni-agents` (o simplemente `omni`) desde cualquier 
 
 ## Configuración y Automatización Multiplataforma
 
-La herramienta puede ejecutarse globalmente mediante el comando **`omni-agents`** (o `omni`), o directamente a través del script fuente [`scripts/configure_workspace.py`](../../scripts/configure_workspace.py) dentro del repositorio clonado (cero dependencias externas).
+La herramienta puede ejecutarse globalmente mediante el comando **`omni-agents`** (o el alias `omni`).
+
+Para desarrollo local dentro del repositorio clonado, instale en modo editable:
+
+```bash
+pip install -e .
+```
 
 ### 1. Modo Interactivo (TUI / GUI)
 
 ```bash
 # Iniciar el menú interactivo globalmente:
 omni-agents
-
-# O dentro del repositorio clonado:
-python scripts/configure_workspace.py
+# o mediante el alias:
+omni
 
 # O especificando la ruta del proyecto destino directamente:
 omni-agents /ruta/al/proyecto
