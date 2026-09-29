@@ -8,8 +8,8 @@ This guide explains how `omni-agents` handles user configuration files, remote c
 
 `omni-agents` creates and maintains a global configuration file located at:
 
-- **Windows**: `C:\Users\<User>\Documents\omni-agent\config.json`
-- **Linux / macOS**: `~/Documents/omni-agent/config.json`
+- **Windows**: `C:\Users\<User>\Documents\omni-agents\config.json`
+- **Linux / macOS**: `~/Documents/omni-agents/config.json`
 
 If running directly inside a cloned git repository (Local Dev Mode), a local `config.json` in the repository root takes precedence if present.
 
@@ -17,7 +17,7 @@ If running directly inside a cloned git repository (Local Dev Mode), a local `co
 
 ```json
 {
-    "repository_url": "https://github.com/TheCheepeer/omni-agent",
+    "repository_url": "https://github.com/TheCheepeer/omni-agents",
     "default_language": "en",
     "auto_update_check": true,
     "links_mode": "auto",
@@ -33,22 +33,22 @@ If running directly inside a cloned git repository (Local Dev Mode), a local `co
 
 ### Parameter Reference
 
-| Key                 | Type            | Default                                       | Description                                                                                     |
-| :------------------ | :-------------- | :-------------------------------------------- | :---------------------------------------------------------------------------------------------- |
-| `repository_url`    | `string`        | `"https://github.com/TheCheepeer/omni-agent"` | Base GitHub repository used for fetching remote component updates and catalog metadata.         |
-| `default_language`  | `string`        | `"en"`                                        | Default language for UI prompts and messages (`en`, `pt`, `es`).                                |
-| `auto_update_check` | `boolean`       | `true`                                        | When `true`, queries GitHub releases or PyPI periodically to notify the user of newer versions. |
-| `links_mode`        | `string`        | `"auto"`                                      | Strategy for linking files to targets (`"auto"`, `"junction"`, `"symlink"`, `"copy"`).          |
-| `enabled_targets`   | `array[string]` | All targets                                   | List of target adapter names visible in the interactive menu.                                   |
+| Key                 | Type            | Default                                        | Description                                                                                     |
+| :------------------ | :-------------- | :--------------------------------------------- | :---------------------------------------------------------------------------------------------- |
+| `repository_url`    | `string`        | `"https://github.com/TheCheepeer/omni-agents"` | Base GitHub repository used for fetching remote component updates and catalog metadata.         |
+| `default_language`  | `string`        | `"en"`                                         | Default language for UI prompts and messages (`en`, `pt`, `es`).                                |
+| `auto_update_check` | `boolean`       | `true`                                         | When `true`, queries GitHub releases or PyPI periodically to notify the user of newer versions. |
+| `links_mode`        | `string`        | `"auto"`                                       | Strategy for linking files to targets (`"auto"`, `"junction"`, `"symlink"`, `"copy"`).          |
+| `enabled_targets`   | `array[string]` | All targets                                    | List of target adapter names visible in the interactive menu.                                   |
 
 ---
 
 ## 2. Directory Layout & Custom Overrides
 
-The primary workspace inside `Documents/omni-agent/` is structured as follows:
+The primary workspace inside `Documents/omni-agents/` is structured as follows:
 
 ```text
-Documents/omni-agent/
+Documents/omni-agents/
 |-- config.json           # User configuration
 |-- custom/               # Personal overrides (highest priority)
 |   |-- rules/            # Custom user rules
@@ -62,7 +62,7 @@ Documents/omni-agent/
 
 ### Creating Custom Skills & Rules
 
-Any rule profile placed inside `Documents/omni-agent/custom/rules/<profile>/AGENTS.md` (or custom skills in `custom/skills/<category>/<skill>/SKILL.md`) is automatically discovered by `omni-agents`. If a custom rule shares the same profile name as a core or extension rule, the **custom rule always takes precedence**.
+Any rule profile placed inside `Documents/omni-agents/custom/rules/<profile>/AGENTS.md` (or custom skills in `custom/skills/<category>/<skill>/SKILL.md`) is automatically discovered by `omni-agents`. If a custom rule shares the same profile name as a core or extension rule, the **custom rule always takes precedence**.
 
 ---
 
@@ -73,13 +73,13 @@ Managed by `scripts/remote_sync.py`, `omni-agents` can fetch and inspect remote 
 ```python
 from scripts.remote_sync import RemoteCatalogSync
 
-syncer = RemoteCatalogSync(repo_url="https://github.com/TheCheepeer/omni-agent")
+syncer = RemoteCatalogSync(repo_url="https://github.com/TheCheepeer/omni-agents")
 catalog = syncer.fetch_catalog()
 ```
 
 ### Extension Installation
 
-Third-party extensions downloaded from community repositories are placed into `Documents/omni-agent/ext/<package_name>/`.
+Third-party extensions downloaded from community repositories are placed into `Documents/omni-agents/ext/<package_name>/`.
 
 - Each extension can contribute rules, skills, or subagents.
 - Extensions are mapped with precedence order: `custom/` > `ext/<package>/` > `bundled/`.

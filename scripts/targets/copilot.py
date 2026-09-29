@@ -46,7 +46,7 @@ class CopilotTarget(BaseTarget):
         sections = [
             "# GitHub Copilot Custom Instructions",
             "",
-            "> Engineering guidelines and development standards synchronized from omni-agent.",
+            "> Engineering guidelines and development standards synchronized from omni-agents.",
             "",
         ]
 

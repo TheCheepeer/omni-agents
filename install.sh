@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # omni-agents Linux / macOS Installer
-# Usage: curl -fsSL https://raw.githubusercontent.com/TheCheepeer/omni-agent/main/install.sh | bash
+# Usage: curl -fsSL https://raw.githubusercontent.com/TheCheepeer/omni-agents/main/install.sh | bash
 
 set -e
 

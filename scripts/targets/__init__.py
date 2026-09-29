@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Central registry of supported targets and adapters for the omni-agent system.
+Central registry of supported targets and adapters for the omni-agents system.
 """
 
 from __future__ import annotations

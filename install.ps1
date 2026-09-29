@@ -1,5 +1,5 @@
 # omni-agents Windows Installer
-# Usage: irm https://raw.githubusercontent.com/TheCheepeer/omni-agent/main/install.ps1 | iex
+# Usage: irm https://raw.githubusercontent.com/TheCheepeer/omni-agents/main/install.ps1 | iex
 
 $ErrorActionPreference = "Stop"
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Environment and system path resolution module for omni-agent.
-Manages the user configuration directory in Documents/omni-agent, development mode detection,
+Environment and system path resolution module for omni-agents.
+Manages the user configuration directory in Documents/omni-agents, development mode detection,
 and hierarchical directories for customizations (custom/) and downloaded extensions (ext/).
 """
 
@@ -19,10 +19,10 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "version": "1.0.0",
     "language": "en",
     "repository": {
-        "url": "https://github.com/TheCheepeer/omni-agent",
+        "url": "https://github.com/TheCheepeer/omni-agents",
         "branch": "main",
-        "raw_base_url": "https://raw.githubusercontent.com/TheCheepeer/omni-agent/main",
-        "api_base_url": "https://api.github.com/repos/TheCheepeer/omni-agent",
+        "raw_base_url": "https://raw.githubusercontent.com/TheCheepeer/omni-agents/main",
+        "api_base_url": "https://api.github.com/repos/TheCheepeer/omni-agents",
     },
     "check_updates_on_launch": True,
     "active_targets": ["antigravity"],
@@ -91,7 +91,11 @@ def get_omni_documents_dir() -> Path:
     legacy_dir = docs / "omni-agent"
     modern_dir = docs / "omni-agents"
     if legacy_dir.exists() and not modern_dir.exists():
-        return legacy_dir
+        try:
+            legacy_dir.rename(modern_dir)
+            return modern_dir
+        except OSError:
+            return legacy_dir
     return modern_dir
 
 
@@ -118,7 +122,7 @@ def is_dev_mode(repo_root: Path | None = None) -> bool:
 
 def ensure_omni_documents_structure() -> tuple[Path, dict[str, Any]]:
     """
-    Ensures that the directory structure in Documents/omni-agent exists.
+    Ensures that the directory structure in Documents/omni-agents exists.
     Creates custom/ and ext/ subdirectories, README files, and config.json if needed.
     Returns the base directory path and loaded config dictionary.
     """
@@ -175,8 +179,11 @@ def ensure_omni_documents_structure() -> tuple[Path, dict[str, Any]]:
     merged_config.update(config)
 
     # Ensure repository block integrity
-    if "repository" not in merged_config or not isinstance(
-        merged_config["repository"], dict
+    if (
+        "repository" not in merged_config
+        or not isinstance(merged_config["repository"], dict)
+        or merged_config["repository"].get("url")
+        == "https://github.com/TheCheepeer/omni-agent"
     ):
         merged_config["repository"] = dict(DEFAULT_CONFIG["repository"])
     else:
@@ -197,7 +204,7 @@ def ensure_omni_documents_structure() -> tuple[Path, dict[str, Any]]:
 
 
 def save_omni_config(config: dict[str, Any]) -> bool:
-    """Persists configuration to Documents/omni-agent/config.json."""
+    """Persists configuration to Documents/omni-agents/config.json."""
     config_file = get_omni_documents_dir() / "config.json"
     try:
         config_file.parent.mkdir(parents=True, exist_ok=True)

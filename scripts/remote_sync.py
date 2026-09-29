@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Remote communication and extension synchronization module for omni-agent.
+Remote communication and extension synchronization module for omni-agents.
 Fetches remote catalogs from GitHub, downloads selected skills, rules, and agents
-into Documents/omni-agent/ext/, and checks for component updates with built-in
+into Documents/omni-agents/ext/, and checks for component updates with built-in
 fault tolerance and automatic graceful offline mode.
 """
 
@@ -40,7 +40,7 @@ def fetch_remote_tree(
     """
     repo_cfg = config.get("repository", {})
     api_base = repo_cfg.get(
-        "api_base_url", "https://api.github.com/repos/TheCheepeer/omni-agent"
+        "api_base_url", "https://api.github.com/repos/TheCheepeer/omni-agents"
     )
     branch = repo_cfg.get("branch", "main")
 
@@ -161,7 +161,8 @@ def install_remote_component(
     """
     repo_cfg = config.get("repository", {})
     raw_base = repo_cfg.get(
-        "raw_base_url", "https://raw.githubusercontent.com/TheCheepeer/omni-agent/main"
+        "raw_base_url",
+        "https://raw.githubusercontent.com/TheCheepeer/omni-agents/main",
     )
 
     manifest = load_manifest(ext_dir)

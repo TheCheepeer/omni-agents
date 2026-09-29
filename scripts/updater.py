@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Update checking module for omni-agent.
+Update checking module for omni-agents.
 Checks for new versions on PyPI (for global installations) or Git (for local dev mode),
 with a short timeout to ensure quick CLI launch, and offers optional interactive upgrade.
 """
@@ -44,7 +44,7 @@ def check_for_updates(
     timeout: float = 1.5,
 ) -> dict[str, Any] | None:
     """
-    Checks if updates are available for omni-agent.
+    Checks if updates are available for omni-agents.
     In dev mode, queries Git remote commit.
     In global mode, queries PyPI public API for omni-agents package.
     Returns dictionary with update details or None if up-to-date or offline.

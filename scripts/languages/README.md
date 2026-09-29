@@ -1,6 +1,6 @@
 # Internationalization (i18n) Catalogs
 
-This directory contains localized translation catalogs for the `omni-agent` CLI and TUI orchestrator (`configure_workspace.py`).
+This directory contains localized translation catalogs for the `omni-agents` CLI and TUI orchestrator (`configure_workspace.py`).
 
 ## File Structure
 

@@ -1,4 +1,4 @@
-# omni-agent (Español)
+# omni-agents (Español)
 
 > Traducciones: [English](../../README.md) | [Português](README.pt-BR.md) | Español
 
@@ -8,7 +8,7 @@ Un centro de control unificado y agnóstico de herramientas para versionar, gest
 
 ## Herramientas Compatibles
 
-`omni-agent` unifica la gestión de contexto y compila directamente en el formato nativo esperado por cada asistente:
+`omni-agents` unifica la gestión de contexto y compila directamente en el formato nativo esperado por cada asistente:
 
 | Herramienta            | ID de Destino | Alcance            | Archivos Generados y Destinos                                         |
 | :--------------------- | :------------ | :----------------- | :-------------------------------------------------------------------- |
@@ -26,7 +26,7 @@ Un centro de control unificado y agnóstico de herramientas para versionar, gest
 ## Estructura del Repositorio
 
 ```text
-omni-agent/
+omni-agents/
 ├── agents/                          # Personas y subagentes especializados
 │   ├── accessibility-reviewer.md
 │   ├── code-reviewer.md
@@ -101,11 +101,11 @@ Instale `omni-agents` como un comando CLI global en su sistema con una sola lín
 
 - **Windows (PowerShell):**
     ```powershell
-    irm https://raw.githubusercontent.com/TheCheepeer/omni-agent/main/install.ps1 | iex
+    irm https://raw.githubusercontent.com/TheCheepeer/omni-agents/main/install.ps1 | iex
     ```
 - **Linux / macOS:**
     ```bash
-    curl -fsSL https://raw.githubusercontent.com/TheCheepeer/omni-agent/main/install.sh | bash
+    curl -fsSL https://raw.githubusercontent.com/TheCheepeer/omni-agents/main/install.sh | bash
     ```
 
 ### Vía Gestores de Paquetes (`pipx` / `uv`)
@@ -154,7 +154,7 @@ omni-agents .
   [3] Reglas para el Workspace
   [4] Skills Modulares para el Workspace
   [e] Extensiones Remotas (Catálogo GitHub / ext/)
-  [o] Abrir Carpeta Personal (Documentos/omni-agent)
+  [o] Abrir Carpeta Personal (Documentos/omni-agents)
   [s] Sincronizar Todo (Sync herramientas activas en lote)
   [c] Limpiar / Desinstalar por Herramienta
   [l] Idioma / Language: [ES | EN | PT-BR]

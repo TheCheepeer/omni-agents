@@ -18,7 +18,7 @@ This document details the internal architecture, design principles, component re
          v                                                         v
 +-----------------------------+                           +-----------------------------+
 |    Runtime Environment      |                           |     Storage Resolution      |
-|    - CLI Arguments & TUI    |                           |     - Documents/omni-agent/ |
+|    - CLI Arguments & TUI    |                           |     - Documents/omni-agents/|
 |    - i18n Localization      |                           |     - Local Dev (Repo)      |
 |    - Update & Sync Engine   |                           |     - Bundled Package       |
 +-----------------------------+                           +-----------------------------+
@@ -27,7 +27,7 @@ This document details the internal architecture, design principles, component re
 +-------------------------------------------------------------------------------+
 |                      Layered Component Resolution Engine                      |
 |                                                                               |
-|   Priority 1: custom/  (User overrides in Documents/omni-agent/custom/)       |
+|   Priority 1: custom/  (User overrides in Documents/omni-agents/custom/)      |
 |   Priority 2: ext/     (Third-party remote packages in ext/<package>/)        |
 |   Priority 3: bundled/ (Core skills, rules, subagents in repo / package)      |
 +-------------------------------------------------------------------------------+
@@ -61,12 +61,12 @@ To allow users to install `omni-agents` globally without modifying repository fi
 
 When resolving skills, rules, or subagents, the resolution engine inspects components in the following order:
 
-1. **Custom Layer (`Documents/omni-agent/custom/`)**:
+1. **Custom Layer (`Documents/omni-agents/custom/`)**:
     - Holds user-authored components that are private or unique to the user machine.
     - Takes precedence over any remote or bundled components with the same name.
     - Preserved across tool updates and catalog synchronization.
 
-2. **Extensions Layer (`Documents/omni-agent/ext/`)**:
+2. **Extensions Layer (`Documents/omni-agents/ext/`)**:
     - Holds external repositories and packages downloaded via remote sync or community contributions.
     - Structured as `ext/<package_name>/skills/`, `ext/<package_name>/rules/`, etc.
     - Takes precedence over bundled core items.
@@ -79,8 +79,8 @@ When resolving skills, rules, or subagents, the resolution engine inspects compo
 
 The CLI automatically detects its execution context via `get_execution_mode()` in `scripts/env_paths.py`:
 
-- **Local Dev Mode (`repo`)**: Active when running directly inside the cloned `omni-agent` repository containing `.git`.
-- **User Space Mode (`documents`)**: Active when installed via pip or global installers. Configurations and extensions are read from and written to `~/Documents/omni-agent/`.
+- **Local Dev Mode (`repo`)**: Active when running directly inside the cloned `omni-agents` repository containing `.git`.
+- **User Space Mode (`documents`)**: Active when installed via pip or global installers. Configurations and extensions are read from and written to `~/Documents/omni-agents/`.
 
 ---
 

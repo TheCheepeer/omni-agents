@@ -1,4 +1,4 @@
-# omni-agent
+# omni-agents
 
 > Translations: [Português](docs/translations/README.pt-BR.md) | [Español](docs/translations/README.es.md)
 
@@ -8,7 +8,7 @@ A centralized, tool-agnostic hub to version, manage, and distribute specialized 
 
 ## Supported Tools
 
-`omni-agent` unifies context management and compiles directly into the native format expected by each assistant:
+`omni-agents` unifies context management and compiles directly into the native format expected by each assistant:
 
 | Tool                   | Target ID     | Scope              | Generated Files & Destinations                                          |
 | :--------------------- | :------------ | :----------------- | :---------------------------------------------------------------------- |
@@ -26,7 +26,7 @@ A centralized, tool-agnostic hub to version, manage, and distribute specialized 
 ## Repository Structure
 
 ```text
-omni-agent/
+omni-agents/
 ├── agents/                          # Specialized subagent personas
 │   ├── accessibility-reviewer.md
 │   ├── code-reviewer.md
@@ -101,11 +101,11 @@ Install `omni-agents` as a global CLI tool on your system with a single command:
 
 - **Windows (PowerShell):**
     ```powershell
-    irm https://raw.githubusercontent.com/TheCheepeer/omni-agent/main/install.ps1 | iex
+    irm https://raw.githubusercontent.com/TheCheepeer/omni-agents/main/install.ps1 | iex
     ```
 - **Linux / macOS:**
     ```bash
-    curl -fsSL https://raw.githubusercontent.com/TheCheepeer/omni-agent/main/install.sh | bash
+    curl -fsSL https://raw.githubusercontent.com/TheCheepeer/omni-agents/main/install.sh | bash
     ```
 
 ### Via Package Managers (`pipx` / `uv`)

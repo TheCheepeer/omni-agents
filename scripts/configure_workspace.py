@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-omni-agent: Multi-Tool Agent, Rules & Skills Configurator.
+omni-agents: Multi-Tool Agent, Rules & Skills Configurator.
 Cross-platform (Windows, Linux, macOS) using only Python standard library.
 
 Supported Tools:
@@ -95,7 +95,7 @@ def save_app_config(
     config: dict[str, Any],
     omni_docs_dir: Path | None = None,
 ):
-    """Persists application preferences to Documents/omni-agent/config.json and repo root."""
+    """Persists application preferences to Documents/omni-agents/config.json and repo root."""
     if omni_docs_dir:
         save_omni_config(config)
     if is_dev_mode(repo_root):
@@ -256,8 +256,8 @@ def scan_repository(
     """
     Dynamically scans and consolidates components across hierarchical layers:
     1. Default base / Repo Root (if present)
-    2. Remote extensions (Documents/omni-agent/ext)
-    3. User custom overrides (Documents/omni-agent/custom - highest precedence)
+    2. Remote extensions (Documents/omni-agents/ext)
+    3. User custom overrides (Documents/omni-agents/custom - highest precedence)
     """
     merged_skills: dict[str, dict[str, dict[str, Any]]] = {}
     merged_agents: dict[str, dict[str, Any]] = {}
@@ -1198,7 +1198,7 @@ def handle_remote_extensions(
         print("=" * 65)
         print(f"  {t('ext_installed_count', lang, count=len(installed))}")
         repo_url = config.get("repository", {}).get(
-            "url", "https://github.com/TheCheepeer/omni-agent"
+            "url", "https://github.com/TheCheepeer/omni-agents"
         )
         print(f"  {t('repo_label', lang)}:   {repo_url}")
         print("-" * 65)
@@ -1387,7 +1387,7 @@ def handle_remote_extensions(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="omni-agent: Multi-Tool Agent, Rules & Skills Configurator.",
+        description="omni-agents: Multi-Tool Agent, Rules & Skills Configurator.",
         epilog=(
             "Usage examples:\n"
             "  python scripts/configure_workspace.py\n"

@@ -1,4 +1,4 @@
-# omni-agent (Português do Brasil)
+# omni-agents (Português do Brasil)
 
 > Traduções: [English](../../README.md) | Português (Brasil) | [Español](README.es.md)
 
@@ -26,7 +26,7 @@ O sistema unifica a gestão de contexto e exporta automaticamente para os format
 ## Estrutura do Repositório
 
 ```text
-omni-agent/
+omni-agents/
 ├── agents/                          # Personas especializadas de subagentes
 │   ├── accessibility-reviewer.md
 │   ├── code-reviewer.md
@@ -101,11 +101,11 @@ Instale o `omni-agents` como um comando CLI global em seu sistema com apenas uma
 
 - **Windows (PowerShell):**
     ```powershell
-    irm https://raw.githubusercontent.com/TheCheepeer/omni-agent/main/install.ps1 | iex
+    irm https://raw.githubusercontent.com/TheCheepeer/omni-agents/main/install.ps1 | iex
     ```
 - **Linux / macOS:**
     ```bash
-    curl -fsSL https://raw.githubusercontent.com/TheCheepeer/omni-agent/main/install.sh | bash
+    curl -fsSL https://raw.githubusercontent.com/TheCheepeer/omni-agents/main/install.sh | bash
     ```
 
 ### Via Gerenciadores de Pacotes (`pipx` / `uv`)

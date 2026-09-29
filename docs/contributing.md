@@ -16,8 +16,8 @@ Thank you for contributing to `omni-agents`! This guide explains how to set up y
 Clone the repository and install it in editable mode:
 
 ```bash
-git clone https://github.com/TheCheepeer/omni-agent.git
-cd omni-agent
+git clone https://github.com/TheCheepeer/omni-agents.git
+cd omni-agents
 
 # Install editable CLI entry points (omni-agents and omni)
 pip install -e .

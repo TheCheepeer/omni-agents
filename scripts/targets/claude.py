@@ -45,7 +45,7 @@ class ClaudeTarget(BaseTarget):
         sections = [
             "# Project Instructions (Claude Code)",
             "",
-            "> Engineering guidelines, subagents, and operating procedures synchronized automatically from omni-agent.",
+            "> Engineering guidelines, subagents, and operating procedures synchronized automatically from omni-agents.",
             "",
         ]
 
