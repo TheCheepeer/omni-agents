@@ -11,8 +11,9 @@ from typing import Any
 
 from omni_agents.core.config import save_app_config
 from omni_agents.core.linker import apply_workspace_to_targets
+from omni_agents.env_paths import is_default_or_system_path
 from omni_agents.i18n import t
-from omni_agents.targets import get_all_targets
+from omni_agents.targets import get_all_targets, save_workspace_state
 from omni_agents.tui.common import clear_screen, confirm_exit_unsaved
 from omni_agents.tui.theme import (
     get_styled_choice,
@@ -23,17 +24,20 @@ from omni_agents.tui.theme import (
 
 
 def handle_target_selection(
-    target_path: Path,
+    target_path: Path | None,
     repo_root: Path,
     scanned: dict[str, Any],
     current_state: dict[str, Any],
     lang: str = "en",
+    app_config: dict[str, Any] | None = None,
+    omni_docs_dir: Path | None = None,
+    is_first_run: bool = False,
 ) -> list[str]:
     """Interactive menu to select and toggle target tools to configure."""
     all_targets = get_all_targets()
     active_set = set(current_state.get("active_targets", []))
-    if not active_set:
-        active_set.add("antigravity")
+    if not active_set and app_config and app_config.get("active_targets"):
+        active_set = set(app_config.get("active_targets", []))
     initial_set = set(active_set)
 
     target_items = [
@@ -45,18 +49,34 @@ def handle_target_selection(
         for target in all_targets
     ]
 
+    title = (
+        t("first_run_target_title", lang)
+        if is_first_run
+        else t("target_selection_title", lang)
+    )
+    if is_first_run:
+        subtitle = t("first_run_target_subtitle", lang)
+        instructions = (
+            f"{t('first_run_welcome', lang)}\n\n{t('target_commands', lang)}"
+        )
+    else:
+        subtitle = (
+            f"{t('target_workspace', lang)}: {target_path}" if target_path else None
+        )
+        instructions = t("target_commands", lang)
+
     while True:
         clear_screen()
         render_selection_card(
-            title=t("target_selection_title", lang),
+            title=title,
             items=target_items,
-            instructions=t("target_commands", lang),
+            instructions=instructions,
             selected_ids=active_set,
             id_key="id",
             name_key="name",
             desc_key="description",
             footer_hint=t("hint_toggle_save_return", lang),
-            subtitle=f"{t('target_workspace', lang)}: {target_path}",
+            subtitle=subtitle,
         )
 
         choice = get_styled_choice(t("your_choice", lang))
@@ -78,16 +98,28 @@ def handle_target_selection(
                 continue
 
             current_state["active_targets"] = new_active_list
-            apply_workspace_to_targets(
-                target_path=target_path,
-                repo_root=repo_root,
-                scanned=scanned,
-                active_target_ids=new_active_list,
-                selected_agent_ids=current_state.get("selected_agents", []),
-                selected_rule_ids=current_state.get("selected_rules", []),
-                selected_skills_dict=current_state.get("selected_skills", {}),
-                lang=lang,
-            )
+            if app_config is not None:
+                app_config["active_targets"] = new_active_list
+                app_config["tools_configured"] = True
+                save_app_config(repo_root, app_config, omni_docs_dir=omni_docs_dir)
+
+            if (
+                target_path
+                and target_path.exists()
+                and target_path.is_dir()
+                and not is_default_or_system_path(target_path)
+            ):
+                save_workspace_state(target_path, current_state)
+                apply_workspace_to_targets(
+                    target_path=target_path,
+                    repo_root=repo_root,
+                    scanned=scanned,
+                    active_target_ids=new_active_list,
+                    selected_agent_ids=current_state.get("selected_agents", []),
+                    selected_rule_ids=current_state.get("selected_rules", []),
+                    selected_skills_dict=current_state.get("selected_skills", {}),
+                    lang=lang,
+                )
             render_banner(t("targets_updated", lang), level="success")
             press_enter_to_continue(t("press_enter", lang))
             return new_active_list

@@ -15,8 +15,13 @@ import sys
 from pathlib import Path
 from typing import Any
 
+try:
+    from omni_agents import __version__
+except ImportError:
+    from . import __version__
+
 DEFAULT_CONFIG: dict[str, Any] = {
-    "version": "1.0.0",
+    "version": __version__,
     "language": "en",
     "repository": {
         "url": "https://github.com/TheCheepeer/omni-agents",
@@ -25,7 +30,8 @@ DEFAULT_CONFIG: dict[str, Any] = {
         "api_base_url": "https://api.github.com/repos/TheCheepeer/omni-agents",
     },
     "check_updates_on_launch": True,
-    "active_targets": ["antigravity"],
+    "active_targets": [],
+    "tools_configured": False,
 }
 
 
@@ -251,6 +257,10 @@ def ensure_omni_documents_structure() -> tuple[Path, dict[str, Any]]:
     merged_config = dict(DEFAULT_CONFIG)
     merged_config.update(config)
 
+    # Clean legacy default antigravity if tools were never explicitly configured
+    if not merged_config.get("tools_configured") and merged_config.get("active_targets") == ["antigravity"]:
+        merged_config["active_targets"] = []
+
     # Ensure repository block integrity
     if (
         "repository" not in merged_config
@@ -274,9 +284,12 @@ def ensure_omni_documents_structure() -> tuple[Path, dict[str, Any]]:
     return base_dir, merged_config
 
 
-def save_omni_config(config: dict[str, Any]) -> bool:
+def save_omni_config(
+    config: dict[str, Any], omni_docs_dir: Path | None = None
+) -> bool:
     """Persists configuration to Documents/omni-agents/config.json."""
-    config_file = get_omni_documents_dir() / "config.json"
+    base_dir = omni_docs_dir or get_omni_documents_dir()
+    config_file = base_dir / "config.json"
     try:
         config_file.parent.mkdir(parents=True, exist_ok=True)
         config_file.write_text(

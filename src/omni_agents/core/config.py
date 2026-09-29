@@ -16,17 +16,22 @@ def load_app_config(
     repo_root: Path, omni_docs_dir: Path | None = None
 ) -> dict[str, Any]:
     """Loads persistent application preferences from Documents or repo root."""
+    def _clean(data: dict[str, Any]) -> dict[str, Any]:
+        if not data.get("tools_configured") and data.get("active_targets") == ["antigravity"]:
+            data["active_targets"] = []
+        return data
+
     if omni_docs_dir:
         cfg_file = omni_docs_dir / "config.json"
         if cfg_file.exists():
             try:
-                return json.loads(cfg_file.read_text(encoding="utf-8"))
+                return _clean(json.loads(cfg_file.read_text(encoding="utf-8")))
             except (json.JSONDecodeError, OSError):
                 pass
     cfg_file = repo_root / "config.json"
     if cfg_file.exists():
         try:
-            return json.loads(cfg_file.read_text(encoding="utf-8"))
+            return _clean(json.loads(cfg_file.read_text(encoding="utf-8")))
         except (json.JSONDecodeError, OSError):
             pass
     return {}
@@ -39,7 +44,7 @@ def save_app_config(
 ) -> None:
     """Persists application preferences to Documents/omni-agents/config.json and repo root."""
     if omni_docs_dir:
-        save_omni_config(config)
+        save_omni_config(config, omni_docs_dir=omni_docs_dir)
     if is_dev_mode(repo_root):
         cfg_file = repo_root / "config.json"
         try:

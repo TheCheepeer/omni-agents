@@ -232,6 +232,20 @@ class TestOmniAgentsPackage(unittest.TestCase):
             self.assertNotIn("Skills", text)
             self.assertNotIn("Sync", text)
 
+    def test_single_source_of_truth_version(self):
+        """Ensures __version__ is defined in one place and consistently referenced everywhere."""
+        from omni_agents import __version__ as root_version
+        from omni_agents.env_paths import DEFAULT_CONFIG
+        from omni_agents.remote_sync import USER_AGENT as sync_ua
+        from omni_agents.updater import USER_AGENT as updater_ua
+        from omni_agents.updater import __version__ as updater_version
+
+        self.assertEqual(root_version, updater_version)
+        self.assertEqual(DEFAULT_CONFIG["version"], root_version)
+        self.assertIn(root_version, sync_ua)
+        self.assertIn(root_version, updater_ua)
+
 
 if __name__ == "__main__":
     unittest.main()
+

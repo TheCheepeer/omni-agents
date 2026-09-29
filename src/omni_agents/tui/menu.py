@@ -19,7 +19,7 @@ from omni_agents.core.workspace import (
 )
 from omni_agents.env_paths import is_default_or_system_path, open_folder_in_explorer
 from omni_agents.i18n import get_language_badge, resolve_language_code, t
-from omni_agents.targets import load_workspace_state
+from omni_agents.targets import load_workspace_state, save_workspace_state
 from omni_agents.tui.agents_menu import handle_agents
 from omni_agents.tui.clean_menu import handle_clean_workspace
 from omni_agents.tui.common import clear_screen
@@ -53,9 +53,53 @@ def run_interactive_loop(
     explicit_lang: bool = False,
 ) -> None:
     """Main interactive terminal loop for navigating configuration menus."""
+    # Check if tools need to be asked on first run
+    tools_configured = app_config.get("tools_configured", False)
+    initial_workspace_state = (
+        load_workspace_state(target_path) if target_path else {}
+    )
+    has_workspace_tools = bool(initial_workspace_state.get("active_targets"))
+    saved_app_tools = app_config.get("active_targets", [])
+    has_app_tools = bool(saved_app_tools) and (
+        saved_app_tools != ["antigravity"] or tools_configured
+    )
+
+    if not tools_configured and not has_workspace_tools and not has_app_tools:
+        if (
+            not explicit_lang
+            and not app_config.get("language")
+            and initial_workspace_state.get("language")
+        ):
+            current_lang = resolve_language_code(
+                initial_workspace_state["language"]
+            )
+
+        chosen = handle_target_selection(
+            target_path=target_path,
+            repo_root=repo_root,
+            scanned=scanned,
+            current_state=initial_workspace_state,
+            lang=current_lang,
+            app_config=app_config,
+            omni_docs_dir=omni_docs_dir,
+            is_first_run=True,
+        )
+        if chosen and target_path:
+            initial_workspace_state["active_targets"] = chosen
+
     while True:
         clear_screen()
         workspace_state = load_workspace_state(target_path) if target_path else {}
+        if (
+            not workspace_state.get("active_targets")
+            and app_config.get("active_targets")
+            and app_config.get("tools_configured")
+            and target_path
+            and not is_default_or_system_path(target_path)
+        ):
+            workspace_state["active_targets"] = list(app_config["active_targets"])
+            save_workspace_state(target_path, workspace_state)
+
         if (
             not explicit_lang
             and not app_config.get("language")
@@ -126,7 +170,13 @@ def run_interactive_loop(
             if target_path:
                 workspace_state = load_workspace_state(target_path)
                 handle_target_selection(
-                    target_path, repo_root, scanned, workspace_state, lang=current_lang
+                    target_path,
+                    repo_root,
+                    scanned,
+                    workspace_state,
+                    lang=current_lang,
+                    app_config=app_config,
+                    omni_docs_dir=omni_docs_dir,
                 )
 
         elif choice in ("1", "global"):
@@ -247,7 +297,29 @@ def run_interactive_loop(
             target_path = resolve_workspace(target_path, lang=current_lang)
             if target_path:
                 workspace_state = load_workspace_state(target_path)
-                active_tools = workspace_state.get("active_targets") or ["antigravity"]
+                active_tools = (
+                    workspace_state.get("active_targets")
+                    or app_config.get("active_targets")
+                    or []
+                )
+                if not active_tools:
+                    render_banner(
+                        t("no_tools_selected_warning", current_lang),
+                        level="warning",
+                    )
+                    press_enter_to_continue(t("press_enter", current_lang))
+                    active_tools = handle_target_selection(
+                        target_path,
+                        repo_root,
+                        scanned,
+                        workspace_state,
+                        lang=current_lang,
+                        app_config=app_config,
+                        omni_docs_dir=omni_docs_dir,
+                    )
+                    if not active_tools:
+                        continue
+
                 apply_workspace_to_targets(
                     target_path=target_path,
                     repo_root=repo_root,

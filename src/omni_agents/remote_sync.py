@@ -14,7 +14,12 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
-USER_AGENT = "omni-agents/1.0.1 (Python urllib)"
+try:
+    from omni_agents import __version__
+except ImportError:
+    from . import __version__
+
+USER_AGENT = f"omni-agents/{__version__} (Python urllib)"
 
 
 def _make_request(url: str, timeout: float = 2.0) -> bytes | None:

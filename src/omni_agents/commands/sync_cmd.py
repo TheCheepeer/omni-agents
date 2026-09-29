@@ -97,6 +97,7 @@ def sync_workspace_cli(
     scanned: dict[str, Any],
     repo_root: Path,
     current_lang: str = "en",
+    app_config: dict[str, Any] | None = None,
 ) -> None:
     """Executes workspace configuration & sync via CLI flags."""
     if is_default_or_system_path(target_path) and not assume_yes:
@@ -133,8 +134,15 @@ def sync_workspace_cli(
                 print(
                     f"[!] Warning: No recognized tools in '{target_tool}'. Supported: {', '.join(get_available_target_ids())}"
                 )
+    if not active_tools and app_config:
+        active_tools = [
+            t_id
+            for t_id in app_config.get("active_targets", [])
+            if get_target(t_id) is not None
+        ]
     if not active_tools:
-        active_tools = ["antigravity"]
+        print(f"\n[x] {t('no_tools_selected_warning', current_lang)}\n")
+        sys.exit(1)
 
     # Agents
     if agents_arg is not None:

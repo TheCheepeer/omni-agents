@@ -17,10 +17,7 @@ from typing import Any
 try:
     from omni_agents.i18n import get_target_description, t_target
 except ImportError:
-    SCRIPTS_DIR = Path(__file__).resolve().parent.parent
-    if str(SCRIPTS_DIR) not in sys.path:
-        sys.path.insert(0, str(SCRIPTS_DIR))
-    from i18n import get_target_description, t_target
+    from ..i18n import get_target_description, t_target
 
 
 def is_link(path: Path) -> bool:
@@ -342,7 +339,7 @@ def load_workspace_state(target_path: Path) -> dict[str, Any]:
                 pass
 
         return {
-            "active_targets": ["antigravity"] if skills_file.exists() else [],
+            "active_targets": [],
             "selected_agents": [],
             "selected_rules": [],
             "selected_skills": {k: sorted(v) for k, v in selected_skills.items()},

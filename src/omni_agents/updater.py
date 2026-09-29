@@ -13,20 +13,16 @@ import subprocess
 import sys
 import urllib.error
 import urllib.request
-from pathlib import Path
 from typing import Any
 
 try:
+    from omni_agents import __version__
     from omni_agents.i18n import t
 except ImportError:
-    SCRIPTS_DIR = Path(__file__).resolve().parent
-    if str(SCRIPTS_DIR) not in sys.path:
-        sys.path.insert(0, str(SCRIPTS_DIR))
-    from i18n import t
+    from . import __version__
+    from .i18n import t
 
-__version__ = "1.0.1"
-
-USER_AGENT = "omni-agents/1.0.1 (Python urllib)"
+USER_AGENT = f"omni-agents/{__version__} (Python urllib)"
 
 
 def _parse_version_tuple(ver_str: str) -> tuple[int, ...]:

@@ -300,17 +300,21 @@ def handle_rules(
             # 1. Apply workspace rules
             if target_path:
                 current_state["selected_rules"] = sorted(curr_selected_workspace)
-                active_tools = current_state.get("active_targets") or ["antigravity"]
-                apply_workspace_to_targets(
-                    target_path=target_path,
-                    repo_root=repo_root,
-                    scanned=all_scanned or scanned,
-                    active_target_ids=active_tools,
-                    selected_agent_ids=current_state.get("selected_agents", []),
-                    selected_rule_ids=current_state["selected_rules"],
-                    selected_skills_dict=current_state.get("selected_skills", {}),
-                    lang=lang,
-                )
+                active_tools = current_state.get("active_targets", [])
+                if active_tools:
+                    apply_workspace_to_targets(
+                        target_path=target_path,
+                        repo_root=repo_root,
+                        scanned=all_scanned or scanned,
+                        active_target_ids=active_tools,
+                        selected_agent_ids=current_state.get("selected_agents", []),
+                        selected_rule_ids=current_state["selected_rules"],
+                        selected_skills_dict=current_state.get("selected_skills", {}),
+                        lang=lang,
+                    )
+                else:
+                    render_banner(t("no_tools_selected_warning", lang), level="warning")
+                    press_enter_to_continue(t("press_enter", lang))
 
             # 2. Apply global rules
             app_config["global_rules"] = sorted(curr_selected_global)

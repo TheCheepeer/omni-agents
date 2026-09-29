@@ -375,6 +375,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             scanned=scanned,
             repo_root=repo_root,
             current_lang=current_lang,
+            app_config=app_config,
         )
         return 0
 

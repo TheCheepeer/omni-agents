@@ -63,11 +63,17 @@ def handle_agents(
 
         if user_input in ("s", "salvar", "save", "guardar"):
             current_state["selected_agents"] = sorted(curr_selected)
+            active_target_ids = current_state.get("active_targets", [])
+            if not active_target_ids:
+                render_banner(t("no_tools_selected_warning", lang), level="warning")
+                press_enter_to_continue(t("press_enter_menu", lang))
+                return
+
             apply_workspace_to_targets(
                 target_path=target_path,
                 repo_root=repo_root,
                 scanned=all_scanned or scanned,
-                active_target_ids=current_state.get("active_targets", ["antigravity"]),
+                active_target_ids=active_target_ids,
                 selected_agent_ids=current_state["selected_agents"],
                 selected_rule_ids=current_state.get("selected_rules", []),
                 selected_skills_dict=current_state.get("selected_skills", {}),
