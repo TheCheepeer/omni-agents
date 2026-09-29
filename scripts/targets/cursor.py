@@ -49,7 +49,11 @@ class CursorTarget(BaseTarget):
             for r in rules:
                 rule_path = Path(r["path"])
                 name, desc = parse_frontmatter(rule_path)
-                rule_id = rule_path.stem
+                rule_id = r.get("id") or (
+                    rule_path.parent.name
+                    if rule_path.stem.upper() == "AGENTS"
+                    else rule_path.stem
+                )
 
                 try:
                     content = rule_path.read_text(encoding="utf-8")

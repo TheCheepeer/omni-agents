@@ -28,6 +28,7 @@ When run without arguments, `omni-agents` detects the current working directory 
 | `target`        | _Positional_ | Target project directory path (default: current working directory `.`).                              |
 | `--tool <name>` | `-t <name>`  | Specifies target tool adapter (`antigravity`, `cursor`, `claude`, `copilot`, `universal`, or `all`). |
 | `--global`      | _(none)_     | Targets global user tool configurations rather than workspace project folders.                       |
+| `--rule <id>`   | `-r <id>`    | Specifies rule profile to apply (e.g. `pt-br-dev`, `general`).                                       |
 
 ### Operational Modes
 

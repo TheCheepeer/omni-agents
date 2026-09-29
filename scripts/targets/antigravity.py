@@ -63,7 +63,8 @@ class AntigravityTarget(BaseTarget):
             rules_dest = agents_dir / "rules"
             rules_dest.mkdir(parents=True, exist_ok=True)
             for r in rules:
-                dest_file = rules_dest / r["id"]
+                rule_name = r["id"] if r["id"].endswith(".md") else f"{r['id']}.md"
+                dest_file = rules_dest / rule_name
                 dest_file.write_text(
                     Path(r["path"]).read_text(encoding="utf-8"), encoding="utf-8"
                 )
@@ -109,7 +110,12 @@ class AntigravityTarget(BaseTarget):
         print(f"  [-] {t_target('antigravity_clean_done', lang)}")
         return True
 
-    def configure_global(self, repo_root: Path, lang: str = "en") -> bool:
+    def configure_global(
+        self,
+        repo_root: Path,
+        lang: str = "en",
+        selected_rule: dict[str, Any] | None = None,
+    ) -> bool:
         home = Path.home()
         global_dir = home / ".gemini" / "config"
         global_dir.mkdir(parents=True, exist_ok=True)
@@ -120,7 +126,6 @@ class AntigravityTarget(BaseTarget):
         skills_src = repo_root / "skills" / "global"
         skills_dst = global_dir / "skills"
 
-        rules_src = repo_root / "rules"
         rules_dst = global_dir / "rules"
 
         success = True
@@ -131,13 +136,26 @@ class AntigravityTarget(BaseTarget):
             if skills_src.exists():
                 create_dir_link(skills_src, skills_dst, lang=lang)
                 print(f"  [+] {t_target('antigravity_global_skills', lang)}")
-            if rules_src.exists():
+
+            rule_src = None
+            if selected_rule:
+                if (
+                    selected_rule.get("dir_path")
+                    and Path(selected_rule["dir_path"]).exists()
+                ):
+                    rule_src = Path(selected_rule["dir_path"])
+                elif selected_rule.get("path") and Path(selected_rule["path"]).exists():
+                    rule_src = Path(selected_rule["path"]).parent
+            if not rule_src:
+                rule_src = repo_root / "rules"
+
+            if rule_src.exists():
                 should_link_rules = True
                 if rules_dst.exists():
                     try:
                         is_same_target = (
                             is_link(rules_dst)
-                            and rules_dst.resolve() == rules_src.resolve()
+                            and rules_dst.resolve() == rule_src.resolve()
                         )
                     except OSError:
                         is_same_target = False
@@ -151,13 +169,25 @@ class AntigravityTarget(BaseTarget):
                                 .strip()
                                 .lower()
                             )
-                            should_link_rules = ans in ("s", "sim", "y", "yes")
+                            should_link_rules = ans in (
+                                "s",
+                                "sim",
+                                "y",
+                                "yes",
+                                "si",
+                                "sí",
+                            )
                         except (EOFError, KeyboardInterrupt):
                             should_link_rules = False
 
                 if should_link_rules:
-                    create_dir_link(rules_src, rules_dst, lang=lang)
-                    print(f"  [+] {t_target('antigravity_global_rules', lang)}")
+                    create_dir_link(rule_src, rules_dst, lang=lang)
+                    if selected_rule:
+                        print(
+                            f"  [+] {t_target('antigravity_global_rules_linked', lang, profile=selected_rule['id'])}"
+                        )
+                    else:
+                        print(f"  [+] {t_target('antigravity_global_rules', lang)}")
                 else:
                     print(f"  [i] {t_target('antigravity_global_rules_kept', lang)}")
         except (OSError, RuntimeError, subprocess.SubprocessError) as e:

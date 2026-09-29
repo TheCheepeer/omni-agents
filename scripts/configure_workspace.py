@@ -186,26 +186,66 @@ def _scan_source_directory(source_dir: Path) -> dict[str, Any]:
                 "path": item.resolve(),
             }
 
-    # 3. Rules
+    # 3. Rules (Supports rules/<profile>/AGENTS.md and legacy rules/*.md)
     rules_dir = source_dir / "rules"
     if rules_dir.exists() and rules_dir.is_dir():
-        for item in sorted(rules_dir.glob("*.md")):
-            name, desc = parse_frontmatter(item)
-            if not desc:
-                try:
-                    for line in item.read_text(encoding="utf-8").splitlines():
-                        sline = line.strip()
-                        if sline and not sline.startswith(("#", "---")):
-                            desc = sline
-                            break
-                except (OSError, UnicodeDecodeError):
-                    desc = ""
-            rules_map[item.name] = {
-                "id": item.name,
-                "name": name,
-                "description": desc,
-                "path": item.resolve(),
-            }
+        for item in sorted(rules_dir.iterdir()):
+            if item.is_dir() and not item.name.startswith("."):
+                rule_file = None
+                for candidate in (
+                    "AGENTS.md",
+                    "agents.md",
+                    "Agents.md",
+                    "RULE.md",
+                    "rule.md",
+                    f"{item.name}.md",
+                ):
+                    candidate_path = item / candidate
+                    if candidate_path.exists() and candidate_path.is_file():
+                        rule_file = candidate_path
+                        break
+                if rule_file:
+                    name, desc = parse_frontmatter(rule_file)
+                    if not desc:
+                        try:
+                            for line in rule_file.read_text(
+                                encoding="utf-8"
+                            ).splitlines():
+                                sline = line.strip()
+                                if sline and not sline.startswith(("#", "---")):
+                                    desc = sline
+                                    break
+                        except (OSError, UnicodeDecodeError):
+                            desc = ""
+                    rules_map[item.name] = {
+                        "id": item.name,
+                        "name": name or item.name,
+                        "description": desc,
+                        "path": rule_file.resolve(),
+                        "dir_path": item.resolve(),
+                    }
+            elif (
+                item.is_file()
+                and item.suffix == ".md"
+                and not item.name.startswith(".")
+            ):
+                name, desc = parse_frontmatter(item)
+                if not desc:
+                    try:
+                        for line in item.read_text(encoding="utf-8").splitlines():
+                            sline = line.strip()
+                            if sline and not sline.startswith(("#", "---")):
+                                desc = sline
+                                break
+                    except (OSError, UnicodeDecodeError):
+                        desc = ""
+                rules_map[item.stem] = {
+                    "id": item.stem,
+                    "name": name or item.stem,
+                    "description": desc,
+                    "path": item.resolve(),
+                    "dir_path": item.parent.resolve(),
+                }
 
     return {"skills": skills_map, "agents": agents_map, "rules": rules_map}
 
@@ -311,8 +351,25 @@ def apply_workspace_to_targets(
     agents_map = {a["id"]: a for a in scanned["agents"]}
     rules_map = {r["id"]: r for r in scanned["rules"]}
 
+    normalized_rule_ids = []
+    for rid in selected_rule_ids:
+        if rid in rules_map:
+            normalized_rule_ids.append(rid)
+        elif rid == "AGENTS.md" and rules_map:
+            fallback = (
+                "pt-br-dev"
+                if "pt-br-dev" in rules_map
+                else next(iter(rules_map.keys()))
+            )
+            normalized_rule_ids.append(fallback)
+    if not normalized_rule_ids and rules_map:
+        fallback = (
+            "pt-br-dev" if "pt-br-dev" in rules_map else next(iter(rules_map.keys()))
+        )
+        normalized_rule_ids.append(fallback)
+
     active_agents = [agents_map[aid] for aid in selected_agent_ids if aid in agents_map]
-    active_rules = [rules_map[rid] for rid in selected_rule_ids if rid in rules_map]
+    active_rules = [rules_map[rid] for rid in normalized_rule_ids if rid in rules_map]
 
     skills_by_cat: dict[str, set[str]] = {
         k: set(v) for k, v in selected_skills_dict.items() if v
@@ -471,7 +528,56 @@ def handle_target_selection(
     return list(active_set)
 
 
-def handle_global_configuration(repo_root: Path, lang: str = "en"):
+def select_global_rule_profile(
+    rules: list[dict[str, Any]], lang: str = "en"
+) -> dict[str, Any] | None:
+    """Prompts the user to select which AGENTS.md rule profile will be applied globally."""
+    if not rules:
+        return None
+    if len(rules) == 1:
+        return rules[0]
+
+    clear_screen()
+    print("\n" + "=" * 65)
+    print(f"  {t('global_rule_select_title', lang)}")
+    print("=" * 65)
+    print(f"{t('global_rule_select_prompt', lang)}\n")
+
+    for idx, r in enumerate(rules, 1):
+        desc = r.get("description", "")
+        desc_preview = f" - {desc[:52]}..." if desc else ""
+        print(f"  [{idx}] {r['id']:<18}{desc_preview}")
+
+    print("\n" + "-" * 65)
+    print(t("global_rule_select_help", lang))
+    print("-" * 65)
+
+    while True:
+        try:
+            choice = input(f"\n{t('your_choice', lang)}").strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            return None
+
+        if choice in ("v", "voltar", "volver", "q", "exit", "sair", "salir", ""):
+            return None
+
+        if choice.isdigit():
+            idx = int(choice)
+            if 1 <= idx <= len(rules):
+                return rules[idx - 1]
+
+        for r in rules:
+            if choice == r["id"].lower():
+                return r
+
+        print(f"[!] {t('invalid_option', lang)}")
+
+
+def handle_global_configuration(
+    repo_root: Path,
+    scanned: dict[str, Any],
+    lang: str = "en",
+):
     """Menu for managing global machine-wide configuration links (Antigravity, Claude, etc.)."""
     clear_screen()
     print("\n" + "=" * 65)
@@ -497,10 +603,15 @@ def handle_global_configuration(repo_root: Path, lang: str = "en"):
     if choice in ("v", "voltar", "volver", ""):
         return
 
+    rules = scanned.get("rules", [])
+
     if choice == "all":
+        selected_rule = select_global_rule_profile(rules, lang=lang)
+        if not selected_rule and rules:
+            return
         for target in targets_with_global:
             print(f"\n-> {t('linking', lang, tool=target.display_name)}")
-            target.configure_global(repo_root, lang=lang)
+            target.configure_global(repo_root, lang=lang, selected_rule=selected_rule)
         try:
             input(f"\n{t('press_enter', lang)}")
         except (EOFError, KeyboardInterrupt):
@@ -521,8 +632,11 @@ def handle_global_configuration(repo_root: Path, lang: str = "en"):
         num = int(choice)
         if 1 <= num <= len(targets_with_global):
             target = targets_with_global[num - 1]
+            selected_rule = select_global_rule_profile(rules, lang=lang)
+            if not selected_rule and rules:
+                return
             print(f"\n-> {t('linking', lang, tool=target.display_name)}")
-            target.configure_global(repo_root, lang=lang)
+            target.configure_global(repo_root, lang=lang, selected_rule=selected_rule)
             try:
                 input(f"\n{t('press_enter', lang)}")
             except (EOFError, KeyboardInterrupt):
@@ -657,8 +771,18 @@ def handle_rules(
         return
 
     curr_selected = set(current_state.get("selected_rules", []))
-    if not curr_selected and rules:
-        curr_selected = {rule["id"] for rule in rules}
+    available_rule_ids = {rule["id"] for rule in rules}
+    if "AGENTS.md" in curr_selected and "AGENTS.md" not in available_rule_ids:
+        curr_selected.remove("AGENTS.md")
+        if "pt-br-dev" in available_rule_ids:
+            curr_selected.add("pt-br-dev")
+    valid_selected = curr_selected.intersection(available_rule_ids)
+    if not valid_selected and rules:
+        default_rule = (
+            "pt-br-dev" if "pt-br-dev" in available_rule_ids else rules[0]["id"]
+        )
+        valid_selected = {default_rule}
+    curr_selected = valid_selected
     initial_selected = set(curr_selected)
 
     while True:
@@ -1304,6 +1428,14 @@ def main():
         help="Applies global configuration for specified tool (or all)",
     )
     parser.add_argument(
+        "-r",
+        "--rule",
+        "--rule-profile",
+        dest="rule_profile",
+        default=None,
+        help="Rule profile ID to apply (e.g. pt-br-dev, general)",
+    )
+    parser.add_argument(
         "--lang",
         default=None,
         help="UI Language (e.g. en, pt, pt-BR, etc.)",
@@ -1403,6 +1535,8 @@ def main():
             if up_info and prompt_and_upgrade(up_info, lang=current_lang):
                 sys.exit(0)
 
+    scanned = scan_repository(repo_root, documents_dir=omni_docs_dir)
+
     # Global Mode via CLI
     if args.is_global:
         tools = (
@@ -1410,13 +1544,34 @@ def main():
             if args.target_tool and args.target_tool != "all"
             else [target for target in get_all_targets() if target.supports_global]
         )
+        rules = scanned.get("rules", [])
+        selected_rule = None
+        if args.rule_profile:
+            selected_rule = next(
+                (r for r in rules if r["id"].lower() == args.rule_profile.lower()),
+                None,
+            )
+            if not selected_rule:
+                print(f"[!] Rule profile '{args.rule_profile}' not found.")
+                print(f"    Available: {', '.join(r['id'] for r in rules)}")
+                sys.exit(1)
+        elif sys.stdin.isatty() and not args.sync:
+            selected_rule = select_global_rule_profile(rules, lang=current_lang)
+            if not selected_rule and rules:
+                print("\n[i] Operation cancelled.")
+                sys.exit(0)
+        else:
+            selected_rule = rules[0] if rules else None
+            if selected_rule:
+                print(f"-> Using default global rule profile: {selected_rule['id']}")
+
         for target in tools:
             if target:
                 print(f"\n-> {t('linking', current_lang, tool=target.display_name)}")
-                target.configure_global(repo_root, lang=current_lang)
+                target.configure_global(
+                    repo_root, lang=current_lang, selected_rule=selected_rule
+                )
         sys.exit(0)
-
-    scanned = scan_repository(repo_root, documents_dir=omni_docs_dir)
 
     # Clean Mode via CLI
     if args.clean and target_path:
@@ -1525,7 +1680,7 @@ def main():
                 )
 
         elif choice in ("1", "global"):
-            handle_global_configuration(repo_root, lang=current_lang)
+            handle_global_configuration(repo_root, scanned, lang=current_lang)
 
         elif choice in ("2", "agents", "agent", "agentes", "subagentes"):
             target_path = resolve_workspace(target_path, lang=current_lang)

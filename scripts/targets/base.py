@@ -231,7 +231,7 @@ def load_workspace_state(target_path: Path) -> dict[str, Any]:
         return {
             "active_targets": ["antigravity"] if skills_file.exists() else [],
             "selected_agents": [],
-            "selected_rules": ["AGENTS.md"],
+            "selected_rules": [],
             "selected_skills": {k: sorted(v) for k, v in selected_skills.items()},
         }
 
@@ -310,7 +310,12 @@ class BaseTarget:
         """Removes configuration files created for this tool in the target workspace."""
         raise NotImplementedError
 
-    def configure_global(self, repo_root: Path, lang: str = "en") -> bool:
+    def configure_global(
+        self,
+        repo_root: Path,
+        lang: str = "en",
+        selected_rule: dict[str, Any] | None = None,
+    ) -> bool:
         """Applies global machine configuration for this tool."""
         return False
 

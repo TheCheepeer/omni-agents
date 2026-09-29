@@ -31,8 +31,11 @@ omni-agent/
 │   ├── accessibility-reviewer.md
 │   ├── code-reviewer.md
 │   └── security-auditor.md
-├── rules/                           # Regras e diretrizes globais
-│   └── AGENTS.md
+├── rules/                           # Perfis modulares de regras (um AGENTS.md por pasta)
+│   ├── general/                     # Diretrizes gerais de engenharia (Inglês)
+│   │   └── AGENTS.md
+│   └── pt-br-dev/                   # Diretrizes para desenvolvimento em Português Brasileiro
+│       └── AGENTS.md
 ├── scripts/                         # Configurador declarativo e adaptadores
 │   ├── configure_workspace.py       # Menu interativo e orquestrador CLI
 │   ├── i18n.py                      # Mecanismo desacoplado de internacionalização
@@ -74,9 +77,12 @@ omni-agent/
 - `code-reviewer.md`: Especialista em análise estática de código, Clean Code e legibilidade.
 - `security-auditor.md`: Especialista em OWASP Top 10 e AppSec.
 
-### 2. Regras Globais (`rules/`)
+### 2. Perfis de Regras (`rules/`)
 
-- `AGENTS.md`: Diretrizes essenciais de desenvolvimento, segurança, comunicação, respeito a acentuação e pontuação, proibição estrita de emojis e padrão obrigatório de Tailwind CSS.
+Organizados em pastas modulares por perfil, contendo cada uma seu arquivo de contrato `AGENTS.md`:
+
+- `pt-br-dev/AGENTS.md`: Diretrizes de desenvolvimento, segurança, comunicação em português brasileiro, respeito rigoroso a acentuação e pontuação, proibição estrita de emojis e padrão obrigatório de Tailwind CSS.
+- `general/AGENTS.md`: Diretrizes universais em inglês para projetos e equipes internacionais, Clean Code, segurança e arquitetura sólida.
 
 ### 3. Biblioteca Modular de Skills (`skills/`)
 

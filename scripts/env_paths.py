@@ -126,14 +126,18 @@ def ensure_omni_documents_structure() -> tuple[Path, dict[str, Any]]:
         (custom_dir / sub).mkdir(parents=True, exist_ok=True)
 
     custom_readme = custom_dir / "README.md"
-    if not custom_readme.exists():
+    if (
+        not custom_readme.exists()
+        or "rules/<profile_name>/AGENTS.md"
+        not in custom_readme.read_text(encoding="utf-8", errors="ignore")
+    ):
         custom_readme.write_text(
             "# Personal Custom Tools\n\n"
             "Place your personal subagents, rules, and skills here:\n"
             "- `agents/`: Markdown subagents (`*.md`)\n"
-            "- `rules/`: Markdown engineering rules (`*.md`)\n"
-            "- `skills/<category>/<skill_name>/SKILL.md`: modular skills\n\n"
-            "Files placed in this folder take highest priority and are never overwritten by updates.\n",
+            "- `rules/<profile_name>/AGENTS.md`: Modular rule profiles (or standalone `*.md` rules)\n"
+            "- `skills/<category>/<skill_name>/SKILL.md`: Modular skills\n\n"
+            "Components placed in this directory take highest priority over core/ext layers and are never overwritten by updates.\n",
             encoding="utf-8",
         )
 

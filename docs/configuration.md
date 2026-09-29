@@ -62,7 +62,7 @@ Documents/omni-agent/
 
 ### Creating Custom Skills & Rules
 
-Any rule or skill placed inside `Documents/omni-agent/custom/rules/` or `custom/skills/` is automatically discovered by `omni-agents`. If a custom rule shares the same name as a core or extension rule, the **custom rule always takes precedence**.
+Any rule profile placed inside `Documents/omni-agent/custom/rules/<profile>/AGENTS.md` (or custom skills in `custom/skills/<category>/<skill>/SKILL.md`) is automatically discovered by `omni-agents`. If a custom rule shares the same profile name as a core or extension rule, the **custom rule always takes precedence**.
 
 ---
 

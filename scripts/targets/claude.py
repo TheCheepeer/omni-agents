@@ -127,7 +127,12 @@ class ClaudeTarget(BaseTarget):
         print(f"  [-] {t_target('claude_clean_done', lang)}")
         return True
 
-    def configure_global(self, repo_root: Path, lang: str = "en") -> bool:
+    def configure_global(
+        self,
+        repo_root: Path,
+        lang: str = "en",
+        selected_rule: dict[str, Any] | None = None,
+    ) -> bool:
         claude_global = Path.home() / ".claude"
         claude_global.mkdir(parents=True, exist_ok=True)
         global_rule = claude_global / "CLAUDE.md"
@@ -139,22 +144,38 @@ class ClaudeTarget(BaseTarget):
                     .strip()
                     .lower()
                 )
-                should_overwrite = ans in ("s", "sim", "y", "yes")
+                should_overwrite = ans in ("s", "sim", "y", "yes", "si", "sí")
             except (EOFError, KeyboardInterrupt):
                 should_overwrite = False
             if not should_overwrite:
                 print(f"  [i] {t_target('claude_global_rules_kept', lang)}")
                 return True
 
-        rules_dir = repo_root / "rules"
         content_parts = ["# Global User Instructions (Claude Code)\n"]
-        if rules_dir.exists():
-            for f in sorted(rules_dir.glob("*.md")):
-                try:
-                    content_parts.append(f.read_text(encoding="utf-8"))
-                    content_parts.append("\n---\n")
-                except OSError:
-                    pass
+        if selected_rule and Path(selected_rule["path"]).exists():
+            try:
+                content_parts.append(
+                    Path(selected_rule["path"]).read_text(encoding="utf-8")
+                )
+            except OSError:
+                pass
+        else:
+            rules_dir = repo_root / "rules"
+            if rules_dir.exists():
+                for item in sorted(rules_dir.iterdir()):
+                    target_file = None
+                    if item.is_dir() and (item / "AGENTS.md").exists():
+                        target_file = item / "AGENTS.md"
+                    elif item.is_file() and item.suffix == ".md":
+                        target_file = item
+                    if target_file:
+                        try:
+                            content_parts.append(
+                                target_file.read_text(encoding="utf-8")
+                            )
+                            content_parts.append("\n---\n")
+                        except OSError:
+                            pass
 
         safe_write_text(global_rule, "\n".join(content_parts))
         print(f"  [+] {t_target('claude_global_done', lang, path=global_rule)}")

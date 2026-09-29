@@ -77,10 +77,15 @@ def fetch_remote_tree(
             filename = Path(path_str).name
             result["agents"].append({"id": filename, "path": path_str, "sha": sha})
 
-        # Rules
+        # Rules (Supports rules/<profile>/AGENTS.md and legacy rules/*.md)
         elif path_str.startswith("rules/") and path_str.endswith(".md"):
-            filename = Path(path_str).name
-            result["rules"].append({"id": filename, "path": path_str, "sha": sha})
+            parts = path_str.split("/")
+            if len(parts) >= 3 and parts[-1].upper() == "AGENTS.MD":
+                profile_id = parts[1]
+                result["rules"].append({"id": profile_id, "path": path_str, "sha": sha})
+            else:
+                filename = Path(path_str).name
+                result["rules"].append({"id": filename, "path": path_str, "sha": sha})
 
         # Modular Skills (skills/<category>/<skill_id>/SKILL.md)
         elif path_str.startswith("skills/") and path_str.endswith("SKILL.md"):
@@ -176,9 +181,14 @@ def install_remote_component(
         return False
 
     elif comp_type == "rules":
-        file_path = f"rules/{item_id}"
+        if item_id.endswith(".md"):
+            file_path = f"rules/{item_id}"
+            dest = ext_dir / "rules" / item_id
+        else:
+            file_path = f"rules/{item_id}/AGENTS.md"
+            dest = ext_dir / "rules" / item_id / "AGENTS.md"
+
         url = f"{raw_base}/{file_path}"
-        dest = ext_dir / "rules" / item_id
         if download_remote_file(url, dest, timeout=timeout):
             sha = (
                 tree_data.get("raw_entries", {}).get(file_path, "") if tree_data else ""

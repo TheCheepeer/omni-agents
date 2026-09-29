@@ -1,9 +1,9 @@
 ---
-name: global-development-guidelines
-description: Core engineering standards, security rules, communication guidelines, and Tailwind CSS patterns applied across all projects.
+name: general-development-guidelines
+description: Core engineering standards, security rules, English communication guidelines, no emojis, and clean software architecture.
 ---
 
-# Global Development Guidelines
+# Global Development Guidelines (General)
 
 This file defines standards, architectural guidelines, and rules that must be strictly followed by all AI agents.
 
@@ -23,10 +23,8 @@ This file defines standards, architectural guidelines, and rules that must be st
 
 - Provide direct, clear, concise, and objective responses.
 - Maintain stylistic consistency with the preexisting codebase.
-- **Language Adaptation:** Always reply in the language used by the user in their prompt (default to Brazilian Portuguese when prompted in Portuguese).
-- **Strict Diacritics, Accents, and Orthography:**
-  - Strictly respect standard orthography, grammar, punctuation, and diacritical marks/accents across all languages in responses, documentation, UI strings, code comments, and commit messages.
-  - When writing in Portuguese, always use proper accents and diacritics (e.g., `ã`, `õ`, `á`, `é`, `í`, `ó`, `ú`, `â`, `ê`, `ç`). Never strip accents or degrade text to unaccented ASCII (e.g., write "configuração", "módulo", "diretório", "não", instead of "configuracao", "modulo", "diretorio", "nao"), unless strictly required by technical syntax (such as code identifiers, URL slugs, or ASCII-only file schemas).
+- **Language Adaptation:** Always reply in the language used by the user in their prompt (default to English when unspecified).
+- **Strict Grammar and Orthography:** Strictly respect standard orthography, grammar, and punctuation across all languages in responses, documentation, UI strings, code comments, and commit messages.
 - **Absolute Prohibition of Emojis:** Never use emojis under any circumstances (in responses, code comments, documentation, commits, or system messages). Keep all communication strictly textual, clean, and professional.
 
 ## Frontend and Styling (Tailwind CSS)
