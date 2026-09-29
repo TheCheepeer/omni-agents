@@ -217,6 +217,17 @@ Las preferencias del workspace se guardan en `.agents/workspace_state.json` (agr
 
 ---
 
+## Documentación Técnica
+
+Para guías detalladas y referencias de ingeniería (en inglés), consulte:
+
+- [Arquitectura y Diseño](../architecture.md): Resolución de componentes en capas, vinculación en sistemas de archivos y patrones de adaptadores.
+- [Referencia de Línea de Comandos (CLI)](../cli.md): Sintaxis completa, parámetros, navegación interactiva (TUI) y automatización CI/CD sin interfaz.
+- [Configuración y Extensiones](../configuration.md): Esquema de `config.json`, personalizaciones en `custom/`, catálogo remoto y actualizaciones.
+- [Guía de Contribución y Estándares](../contributing.md): Configuración del entorno local, directrices de código, nuevos adaptadores e internacionalización.
+
+---
+
 ## Créditos y Agradecimientos
 
 Diversas skills incluidas en este repositorio fueron adaptadas a partir de:

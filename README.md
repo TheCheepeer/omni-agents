@@ -207,6 +207,17 @@ Workspace preferences are saved in `.agents/workspace_state.json` (automatically
 
 ---
 
+## Documentation
+
+For in-depth technical documentation and developer guides, consult:
+
+- [Architecture & Design](docs/architecture.md): Layered component resolution, filesystem linking engine, and target adapter patterns.
+- [CLI Reference](docs/cli.md): Complete command-line syntax, flags, interactive TUI navigation, and headless/CI automation.
+- [Configuration & Extensions](docs/configuration.md): Schema for `config.json`, personal overrides in `custom/`, remote catalog syncing, and updater.
+- [Contributing Standards](docs/contributing.md): Local environment setup, engineering guidelines, adding new target adapters, and localization.
+
+---
+
 ## Credits and Acknowledgements
 
 Several skills included in this repository were adapted from:
