@@ -26,13 +26,13 @@ $PipxCmd = Get-Command pipx -ErrorAction SilentlyContinue
 
 if ($UvCmd) {
     Write-Host "-> Installing via 'uv tool'..." -ForegroundColor Green
-    & uv tool install omni-agents --force
+    & uv tool install omni-agents-cli --force
 } elseif ($PipxCmd) {
     Write-Host "-> Installing via 'pipx'..." -ForegroundColor Green
-    & pipx install omni-agents --force
+    & pipx install omni-agents-cli --force
 } else {
     Write-Host "-> 'pipx' or 'uv' not found. Installing via user 'pip'..." -ForegroundColor Yellow
-    & python -m pip install --upgrade --user omni-agents
+    & python -m pip install --upgrade --user omni-agents-cli
 }
 
 Write-Host ""

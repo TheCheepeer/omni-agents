@@ -111,9 +111,9 @@ Instale `omni-agents` como un comando CLI global en su sistema con una sola lín
 ### Vía Gestores de Paquetes (`pipx` / `uv`)
 
 ```bash
-pipx install omni-agents
+pipx install omni-agents-cli
 # O usando uv:
-uv tool install omni-agents
+uv tool install omni-agents-cli
 ```
 
 Una vez instalado, ejecute `omni-agents` (o simplemente `omni`) desde cualquier terminal del sistema.

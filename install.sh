@@ -23,13 +23,13 @@ fi
 # Check recommended isolated package managers (uv > pipx > pip)
 if command -v uv >/dev/null 2>&1; then
     echo "-> Installing via 'uv tool'..."
-    uv tool install omni-agents --force
+    uv tool install omni-agents-cli --force
 elif command -v pipx >/dev/null 2>&1; then
     echo "-> Installing via 'pipx'..."
-    pipx install omni-agents --force
+    pipx install omni-agents-cli --force
 else
     echo "-> 'pipx' or 'uv' not found. Installing via user 'pip'..."
-    $PYTHON_CMD -m pip install --upgrade --user omni-agents
+    $PYTHON_CMD -m pip install --upgrade --user omni-agents-cli
 fi
 
 echo ""

@@ -87,7 +87,7 @@ def check_for_updates(
         return None
 
     # Query PyPI API
-    pypi_url = "https://pypi.org/pypi/omni-agents/json"
+    pypi_url = "https://pypi.org/pypi/omni-agents-cli/json"
     req = urllib.request.Request(
         pypi_url,
         headers={"User-Agent": USER_AGENT, "Accept": "application/json"},
@@ -130,20 +130,22 @@ def execute_upgrade(update_info: dict[str, Any], lang: str = "en") -> bool:
 
     # PyPI installation
     if shutil.which("uv"):
-        print(f"\n-> {t('update_executing', lang, cmd='uv tool upgrade omni-agents')}")
-        res = subprocess.run(["uv", "tool", "upgrade", "omni-agents"], check=False)
+        print(
+            f"\n-> {t('update_executing', lang, cmd='uv tool upgrade omni-agents-cli')}"
+        )
+        res = subprocess.run(["uv", "tool", "upgrade", "omni-agents-cli"], check=False)
         return res.returncode == 0
 
     if shutil.which("pipx"):
-        print(f"\n-> {t('update_executing', lang, cmd='pipx upgrade omni-agents')}")
-        res = subprocess.run(["pipx", "upgrade", "omni-agents"], check=False)
+        print(f"\n-> {t('update_executing', lang, cmd='pipx upgrade omni-agents-cli')}")
+        res = subprocess.run(["pipx", "upgrade", "omni-agents-cli"], check=False)
         return res.returncode == 0
 
     print(
-        f"\n-> {t('update_executing', lang, cmd='pip install --upgrade omni-agents')}"
+        f"\n-> {t('update_executing', lang, cmd='pip install --upgrade omni-agents-cli')}"
     )
     res = subprocess.run(
-        [sys.executable, "-m", "pip", "install", "--upgrade", "omni-agents"],
+        [sys.executable, "-m", "pip", "install", "--upgrade", "omni-agents-cli"],
         check=False,
     )
     return res.returncode == 0

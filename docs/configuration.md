@@ -109,7 +109,7 @@ Check execution mode?
          |
          +--> Git Repository: Executes `git pull --ff-only`
          |
-         `--> Pip / Standalone: Executes `python -m pip install --upgrade omni-agents`
+         `--> Pip / Standalone: Executes `python -m pip install --upgrade omni-agents-cli`
 ```
 
 ### Version Check Suppression
