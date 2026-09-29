@@ -66,7 +66,7 @@ from targets import (
     load_workspace_state,
     save_workspace_state,
 )
-from targets.base import parse_frontmatter
+from targets.base import get_link_target, is_link, parse_frontmatter
 from updater import __version__, check_for_updates, prompt_and_upgrade
 
 
@@ -362,11 +362,6 @@ def apply_workspace_to_targets(
                 else next(iter(rules_map.keys()))
             )
             normalized_rule_ids.append(fallback)
-    if not normalized_rule_ids and rules_map:
-        fallback = (
-            "pt-br-dev" if "pt-br-dev" in rules_map else next(iter(rules_map.keys()))
-        )
-        normalized_rule_ids.append(fallback)
 
     active_agents = [agents_map[aid] for aid in selected_agent_ids if aid in agents_map]
     active_rules = [rules_map[rid] for rid in normalized_rule_ids if rid in rules_map]
@@ -406,6 +401,34 @@ def apply_workspace_to_targets(
     }
     save_workspace_state(target_path, state_to_save)
     return True
+
+
+def apply_global_rules_to_targets(
+    repo_root: Path,
+    scanned: dict[str, Any],
+    selected_global_rule_ids: list[str],
+    lang: str = "en",
+):
+    """Applies global rules to all tools that support global configurations (Antigravity, Claude)."""
+    rules_map = {r["id"]: r for r in scanned.get("rules", [])}
+    active_global_rules = [
+        rules_map[rid] for rid in selected_global_rule_ids if rid in rules_map
+    ]
+
+    # 1. Google Antigravity
+    ag_target = get_target("antigravity")
+    if ag_target and hasattr(ag_target, "apply_global_rules"):
+        rules_dst = Path.home() / ".gemini" / "config" / "rules"
+        ag_target.apply_global_rules(rules_dst, active_global_rules, lang=lang)
+
+    # 2. Claude Code
+    claude_target = get_target("claude")
+    if claude_target:
+        claude_target.configure_global(
+            repo_root=repo_root,
+            lang=lang,
+            selected_rules=active_global_rules,
+        )
 
 
 def confirm_exit_unsaved(lang: str = "en") -> bool:
@@ -576,6 +599,8 @@ def select_global_rule_profile(
 def handle_global_configuration(
     repo_root: Path,
     scanned: dict[str, Any],
+    app_config: dict[str, Any],
+    omni_docs_dir: Path | None = None,
     lang: str = "en",
 ):
     """Menu for managing global machine-wide configuration links (Antigravity, Claude, etc.)."""
@@ -604,14 +629,19 @@ def handle_global_configuration(
         return
 
     rules = scanned.get("rules", [])
+    rules_map = {r["id"]: r for r in rules}
+    global_rule_ids = app_config.get("global_rules", [])
+    configured_rules = [rules_map[rid] for rid in global_rule_ids if rid in rules_map]
 
     if choice == "all":
-        selected_rule = select_global_rule_profile(rules, lang=lang)
-        if not selected_rule and rules:
-            return
         for target in targets_with_global:
             print(f"\n-> {t('linking', lang, tool=target.display_name)}")
-            target.configure_global(repo_root, lang=lang, selected_rule=selected_rule)
+            target.configure_global(
+                repo_root,
+                lang=lang,
+                selected_rules=configured_rules,
+            )
+        print(f"\n[i] {t('global_rules_info_note', lang)}")
         try:
             input(f"\n{t('press_enter', lang)}")
         except (EOFError, KeyboardInterrupt):
@@ -622,6 +652,8 @@ def handle_global_configuration(
         print(f"\n-> {t('cleaning_global', lang)}")
         for target in targets_with_global:
             target.clean_global(lang=lang)
+        app_config["global_rules"] = []
+        save_app_config(repo_root, app_config, omni_docs_dir=omni_docs_dir)
         try:
             input(f"\n{t('press_enter', lang)}")
         except (EOFError, KeyboardInterrupt):
@@ -632,11 +664,13 @@ def handle_global_configuration(
         num = int(choice)
         if 1 <= num <= len(targets_with_global):
             target = targets_with_global[num - 1]
-            selected_rule = select_global_rule_profile(rules, lang=lang)
-            if not selected_rule and rules:
-                return
             print(f"\n-> {t('linking', lang, tool=target.display_name)}")
-            target.configure_global(repo_root, lang=lang, selected_rule=selected_rule)
+            target.configure_global(
+                repo_root,
+                lang=lang,
+                selected_rules=configured_rules,
+            )
+            print(f"\n[i] {t('global_rules_info_note', lang)}")
             try:
                 input(f"\n{t('press_enter', lang)}")
             except (EOFError, KeyboardInterrupt):
@@ -754,107 +788,321 @@ def handle_agents(
 
 
 def handle_rules(
-    target_path: Path,
+    target_path: Path | None,
     repo_root: Path,
     scanned: dict[str, Any],
     current_state: dict[str, Any],
+    app_config: dict[str, Any],
+    omni_docs_dir: Path | None = None,
     lang: str = "en",
-):
-    """Option: Rules selection and activation for target workspace."""
-    rules = scanned["rules"]
+) -> Path | None:
+    """
+    Dedicated screen for configuring and managing rules: Workspace (local) vs Global (machine-wide).
+    Allows user to explicitly mark/uncheck (desmarcar) rules for either scope, ensuring
+    rules are never linked to global automatically.
+    """
+    rules = scanned.get("rules", [])
     if not rules:
         print(f"[!] {t('no_rules_found', lang)}")
         try:
             input(f"\n{t('press_enter_menu', lang)}")
         except (EOFError, KeyboardInterrupt):
             pass
-        return
+        return target_path
 
-    curr_selected = set(current_state.get("selected_rules", []))
-    available_rule_ids = {rule["id"] for rule in rules}
-    if "AGENTS.md" in curr_selected and "AGENTS.md" not in available_rule_ids:
-        curr_selected.remove("AGENTS.md")
-        if "pt-br-dev" in available_rule_ids:
-            curr_selected.add("pt-br-dev")
-    valid_selected = curr_selected.intersection(available_rule_ids)
-    if not valid_selected and rules:
-        default_rule = (
-            "pt-br-dev" if "pt-br-dev" in available_rule_ids else rules[0]["id"]
+    available_rule_ids = {r["id"] for r in rules}
+
+    # 1. Workspace selection resolution
+    curr_selected_workspace: set[str] = set()
+    if target_path:
+        if (
+            "selected_rules" in current_state
+            and current_state["selected_rules"] is not None
+        ):
+            saved_ws = set(current_state["selected_rules"])
+            if "AGENTS.md" in saved_ws and "AGENTS.md" not in available_rule_ids:
+                saved_ws.remove("AGENTS.md")
+                if "pt-br-dev" in available_rule_ids:
+                    saved_ws.add("pt-br-dev")
+            curr_selected_workspace = saved_ws.intersection(available_rule_ids)
+        else:
+            ws_rules_dir = target_path / ".agents" / "rules"
+            if ws_rules_dir.exists() and ws_rules_dir.is_dir():
+                for item in ws_rules_dir.glob("*.md"):
+                    if item.stem in available_rule_ids:
+                        curr_selected_workspace.add(item.stem)
+
+    # 2. Global selection resolution & legacy link detection
+    curr_selected_global: set[str] = set()
+    has_legacy_global_junction = False
+    gemini_rules_path = Path.home() / ".gemini" / "config" / "rules"
+
+    if "global_rules" in app_config and app_config["global_rules"] is not None:
+        curr_selected_global = set(app_config["global_rules"]).intersection(
+            available_rule_ids
         )
-        valid_selected = {default_rule}
-    curr_selected = valid_selected
-    initial_selected = set(curr_selected)
+    else:
+        if gemini_rules_path.exists():
+            if is_link(gemini_rules_path):
+                target_link = get_link_target(gemini_rules_path)
+                try:
+                    repo_rules_norm = (repo_root / "rules").resolve().as_posix().lower()
+                    target_link_norm = (
+                        target_link.resolve().as_posix().lower() if target_link else ""
+                    )
+                    if target_link and (
+                        target_link_norm == repo_rules_norm
+                        or target_link_norm.endswith("/rules")
+                    ):
+                        has_legacy_global_junction = True
+                        curr_selected_global = set(available_rule_ids)
+                    else:
+                        for rid in available_rule_ids:
+                            if target_link and rid in str(target_link):
+                                curr_selected_global.add(rid)
+                except OSError:
+                    pass
+            elif gemini_rules_path.is_dir():
+                for f in gemini_rules_path.glob("*.md"):
+                    if f.stem in available_rule_ids:
+                        curr_selected_global.add(f.stem)
+
+    initial_selected_workspace = set(curr_selected_workspace)
+    initial_selected_global = set(curr_selected_global)
 
     while True:
         clear_screen()
         print("\n" + "=" * 65)
-        print(f"  {t('rules_title', lang)}")
+        print(f"  {t('rules_mgmt_title', lang)}")
         print("=" * 65)
-        print(f"{t('target_workspace', lang)}: {target_path}\n")
+        ws_display = str(target_path) if target_path else t("not_defined", lang)
+        print(f"  {t('target_workspace', lang)}: {ws_display}")
+        print(f"  {t('global_dir_label', lang)}:     ~/.gemini/config/rules\n")
 
+        ws_names = (
+            ", ".join(sorted(curr_selected_workspace))
+            if curr_selected_workspace
+            else t("rules_none_active", lang)
+        )
+        glob_names = (
+            ", ".join(sorted(curr_selected_global))
+            if curr_selected_global
+            else t("rules_none_active", lang)
+        )
+        print(f"  * {t('rules_status_workspace', lang)}: [{ws_names}]")
+        if has_legacy_global_junction and curr_selected_global == available_rule_ids:
+            print(f"  * {t('rules_status_global', lang)}:  [{glob_names}] (!)")
+            print(f"    [!] {t('rules_legacy_link_warning', lang)}")
+        else:
+            print(f"  * {t('rules_status_global', lang)}:  [{glob_names}]")
+
+        print("\n" + t("rules_options_header", lang))
+        print(
+            f"  {'#':<4} {'Rule':<16} {'Workspace (Local)':<20} {'Global (Machine)':<18} Description"
+        )
+        print("  " + "-" * 75)
         for idx, rule in enumerate(rules, 1):
-            is_sel = "[x]" if rule["id"] in curr_selected else "[ ]"
+            rid = rule["id"]
+            is_ws = (
+                f"[x] {t('rules_status_active', lang)}"
+                if rid in curr_selected_workspace
+                else f"[ ] {t('rules_status_unchecked', lang)}"
+            )
+            is_glob = (
+                f"[x] {t('rules_status_active', lang)}"
+                if rid in curr_selected_global
+                else f"[ ] {t('rules_status_unchecked', lang)}"
+            )
             desc = rule.get("description", "")
-            desc_preview = f" - {desc[:58]}..." if desc else ""
-            print(f"  [{idx:2d}] {is_sel} {rule['id']:<24}{desc_preview}")
+            desc_prev = (
+                f" - {desc[:32]}..."
+                if len(desc) > 32
+                else (f" - {desc}" if desc else "")
+            )
+            print(f"  [{idx:2d}] {rid:<16} {is_ws:<20} {is_glob:<18}{desc_prev}")
 
         print("\n" + "-" * 65)
-        print(t("how_to_select_rules", lang))
+        print(t("rules_commands_help", lang))
         print("-" * 65)
 
         try:
-            user_input = input(f"\n{t('your_choice', lang)}").strip().lower()
+            choice = input(f"\n{t('your_choice', lang)}").strip().lower()
         except (EOFError, KeyboardInterrupt):
-            return
+            return target_path
 
-        if user_input in ("v", "voltar", "volver"):
-            if curr_selected != initial_selected and not confirm_exit_unsaved(
-                lang=lang
-            ):
+        if choice in ("v", "voltar", "volver"):
+            changed = (curr_selected_workspace != initial_selected_workspace) or (
+                curr_selected_global != initial_selected_global
+            )
+            if changed and not confirm_exit_unsaved(lang=lang):
                 continue
-            return
+            return target_path
 
-        if user_input in ("s", "salvar", "save", "guardar"):
-            current_state["selected_rules"] = sorted(curr_selected)
-            apply_workspace_to_targets(
-                target_path=target_path,
+        if choice == "":
+            continue
+
+        if choice in ("s", "salvar", "save", "guardar"):
+            if curr_selected_workspace and not target_path:
+                target_path = resolve_workspace(None, lang=lang)
+                if not target_path:
+                    continue
+
+            # 1. Apply workspace rules
+            if target_path:
+                current_state["selected_rules"] = sorted(curr_selected_workspace)
+                active_tools = current_state.get("active_targets") or ["antigravity"]
+                apply_workspace_to_targets(
+                    target_path=target_path,
+                    repo_root=repo_root,
+                    scanned=scanned,
+                    active_target_ids=active_tools,
+                    selected_agent_ids=current_state.get("selected_agents", []),
+                    selected_rule_ids=current_state["selected_rules"],
+                    selected_skills_dict=current_state.get("selected_skills", {}),
+                    lang=lang,
+                )
+
+            # 2. Apply global rules
+            app_config["global_rules"] = sorted(curr_selected_global)
+            save_app_config(repo_root, app_config, omni_docs_dir=omni_docs_dir)
+            apply_global_rules_to_targets(
                 repo_root=repo_root,
                 scanned=scanned,
-                active_target_ids=current_state.get("active_targets", ["antigravity"]),
-                selected_agent_ids=current_state.get("selected_agents", []),
-                selected_rule_ids=current_state["selected_rules"],
-                selected_skills_dict=current_state.get("selected_skills", {}),
+                selected_global_rule_ids=sorted(curr_selected_global),
                 lang=lang,
             )
-            print(f"\n[OK] {t('rules_activated', lang, count=len(curr_selected))}")
+
+            print(f"\n[OK] {t('rules_saved_ok', lang)}")
+            print(
+                f"     {t('rules_saved_ws_summary', lang, count=len(curr_selected_workspace))}"
+            )
+            print(
+                f"     {t('rules_saved_glob_summary', lang, count=len(curr_selected_global))}"
+            )
             try:
                 input(f"\n{t('press_enter_menu', lang)}")
             except (EOFError, KeyboardInterrupt):
                 pass
-            return
+            return target_path
 
-        if user_input == "":
+        # Clear / uncheck commands
+        if choice in ("clean-w", "clear-w", "limpar-w", "desmarcar-w"):
+            curr_selected_workspace.clear()
             continue
 
-        if user_input == "all":
-            curr_selected = {rule["id"] for rule in rules}
-        elif user_input in ("limpar", "clear", "limpiar"):
-            curr_selected.clear()
-        else:
-            tokens = [
-                token.strip()
-                for token in user_input.replace(";", ",").split(",")
-                if token.strip()
-            ]
-            for token in tokens:
-                if token.isdigit():
-                    num = int(token)
+        if choice in ("clean-g", "clear-g", "limpar-g", "desmarcar-g"):
+            curr_selected_global.clear()
+            has_legacy_global_junction = False
+            continue
+
+        if choice in (
+            "clean-all",
+            "clear-all",
+            "limpar-tudo",
+            "desmarcar-tudo",
+            "clean",
+            "clear",
+            "limpar",
+            "desmarcar",
+        ):
+            curr_selected_workspace.clear()
+            curr_selected_global.clear()
+            has_legacy_global_junction = False
+            continue
+
+        # Select all commands
+        if choice in ("all-w", "todas-w"):
+            if not target_path:
+                target_path = resolve_workspace(None, lang=lang)
+            curr_selected_workspace = {r["id"] for r in rules}
+            continue
+
+        if choice in ("all-g", "todas-g"):
+            curr_selected_global = {r["id"] for r in rules}
+            has_legacy_global_junction = False
+            continue
+
+        if choice in ("all", "todas"):
+            if not target_path:
+                target_path = resolve_workspace(None, lang=lang)
+            curr_selected_workspace = {r["id"] for r in rules}
+            continue
+
+        # Granular tokens
+        raw_tokens = [
+            t_tok.strip()
+            for t_tok in choice.replace(";", ",").replace(" ", ",").split(",")
+            if t_tok.strip()
+        ]
+
+        for token in raw_tokens:
+            if token.startswith(("w:", "w")) and len(token) > 1:
+                sub = token.lstrip("w:")
+                if sub.isdigit():
+                    num = int(sub)
                     if 1 <= num <= len(rules):
                         rid = rules[num - 1]["id"]
-                        if rid in curr_selected:
-                            curr_selected.remove(rid)
+                        if not target_path:
+                            target_path = resolve_workspace(None, lang=lang)
+                        if rid in curr_selected_workspace:
+                            curr_selected_workspace.remove(rid)
                         else:
-                            curr_selected.add(rid)
+                            curr_selected_workspace.add(rid)
+                else:
+                    matched = next(
+                        (r["id"] for r in rules if r["id"].lower() == sub), None
+                    )
+                    if matched:
+                        if not target_path:
+                            target_path = resolve_workspace(None, lang=lang)
+                        if matched in curr_selected_workspace:
+                            curr_selected_workspace.remove(matched)
+                        else:
+                            curr_selected_workspace.add(matched)
+
+            elif token.startswith(("g:", "g")) and len(token) > 1:
+                sub = token.lstrip("g:")
+                has_legacy_global_junction = False
+                if sub.isdigit():
+                    num = int(sub)
+                    if 1 <= num <= len(rules):
+                        rid = rules[num - 1]["id"]
+                        if rid in curr_selected_global:
+                            curr_selected_global.remove(rid)
+                        else:
+                            curr_selected_global.add(rid)
+                else:
+                    matched = next(
+                        (r["id"] for r in rules if r["id"].lower() == sub), None
+                    )
+                    if matched:
+                        if matched in curr_selected_global:
+                            curr_selected_global.remove(matched)
+                        else:
+                            curr_selected_global.add(matched)
+
+            elif token.isdigit():
+                num = int(token)
+                if 1 <= num <= len(rules):
+                    rid = rules[num - 1]["id"]
+                    if not target_path:
+                        target_path = resolve_workspace(None, lang=lang)
+                    if rid in curr_selected_workspace:
+                        curr_selected_workspace.remove(rid)
+                    else:
+                        curr_selected_workspace.add(rid)
+
+            else:
+                matched = next(
+                    (r["id"] for r in rules if r["id"].lower() == token), None
+                )
+                if matched:
+                    if not target_path:
+                        target_path = resolve_workspace(None, lang=lang)
+                    if matched in curr_selected_workspace:
+                        curr_selected_workspace.remove(matched)
+                    else:
+                        curr_selected_workspace.add(matched)
 
 
 def handle_category_submenu(
@@ -1552,25 +1800,23 @@ def main():
             else [target for target in get_all_targets() if target.supports_global]
         )
         rules = scanned.get("rules", [])
-        selected_rule = None
+        rules_map = {r["id"]: r for r in rules}
+        selected_rules = []
         if args.rule_profile:
-            selected_rule = next(
+            matched = next(
                 (r for r in rules if r["id"].lower() == args.rule_profile.lower()),
                 None,
             )
-            if not selected_rule:
+            if not matched:
                 print(f"[!] Rule profile '{args.rule_profile}' not found.")
                 print(f"    Available: {', '.join(r['id'] for r in rules)}")
                 sys.exit(1)
-        elif sys.stdin.isatty() and not args.sync:
-            selected_rule = select_global_rule_profile(rules, lang=current_lang)
-            if not selected_rule and rules:
-                print("\n[i] Operation cancelled.")
-                sys.exit(0)
+            selected_rules = [matched]
         else:
-            selected_rule = rules[0] if rules else None
-            if selected_rule:
-                print(f"-> Using default global rule profile: {selected_rule['id']}")
+            configured_ids = app_config.get("global_rules", [])
+            selected_rules = [
+                rules_map[rid] for rid in configured_ids if rid in rules_map
+            ]
 
         for target in tools:
             if target:
@@ -1578,7 +1824,7 @@ def main():
                 target.configure_global(
                     repo_root,
                     lang=current_lang,
-                    selected_rule=selected_rule,
+                    selected_rules=selected_rules,
                     assume_yes=args.assume_yes,
                 )
         sys.exit(0)
@@ -1620,7 +1866,8 @@ def main():
             active_target_ids=active_tools,
             selected_agent_ids=state.get("selected_agents", []),
             selected_rule_ids=state.get("selected_rules")
-            or [r["id"] for r in scanned["rules"]],
+            if state.get("selected_rules") is not None
+            else [r["id"] for r in scanned["rules"]],
             selected_skills_dict=state.get("selected_skills", {}),
             lang=current_lang,
         )
@@ -1693,7 +1940,13 @@ def main():
                 )
 
         elif choice in ("1", "global"):
-            handle_global_configuration(repo_root, scanned, lang=current_lang)
+            handle_global_configuration(
+                repo_root,
+                scanned,
+                app_config=app_config,
+                omni_docs_dir=omni_docs_dir,
+                lang=current_lang,
+            )
 
         elif choice in ("2", "agents", "agent", "agentes", "subagentes"):
             target_path = resolve_workspace(target_path, lang=current_lang)
@@ -1703,11 +1956,15 @@ def main():
                 )
 
         elif choice in ("3", "rules", "rule", "regras", "reglas"):
-            target_path = resolve_workspace(target_path, lang=current_lang)
-            if target_path:
-                handle_rules(
-                    target_path, repo_root, scanned, workspace_state, lang=current_lang
-                )
+            target_path = handle_rules(
+                target_path,
+                repo_root,
+                scanned,
+                workspace_state,
+                app_config,
+                omni_docs_dir=omni_docs_dir,
+                lang=current_lang,
+            )
 
         elif choice in ("4", "skills", "skill"):
             target_path = resolve_workspace(target_path, lang=current_lang)
@@ -1755,7 +2012,8 @@ def main():
                     active_target_ids=active_tools,
                     selected_agent_ids=workspace_state.get("selected_agents", []),
                     selected_rule_ids=workspace_state.get("selected_rules")
-                    or [r["id"] for r in scanned["rules"]],
+                    if workspace_state.get("selected_rules") is not None
+                    else [r["id"] for r in scanned["rules"]],
                     selected_skills_dict=workspace_state.get("selected_skills", {}),
                     lang=current_lang,
                 )

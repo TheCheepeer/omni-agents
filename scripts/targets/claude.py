@@ -132,13 +132,26 @@ class ClaudeTarget(BaseTarget):
         self,
         repo_root: Path,
         lang: str = "en",
+        selected_rules: list[dict[str, Any]] | None = None,
         selected_rule: dict[str, Any] | None = None,
         assume_yes: bool = False,
     ) -> bool:
         claude_global = Path.home() / ".claude"
-        claude_global.mkdir(parents=True, exist_ok=True)
         global_rule = claude_global / "CLAUDE.md"
 
+        active_rules = []
+        if selected_rules is not None:
+            active_rules = selected_rules
+        elif selected_rule:
+            active_rules = [selected_rule]
+
+        if not active_rules:
+            if selected_rules is not None and global_rule.exists():
+                safe_remove_file(global_rule)
+                print(f"  [-] {t_target('claude_global_removed', lang)}")
+            return True
+
+        claude_global.mkdir(parents=True, exist_ok=True)
         if global_rule.exists():
             should_overwrite = bool(assume_yes)
             if not assume_yes and sys.stdin.isatty():
@@ -158,30 +171,13 @@ class ClaudeTarget(BaseTarget):
                 return True
 
         content_parts = ["# Global User Instructions (Claude Code)\n"]
-        if selected_rule and Path(selected_rule["path"]).exists():
-            try:
-                content_parts.append(
-                    Path(selected_rule["path"]).read_text(encoding="utf-8")
-                )
-            except OSError:
-                pass
-        else:
-            rules_dir = repo_root / "rules"
-            if rules_dir.exists():
-                for item in sorted(rules_dir.iterdir()):
-                    target_file = None
-                    if item.is_dir() and (item / "AGENTS.md").exists():
-                        target_file = item / "AGENTS.md"
-                    elif item.is_file() and item.suffix == ".md":
-                        target_file = item
-                    if target_file:
-                        try:
-                            content_parts.append(
-                                target_file.read_text(encoding="utf-8")
-                            )
-                            content_parts.append("\n---\n")
-                        except OSError:
-                            pass
+        for r in active_rules:
+            if Path(r["path"]).exists():
+                try:
+                    content_parts.append(Path(r["path"]).read_text(encoding="utf-8"))
+                    content_parts.append("\n---\n")
+                except OSError:
+                    pass
 
         safe_write_text(global_rule, "\n".join(content_parts))
         print(f"  [+] {t_target('claude_global_done', lang, path=global_rule)}")

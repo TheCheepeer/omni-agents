@@ -44,6 +44,7 @@ class CursorTarget(BaseTarget):
         cursor_rules_dir.mkdir(parents=True, exist_ok=True)
 
         count = 0
+        active_rule_files = set()
         # 1. Rules in .mdc format
         if rules:
             for r in rules:
@@ -75,8 +76,17 @@ class CursorTarget(BaseTarget):
                 ]
 
                 dest_file = cursor_rules_dir / f"{rule_id}.mdc"
+                active_rule_files.add(f"{rule_id}.mdc")
                 safe_write_text(dest_file, "\n".join(mdc_content) + "\n")
                 count += 1
+
+        if cursor_rules_dir.exists():
+            for f in cursor_rules_dir.glob("*.mdc"):
+                if f.name not in active_rule_files and f.name not in (
+                    "subagents.mdc",
+                    "skills.mdc",
+                ):
+                    f.unlink()
 
         # 2. Subagents as persona rule
         if agents:

@@ -59,16 +59,24 @@ class AntigravityTarget(BaseTarget):
             print(f"  [+] {t_target('antigravity_agents', lang, count=len(agents))}")
 
         # 2. Rules
+        rules_dest = agents_dir / "rules"
         if rules:
-            rules_dest = agents_dir / "rules"
             rules_dest.mkdir(parents=True, exist_ok=True)
+            active_names = set()
             for r in rules:
                 rule_name = r["id"] if r["id"].endswith(".md") else f"{r['id']}.md"
+                active_names.add(rule_name)
                 dest_file = rules_dest / rule_name
                 dest_file.write_text(
                     Path(r["path"]).read_text(encoding="utf-8"), encoding="utf-8"
                 )
+            if rules_dest.exists():
+                for f in list(rules_dest.iterdir()):
+                    if f.is_file() and f.name not in active_names:
+                        f.unlink()
             print(f"  [+] {t_target('antigravity_rules', lang, count=len(rules))}")
+        else:
+            safe_remove_tree(rules_dest)
 
         # 3. Skills Manifest
         entries = []
@@ -110,10 +118,50 @@ class AntigravityTarget(BaseTarget):
         print(f"  [-] {t_target('antigravity_clean_done', lang)}")
         return True
 
+    def apply_global_rules(
+        self,
+        rules_dst: Path,
+        rules: list[dict[str, Any]],
+        lang: str = "en",
+    ) -> bool:
+        """Applies explicit rules to ~/.gemini/config/rules/ as individual files, or cleans if empty."""
+        if is_link(rules_dst):
+            remove_dir_link(rules_dst)
+
+        if not rules:
+            if rules_dst.exists() and rules_dst.is_dir():
+                for f in list(rules_dst.iterdir()):
+                    if f.is_file() and f.suffix == ".md":
+                        f.unlink()
+                safe_remove_dir_if_empty(rules_dst)
+            print(f"  [-] {t_target('antigravity_global_rules_cleaned', lang)}")
+            return True
+
+        rules_dst.mkdir(parents=True, exist_ok=True)
+        active_names = set()
+        for r in rules:
+            rule_name = r["id"] if r["id"].endswith(".md") else f"{r['id']}.md"
+            active_names.add(rule_name)
+            dest_file = rules_dst / rule_name
+            dest_file.write_text(
+                Path(r["path"]).read_text(encoding="utf-8"), encoding="utf-8"
+            )
+
+        if rules_dst.exists() and rules_dst.is_dir():
+            for f in list(rules_dst.iterdir()):
+                if f.is_file() and f.name not in active_names:
+                    f.unlink()
+
+        print(
+            f"  [+] {t_target('antigravity_global_rules_updated', lang, count=len(rules))}"
+        )
+        return True
+
     def configure_global(
         self,
         repo_root: Path,
         lang: str = "en",
+        selected_rules: list[dict[str, Any]] | None = None,
         selected_rule: dict[str, Any] | None = None,
         assume_yes: bool = False,
     ) -> bool:
@@ -141,27 +189,19 @@ class AntigravityTarget(BaseTarget):
             ):
                 print(f"  [+] {t_target('antigravity_global_skills', lang)}")
 
-            rule_src = None
-            if selected_rule:
-                if (
-                    selected_rule.get("dir_path")
-                    and Path(selected_rule["dir_path"]).exists()
-                ):
-                    rule_src = Path(selected_rule["dir_path"])
-                elif selected_rule.get("path") and Path(selected_rule["path"]).exists():
-                    rule_src = Path(selected_rule["path"]).parent
-            if not rule_src:
-                rule_src = repo_root / "rules"
-
-            if rule_src.exists() and create_dir_link(
-                rule_src, rules_dst, lang=lang, assume_yes=assume_yes
-            ):
-                if selected_rule:
-                    print(
-                        f"  [+] {t_target('antigravity_global_rules_linked', lang, profile=selected_rule['id'])}"
-                    )
-                else:
-                    print(f"  [+] {t_target('antigravity_global_rules', lang)}")
+            # Global rules: NEVER link automatically!
+            # Only apply if selected_rules is explicitly provided.
+            if selected_rules is not None or selected_rule is not None:
+                active_rules = (
+                    selected_rules
+                    if selected_rules is not None
+                    else ([selected_rule] if selected_rule else [])
+                )
+                self.apply_global_rules(rules_dst, active_rules, lang=lang)
+            elif is_link(rules_dst):
+                # If there's a legacy automatic whole-directory link, remove it to stop unwanted global enforcement
+                remove_dir_link(rules_dst)
+                print(f"  [i] {t_target('antigravity_legacy_link_removed', lang)}")
         except (OSError, RuntimeError, subprocess.SubprocessError) as e:
             print(f"  [x] {t_target('antigravity_global_error', lang, error=e)}")
             success = False
@@ -171,11 +211,22 @@ class AntigravityTarget(BaseTarget):
     def clean_global(self, lang: str = "en") -> bool:
         home = Path.home()
         global_dir = home / ".gemini" / "config"
-        targets = [global_dir / "agents", global_dir / "skills", global_dir / "rules"]
-        for t in targets:
+        for t in [global_dir / "agents", global_dir / "skills"]:
             if is_link(t):
                 remove_dir_link(t)
                 print(
                     f"  [-] {t_target('antigravity_global_removed', lang, name=t.name)}"
                 )
+        rules_target = global_dir / "rules"
+        if is_link(rules_target):
+            remove_dir_link(rules_target)
+            print(
+                f"  [-] {t_target('antigravity_global_removed', lang, name=rules_target.name)}"
+            )
+        elif rules_target.exists() and rules_target.is_dir():
+            for f in list(rules_target.iterdir()):
+                if f.is_file():
+                    f.unlink()
+            safe_remove_dir_if_empty(rules_target)
+            print(f"  [-] {t_target('antigravity_global_rules_cleaned', lang)}")
         return True

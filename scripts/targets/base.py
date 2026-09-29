@@ -425,6 +425,7 @@ class BaseTarget:
         self,
         repo_root: Path,
         lang: str = "en",
+        selected_rules: list[dict[str, Any]] | None = None,
         selected_rule: dict[str, Any] | None = None,
         assume_yes: bool = False,
     ) -> bool:
