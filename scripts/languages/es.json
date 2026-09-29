@@ -140,7 +140,18 @@
         "lang_toggle_hint": "[Enter] Cambiar al siguiente idioma (actual: {current})",
         "lang_cancel_hint": "[v] Volver al menú principal",
         "lang_saved": "Idioma configurado como {name}. Guardado en config.json.",
-        "unsaved_changes_warning": "Tiene cambios no guardados. ¿Desea salir sin guardar? (s/N): "
+        "unsaved_changes_warning": "Tiene cambios no guardados. ¿Desea salir sin guardar? (s/N): ",
+        "source_menu_title": "SELECCIÓN DE ORIGEN: {type}",
+        "source_layer_repo": "[1] Repositorio Base ({type}/) - {count} disponible(s)",
+        "source_layer_ext_dev": "[2] Extensiones Remotas Descargadas (ext/{type}/) - {count} disponible(s)",
+        "source_layer_custom_dev": "[3] Personalizados / Custom (custom/{type}/) - {count} disponible(s)",
+        "source_layer_all_dev": "[4] Todos Combinados - {count} disponible(s)",
+        "source_layer_ext": "[1] Extensiones Remotas Descargadas (ext/{type}/) - {count} disponible(s)",
+        "source_layer_custom": "[2] Personalizados / Custom (custom/{type}/) - {count} disponible(s)",
+        "source_layer_all": "[3] Todos Combinados (ext + custom) - {count} disponible(s)",
+        "source_empty_ext": "La carpeta de extensiones (ext/{type}/) está vacía.\n    Aún no ha descargado ningún elemento del repositorio oficial.\n\n-> Para descargar extensiones oficiales, use la opción [e] en el menú principal:\n   [e] Extensiones Remotas (Catálogo GitHub / ext/)",
+        "source_empty_custom": "La carpeta personalizada (custom/{type}/) está vacía.\n\n-> Para agregar sus propios archivos, colóquelos en:\n   {path}\n\n(Consejo: Use la opción [o] en el menú principal para abrir la carpeta en el Explorador de Archivos)",
+        "source_empty_all": "No se encontraron elementos en ext/{type}/ o custom/{type}/.\n\n* Descargue extensiones oficiales usando la opción [e] en el menú principal.\n* O agregue sus archivos personalizados usando la opción [o]."
     },
     "targets": {
         "dir_not_link": "El directorio existente no es un enlace simbólico: {dst}",

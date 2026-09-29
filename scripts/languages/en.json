@@ -131,7 +131,18 @@
         "lang_toggle_hint": "[Enter] Cycle to next language (current: {current})",
         "lang_cancel_hint": "[v] Return to main menu",
         "lang_saved": "Language set to {name}. Saved in config.json.",
-        "unsaved_changes_warning": "You have unsaved changes. Do you want to exit without saving? (y/N): "
+        "unsaved_changes_warning": "You have unsaved changes. Do you want to exit without saving? (y/N): ",
+        "source_menu_title": "SELECT SOURCE: {type}",
+        "source_layer_repo": "[1] Base Repository ({type}/) - {count} available",
+        "source_layer_ext_dev": "[2] Downloaded Remote Extensions (ext/{type}/) - {count} available",
+        "source_layer_custom_dev": "[3] User Personal Overrides (custom/{type}/) - {count} available",
+        "source_layer_all_dev": "[4] All Combined - {count} available",
+        "source_layer_ext": "[1] Downloaded Remote Extensions (ext/{type}/) - {count} available",
+        "source_layer_custom": "[2] User Personal Overrides (custom/{type}/) - {count} available",
+        "source_layer_all": "[3] All Combined (ext + custom) - {count} available",
+        "source_empty_ext": "The extensions folder (ext/{type}/) is empty.\n    You haven't downloaded any items from the official repository yet.\n\n-> To download official extensions, use option [e] in the main menu:\n   [e] Remote Extensions (GitHub Catalog / ext/)",
+        "source_empty_custom": "The personal custom folder (custom/{type}/) is empty.\n\n-> To add your own custom files, place them in:\n   {path}\n\n(Tip: Use option [o] in the main menu to open the folder in File Explorer)",
+        "source_empty_all": "No items found in ext/{type}/ or custom/{type}/.\n\n* Download extensions using option [e] in the main menu.\n* Or add personal custom files using option [o]."
     },
     "targets": {
         "dir_not_link": "Existing directory is not a link: {dst}",

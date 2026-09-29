@@ -108,7 +108,13 @@ Install `omni-agents` as a global CLI tool on your system with a single command:
     curl -fsSL https://raw.githubusercontent.com/TheCheepeer/omni-agents/main/install.sh | bash
     ```
 
-### Via Package Managers (`pipx` / `uv`)
+### Via Python Package Manager (`pip`)
+
+```bash
+pip install omni-agents-cli
+```
+
+Or via isolated CLI tool managers (`pipx` / `uv`):
 
 ```bash
 pipx install omni-agents-cli

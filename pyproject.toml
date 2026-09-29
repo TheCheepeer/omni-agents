@@ -37,9 +37,9 @@ Issues = "https://github.com/TheCheepeer/omni-agents/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["scripts*", "scripts.*", "agents*", "rules*", "skills*"]
+include = ["scripts*", "scripts.*"]
 exclude = ["*__pycache__*", "build*", "dist*"]
 namespaces = true
 
 [tool.setuptools.package-data]
-"*" = ["*.*", "**/*.*", "**/**/*.*", "**/**/**/*.*"]
+"scripts" = ["*.*", "**/*.*", "**/**/*.*"]

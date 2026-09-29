@@ -138,7 +138,18 @@
         "lang_toggle_hint": "[Enter] Alternar para o próximo idioma (atual: {current})",
         "lang_cancel_hint": "[v] Voltar ao menu principal",
         "lang_saved": "Idioma definido para {name}. Salvo em config.json.",
-        "unsaved_changes_warning": "Você tem alterações não salvas. Deseja sair sem salvar? (s/N): "
+        "unsaved_changes_warning": "Você tem alterações não salvas. Deseja sair sem salvar? (s/N): ",
+        "source_menu_title": "ESCOLHA A ORIGEM: {type}",
+        "source_layer_repo": "[1] Repositório Base ({type}/) - {count} disponível(is)",
+        "source_layer_ext_dev": "[2] Extensões Remotas Baixadas (ext/{type}/) - {count} disponível(is)",
+        "source_layer_custom_dev": "[3] Personalizados / Custom (custom/{type}/) - {count} disponível(is)",
+        "source_layer_all_dev": "[4] Todos Combinados - {count} disponível(is)",
+        "source_layer_ext": "[1] Extensões Remotas Baixadas (ext/{type}/) - {count} disponível(is)",
+        "source_layer_custom": "[2] Personalizados / Custom (custom/{type}/) - {count} disponível(is)",
+        "source_layer_all": "[3] Todos Combinados (ext + custom) - {count} disponível(is)",
+        "source_empty_ext": "A pasta de extensões (ext/{type}/) está vazia.\n    Você ainda não baixou nenhum item do repositório oficial.\n\n-> Para baixar extensões oficiais, use a opção [e] no menu principal:\n   [e] Extensões Remotas (Catálogo GitHub / ext/)",
+        "source_empty_custom": "A pasta personalizada (custom/{type}/) está vazia.\n\n-> Para adicionar seus próprios arquivos, coloque-os em:\n   {path}\n\n(Dica: Use a opção [o] no menu principal para abrir a pasta no Explorador de Arquivos)",
+        "source_empty_all": "Nenhum item encontrado em ext/{type}/ ou custom/{type}/.\n\n* Baixe extensões usando a opção [e] no menu principal.\n* Ou adicione seus arquivos personalizados usando a opção [o]."
     },
     "targets": {
         "dir_not_link": "Diretório existente não é um link: {dst}",

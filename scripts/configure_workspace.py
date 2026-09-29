@@ -250,15 +250,53 @@ def _scan_source_directory(source_dir: Path) -> dict[str, Any]:
     return {"skills": skills_map, "agents": agents_map, "rules": rules_map}
 
 
-def scan_repository(
+def _format_layer_data(layer_raw: dict[str, Any]) -> dict[str, Any]:
+    skills_by_cat: dict[str, list[dict[str, Any]]] = {}
+    for cat_name, cat_skills in sorted(layer_raw["skills"].items()):
+        if cat_skills:
+            skills_by_cat[cat_name] = sorted(
+                cat_skills.values(), key=lambda x: str(x["id"])
+            )
+    return {
+        "skills_by_category": skills_by_cat,
+        "agents": sorted(layer_raw["agents"].values(), key=lambda x: str(x["id"])),
+        "rules": sorted(layer_raw["rules"].values(), key=lambda x: str(x["id"])),
+    }
+
+
+def scan_component_sources(
     repo_root: Path, documents_dir: Path | None = None
 ) -> dict[str, Any]:
     """
-    Dynamically scans and consolidates components across hierarchical layers:
-    1. Default base / Repo Root (if present)
-    2. Remote extensions (Documents/omni-agents/ext)
-    3. User custom overrides (Documents/omni-agents/custom - highest precedence)
+    Dynamically scans and isolates components across layers:
+    - 'repo': Base repository (ONLY when running in dev mode from a cloned Git repo)
+    - 'ext': Remote extensions (Documents/omni-agents/ext)
+    - 'custom': User personal overrides (Documents/omni-agents/custom)
+    - 'merged': Consolidated components across active layers
     """
+    empty_raw: dict[str, Any] = {"skills": {}, "agents": {}, "rules": {}}
+
+    is_dev = is_dev_mode(repo_root)
+    repo_raw = (
+        _scan_source_directory(repo_root)
+        if is_dev and repo_root.exists() and repo_root.is_dir()
+        else empty_raw
+    )
+
+    ext_dir = (documents_dir / "ext") if documents_dir else None
+    ext_raw = (
+        _scan_source_directory(ext_dir)
+        if ext_dir and ext_dir.exists() and ext_dir.is_dir()
+        else empty_raw
+    )
+
+    custom_dir = (documents_dir / "custom") if documents_dir else None
+    custom_raw = (
+        _scan_source_directory(custom_dir)
+        if custom_dir and custom_dir.exists() and custom_dir.is_dir()
+        else empty_raw
+    )
+
     merged_skills: dict[str, dict[str, dict[str, Any]]] = {}
     merged_agents: dict[str, dict[str, Any]] = {}
     merged_rules: dict[str, dict[str, Any]] = {}
@@ -269,34 +307,171 @@ def scan_repository(
         merged_agents.update(layer_data["agents"])
         merged_rules.update(layer_data["rules"])
 
-    # Layer 1: Repository base (or package)
-    if repo_root.exists() and repo_root.is_dir():
-        _merge_layer(_scan_source_directory(repo_root))
+    if is_dev:
+        _merge_layer(repo_raw)
+    _merge_layer(ext_raw)
+    _merge_layer(custom_raw)
 
-    # Layers in Documents (ext and custom)
-    if documents_dir and documents_dir.exists() and documents_dir.is_dir():
-        # Layer 2: ext/ (downloaded extensions)
-        ext_dir = documents_dir / "ext"
-        if ext_dir.exists() and ext_dir.is_dir():
-            _merge_layer(_scan_source_directory(ext_dir))
-
-        # Layer 3: custom/ (user personal overrides - highest precedence)
-        custom_dir = documents_dir / "custom"
-        if custom_dir.exists() and custom_dir.is_dir():
-            _merge_layer(_scan_source_directory(custom_dir))
-
-    final_skills: dict[str, list[dict[str, Any]]] = {}
-    for cat_name, cat_skills in sorted(merged_skills.items()):
-        if cat_skills:
-            final_skills[cat_name] = sorted(
-                cat_skills.values(), key=lambda x: str(x["id"])
-            )
+    merged_raw = {
+        "skills": merged_skills,
+        "agents": merged_agents,
+        "rules": merged_rules,
+    }
 
     return {
-        "skills_by_category": final_skills,
-        "agents": sorted(merged_agents.values(), key=lambda x: str(x["id"])),
-        "rules": sorted(merged_rules.values(), key=lambda x: str(x["id"])),
+        "repo": _format_layer_data(repo_raw),
+        "ext": _format_layer_data(ext_raw),
+        "custom": _format_layer_data(custom_raw),
+        "merged": _format_layer_data(merged_raw),
     }
+
+
+def scan_repository(
+    repo_root: Path, documents_dir: Path | None = None
+) -> dict[str, Any]:
+    """Compatibility wrapper returning merged components across active layers."""
+    sources = scan_component_sources(repo_root, documents_dir=documents_dir)
+    return sources["merged"]
+
+
+def select_component_source(
+    component_type: str,
+    sources: dict[str, Any],
+    is_dev: bool,
+    omni_docs_dir: Path | None,
+    target_path: Path | None = None,
+    lang: str = "en",
+) -> dict[str, Any] | None:
+    """
+    Submenu for selecting component origin (ext, custom, or all; plus repo in dev mode).
+    If the chosen folder is empty, warns the user clearly with instructions on where to
+    download (via option [e]) or place custom files (via option [o]).
+    """
+    type_label_map = {
+        "agents": t("menu_agents", lang).lstrip("[0123456789] ").strip(),
+        "rules": t("menu_rules", lang).lstrip("[0123456789] ").strip(),
+        "skills": t("menu_skills", lang).lstrip("[0123456789] ").strip(),
+    }
+    type_display = type_label_map.get(component_type, component_type)
+
+    def _get_count(layer_key: str) -> int:
+        data = sources.get(layer_key, {})
+        if component_type == "agents":
+            return len(data.get("agents", []))
+        if component_type == "rules":
+            return len(data.get("rules", []))
+        if component_type == "skills":
+            skills_cat = data.get("skills_by_category", {})
+            return sum(len(v) for v in skills_cat.values())
+        return 0
+
+    repo_count = _get_count("repo")
+    ext_count = _get_count("ext")
+    custom_count = _get_count("custom")
+    all_count = _get_count("merged")
+
+    custom_subpath = (
+        (omni_docs_dir / "custom" / component_type)
+        if omni_docs_dir
+        else Path.home() / "Documents" / "omni-agents" / "custom" / component_type
+    )
+
+    while True:
+        clear_screen()
+        print("\n" + "=" * 65)
+        print(f"  {t('source_menu_title', lang, type=type_display)}")
+        print("=" * 65)
+        if target_path:
+            print(f"  {t('target_workspace', lang)}: {target_path}")
+        print("-" * 65)
+
+        if is_dev:
+            print(
+                f"  {t('source_layer_repo', lang, type=component_type, count=repo_count)}"
+            )
+            print(
+                f"  {t('source_layer_ext_dev', lang, type=component_type, count=ext_count)}"
+            )
+            print(
+                f"  {t('source_layer_custom_dev', lang, type=component_type, count=custom_count)}"
+            )
+            print(f"  {t('source_layer_all_dev', lang, count=all_count)}")
+        else:
+            print(
+                f"  {t('source_layer_ext', lang, type=component_type, count=ext_count)}"
+            )
+            print(
+                f"  {t('source_layer_custom', lang, type=component_type, count=custom_count)}"
+            )
+            print(f"  {t('source_layer_all', lang, count=all_count)}")
+
+        print(f"  {t('ext_menu_back', lang)}")
+        print("-" * 65)
+
+        try:
+            choice = input(f"\n{t('choose_option', lang)}").strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            return None
+
+        if choice in ("v", "voltar", "volver", "back", "q", "exit"):
+            return None
+
+        selected_layer = None
+        if is_dev:
+            if choice == "1":
+                selected_layer = "repo"
+            elif choice == "2":
+                selected_layer = "ext"
+            elif choice == "3":
+                selected_layer = "custom"
+            elif choice in ("4", "all", "todos", "todas"):
+                selected_layer = "merged"
+        else:
+            if choice == "1":
+                selected_layer = "ext"
+            elif choice == "2":
+                selected_layer = "custom"
+            elif choice in ("3", "all", "todos", "todas"):
+                selected_layer = "merged"
+
+        if not selected_layer:
+            print(f"[!] {t('invalid_option', lang)}")
+            try:
+                input(f"\n{t('press_enter', lang)}")
+            except (EOFError, KeyboardInterrupt):
+                pass
+            continue
+
+        layer_count = _get_count(selected_layer)
+        if layer_count == 0:
+            clear_screen()
+            print("\n" + "=" * 65)
+            print(f"  {type_display.upper()}")
+            print("=" * 65)
+            if selected_layer == "ext":
+                print(f"\n[!] {t('source_empty_ext', lang, type=component_type)}")
+            elif selected_layer == "custom":
+                print(
+                    f"\n[!] {t('source_empty_custom', lang, type=component_type, path=custom_subpath)}"
+                )
+            elif selected_layer == "merged":
+                print(f"\n[!] {t('source_empty_all', lang, type=component_type)}")
+            else:
+                fallback_key = (
+                    "no_agents_found"
+                    if component_type == "agents"
+                    else "no_rules_found"
+                    if component_type == "rules"
+                    else "no_skills_found"
+                )
+                print(f"\n[!] {t(fallback_key, lang)}")
+            try:
+                input(f"\n{t('press_enter_menu', lang)}")
+            except (EOFError, KeyboardInterrupt):
+                pass
+            continue
+
+        return sources[selected_layer]
 
 
 def resolve_workspace(current_target: Path | None, lang: str = "en") -> Path | None:
@@ -682,6 +857,7 @@ def handle_agents(
     repo_root: Path,
     scanned: dict[str, Any],
     current_state: dict[str, Any],
+    all_scanned: dict[str, Any] | None = None,
     lang: str = "en",
 ):
     """Option: Subagents selection and activation for target workspace."""
@@ -731,7 +907,7 @@ def handle_agents(
             apply_workspace_to_targets(
                 target_path=target_path,
                 repo_root=repo_root,
-                scanned=scanned,
+                scanned=all_scanned or scanned,
                 active_target_ids=current_state.get("active_targets", ["antigravity"]),
                 selected_agent_ids=current_state["selected_agents"],
                 selected_rule_ids=current_state.get("selected_rules", []),
@@ -794,6 +970,7 @@ def handle_rules(
     current_state: dict[str, Any],
     app_config: dict[str, Any],
     omni_docs_dir: Path | None = None,
+    all_scanned: dict[str, Any] | None = None,
     lang: str = "en",
 ) -> Path | None:
     """
@@ -954,7 +1131,7 @@ def handle_rules(
                 apply_workspace_to_targets(
                     target_path=target_path,
                     repo_root=repo_root,
-                    scanned=scanned,
+                    scanned=all_scanned or scanned,
                     active_target_ids=active_tools,
                     selected_agent_ids=current_state.get("selected_agents", []),
                     selected_rule_ids=current_state["selected_rules"],
@@ -967,7 +1144,7 @@ def handle_rules(
             save_app_config(repo_root, app_config, omni_docs_dir=omni_docs_dir)
             apply_global_rules_to_targets(
                 repo_root=repo_root,
-                scanned=scanned,
+                scanned=all_scanned or scanned,
                 selected_global_rule_ids=sorted(curr_selected_global),
                 lang=lang,
             )
@@ -1177,6 +1354,7 @@ def handle_skills(
     repo_root: Path,
     scanned: dict[str, Any],
     current_state: dict[str, Any],
+    all_scanned: dict[str, Any] | None = None,
     lang: str = "en",
 ):
     """Option: Modular skills category menu with dedicated submenus."""
@@ -1244,7 +1422,7 @@ def handle_skills(
             apply_workspace_to_targets(
                 target_path=target_path,
                 repo_root=repo_root,
-                scanned=scanned,
+                scanned=all_scanned or scanned,
                 active_target_ids=current_state.get("active_targets", ["antigravity"]),
                 selected_agent_ids=current_state.get("selected_agents", []),
                 selected_rule_ids=current_state.get("selected_rules", []),
@@ -1951,27 +2129,68 @@ def main():
         elif choice in ("2", "agents", "agent", "agentes", "subagentes"):
             target_path = resolve_workspace(target_path, lang=current_lang)
             if target_path:
-                handle_agents(
-                    target_path, repo_root, scanned, workspace_state, lang=current_lang
+                sources = scan_component_sources(repo_root, documents_dir=omni_docs_dir)
+                selected_scanned = select_component_source(
+                    "agents",
+                    sources,
+                    is_dev=is_dev,
+                    omni_docs_dir=omni_docs_dir,
+                    target_path=target_path,
+                    lang=current_lang,
                 )
+                if selected_scanned:
+                    handle_agents(
+                        target_path,
+                        repo_root,
+                        selected_scanned,
+                        workspace_state,
+                        all_scanned=sources["merged"],
+                        lang=current_lang,
+                    )
 
         elif choice in ("3", "rules", "rule", "regras", "reglas"):
-            target_path = handle_rules(
-                target_path,
-                repo_root,
-                scanned,
-                workspace_state,
-                app_config,
+            sources = scan_component_sources(repo_root, documents_dir=omni_docs_dir)
+            selected_scanned = select_component_source(
+                "rules",
+                sources,
+                is_dev=is_dev,
                 omni_docs_dir=omni_docs_dir,
+                target_path=target_path,
                 lang=current_lang,
             )
+            if selected_scanned:
+                target_path = handle_rules(
+                    target_path,
+                    repo_root,
+                    selected_scanned,
+                    workspace_state,
+                    app_config,
+                    omni_docs_dir=omni_docs_dir,
+                    all_scanned=sources["merged"],
+                    lang=current_lang,
+                )
 
         elif choice in ("4", "skills", "skill"):
             target_path = resolve_workspace(target_path, lang=current_lang)
             if target_path:
-                handle_skills(
-                    target_path, repo_root, scanned, workspace_state, lang=current_lang
+                sources = scan_component_sources(repo_root, documents_dir=omni_docs_dir)
+                selected_scanned = select_component_source(
+                    "skills",
+                    sources,
+                    is_dev=is_dev,
+                    omni_docs_dir=omni_docs_dir,
+                    target_path=target_path,
+                    lang=current_lang,
                 )
+                if selected_scanned:
+                    handle_skills(
+                        target_path,
+                        repo_root,
+                        selected_scanned,
+                        workspace_state,
+                        all_scanned=sources["merged"],
+                        lang=current_lang,
+                    )
 
         elif choice in ("e", "ext", "extensoes", "extensiones", "extensions"):
             handle_remote_extensions(
