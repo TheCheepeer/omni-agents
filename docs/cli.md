@@ -21,33 +21,43 @@ When run without arguments, `omni-agents` detects the current working directory 
 
 ## 2. Command Options
 
-### Target & Tool Selection
+### Target & Component Selection (Inline Workspace Tuning)
 
-| Option          | Shorthand    | Description                                                                                          |
-| :-------------- | :----------- | :--------------------------------------------------------------------------------------------------- |
-| `target`        | _Positional_ | Target project directory path (default: current working directory `.`).                              |
-| `--tool <name>` | `-t <name>`  | Specifies target tool adapter (`antigravity`, `cursor`, `claude`, `copilot`, `universal`, or `all`). |
-| `--global`      | _(none)_     | Targets global user tool configurations rather than workspace project folders.                       |
-| `--rule <id>`   | `-r <id>`    | Specifies rule profile to apply (e.g. `pt-br-dev`, `general`).                                       |
+| Option            | Shorthand    | Description                                                                                                    |
+| :---------------- | :----------- | :------------------------------------------------------------------------------------------------------------- |
+| `target`          | _Positional_ | Target project directory path (default: current working directory `.`).                                        |
+| `--tools <list>`  | `-t <list>`  | Target tool adapter(s), comma-separated (`antigravity`, `cursor`, `claude`, `copilot`, `universal`, or `all`). |
+| `--agents <list>` | `-a <list>`  | Subagent ID(s) to activate, comma-separated (e.g. `code-reviewer,security-auditor`, or `all`, `none`).         |
+| `--rules <list>`  | `-r <list>`  | Rule profile(s) to apply, comma-separated (e.g. `general,pt-br-dev`, or `all`, `none`).                        |
+| `--skills <list>` | `-s <list>`  | Skill ID(s) or categories to activate (e.g. `testing,git/commit-helper`, or `all`, `none`).                    |
+| `--global`        | _(none)_     | Targets global user tool configurations (`~/.gemini`, `~/.claude`) rather than workspace project folders.      |
 
 ### Operational Modes
 
 | Option              | Shorthand | Description                                                                                                                                |
 | :------------------ | :-------- | :----------------------------------------------------------------------------------------------------------------------------------------- |
 | `--sync`            | _(none)_  | Fast synchronization mode: applies selected components immediately without opening the interactive menu. Ideal for CI/CD or setup scripts. |
-| `--clean`           | _(none)_  | Unbinds and removes configurations for the specified tool (or all tools) from the workspace.                                               |
+| `--clean`           | _(none)_  | Unbinds and removes configurations for the specified tool(s) (or all tools) from the workspace (or global with `--global`).                |
 | `--yes`             | `-y`      | Automatically answers yes to confirmation prompts (e.g. replacing existing links or repairing broken links).                               |
 | `--update`          | _(none)_  | Explicitly checks for newer releases and executes self-upgrade via pip or git pull.                                                        |
 | `--no-update-check` | _(none)_  | Suppresses automatic background update check upon CLI startup.                                                                             |
 
-### Diagnostics & Information
+### Discovery, Extensions & Diagnostics
 
-| Option               | Description                                                                                             |
-| :------------------- | :------------------------------------------------------------------------------------------------------ |
-| `--info`             | Outputs detailed runtime diagnostics (version, active directories, execution mode, catalog repository). |
-| `--list-tools`       | Lists all supported AI coding tool adapters and exits.                                                  |
-| `--lang <code/name>` | Sets UI language explicitly (e.g. `en`, `pt`, `pt-BR`, `es`, `english`, `portugues`, `espanol`).        |
-| `-h`, `--help`       | Displays command syntax, flag descriptions, and usage examples.                                         |
+| Option                 | Description                                                                                                  |
+| :--------------------- | :----------------------------------------------------------------------------------------------------------- |
+| `--list-tools`         | Lists all supported AI coding tool adapters and exits.                                                       |
+| `--list-agents`        | Lists all available subagents with descriptions and exits.                                                   |
+| `--list-rules`         | Lists all available rule profiles with descriptions and exits.                                               |
+| `--list-skills`        | Lists all available modular skills grouped by category and exits.                                            |
+| `--ext-list`           | Lists all remote extensions currently installed in `Documents/omni-agents/ext` and exits.                    |
+| `--ext-install <item>` | Installs a remote extension from GitHub catalog (e.g. `agents/code-reviewer.md` or `skills/testing/pytest`). |
+| `--ext-update`         | Checks and updates all installed remote extensions.                                                          |
+| `--ext-remove <key>`   | Removes an installed remote extension by key.                                                                |
+| `--open-folder`        | Opens personal `Documents/omni-agents` folder in File Explorer (or displays path in headless mode).          |
+| `--info`               | Outputs detailed runtime diagnostics (version, active directories, execution mode, catalog repository).      |
+| `--lang <code/name>`   | Sets UI language explicitly (e.g. `en`, `pt`, `pt-BR`, `es`, `english`, `portugues`, `espanol`).             |
+| `-h`, `--help`         | Displays command syntax, flag descriptions, and usage examples.                                              |
 
 ---
 
@@ -113,9 +123,34 @@ Option `[3] Rules (Workspace vs Global)` provides an interactive screen where us
 
 ---
 
-## 4. Headless & CI/CD Examples
+## 4. Autonomous Agent Tuning & Headless CI/CD Examples
 
-### Automated Workspace Setup
+### Autonomous Agent Self-Tuning in a Project
+
+An autonomous AI agent running in a repository can inspect, select, and configure its tools, subagents, rules, and skills without opening an interactive TUI:
+
+```bash
+# 1. Discover available components
+omni-agents --list-tools
+omni-agents --list-agents
+omni-agents --list-rules
+omni-agents --list-skills
+
+# 2. Tune the workspace with required subagents, rules, and skills
+omni-agents . --tools antigravity,cursor \
+  --agents code-reviewer,security-auditor \
+  --rules general,pt-br-dev \
+  --skills testing,global/coding-standards \
+  --sync
+
+# 3. Download an official extension directly if needed
+omni-agents --ext-install agents/accessibility-reviewer.md
+
+# 4. Clean up configurations for a specific tool
+omni-agents . --clean --tool cursor
+```
+
+### Automated Workspace Setup (Batch Sync)
 
 Apply all rules, skills, and subagents for Cursor in the current project:
 

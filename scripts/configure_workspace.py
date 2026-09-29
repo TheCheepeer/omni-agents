@@ -1828,14 +1828,40 @@ def main():
         "target",
         nargs="?",
         default=None,
-        help="Path to the target repository directory (optional)",
+        help="Path to the target repository directory (optional, defaults to current directory for inline actions)",
     )
     parser.add_argument(
         "-t",
         "--tool",
+        "--tools",
         "--target-tool",
         dest="target_tool",
-        help="Target tool (antigravity, claude, cursor, copilot, universal, kiro, opencode, codex, or all)",
+        help="Target tool(s) (comma-separated: antigravity, claude, cursor, copilot, universal, kiro, opencode, codex, or all)",
+    )
+    parser.add_argument(
+        "-a",
+        "--agent",
+        "--agents",
+        dest="agents",
+        default=None,
+        help="Subagent ID(s) to activate in workspace (comma-separated: e.g. 'code-reviewer,security-auditor' or 'all', 'none')",
+    )
+    parser.add_argument(
+        "-r",
+        "--rule",
+        "--rules",
+        "--rule-profile",
+        dest="rule_profile",
+        default=None,
+        help="Rule profile ID(s) to apply (comma-separated: e.g. 'general,pt-br-dev' or 'all', 'none')",
+    )
+    parser.add_argument(
+        "-s",
+        "--skill",
+        "--skills",
+        dest="skills",
+        default=None,
+        help="Skill ID(s) or categories to activate in workspace (comma-separated: e.g. 'testing,git/commit-helper' or 'all', 'none')",
     )
     parser.add_argument(
         "--sync",
@@ -1845,21 +1871,13 @@ def main():
     parser.add_argument(
         "--clean",
         action="store_true",
-        help="Removes configurations from target workspace for specified tool (or all)",
+        help="Removes configurations from target workspace for specified tool(s) (or all)",
     )
     parser.add_argument(
         "--global",
         dest="is_global",
         action="store_true",
-        help="Applies global configuration for specified tool (or all)",
-    )
-    parser.add_argument(
-        "-r",
-        "--rule",
-        "--rule-profile",
-        dest="rule_profile",
-        default=None,
-        help="Rule profile ID to apply (e.g. pt-br-dev, general)",
+        help="Applies global configuration for specified tool(s) (or all)",
     )
     parser.add_argument(
         "-y",
@@ -1877,6 +1895,51 @@ def main():
         "--list-tools",
         action="store_true",
         help="Lists all supported tools and exits",
+    )
+    parser.add_argument(
+        "--list-agents",
+        action="store_true",
+        help="Lists available subagents and exits",
+    )
+    parser.add_argument(
+        "--list-rules",
+        action="store_true",
+        help="Lists available rules and exits",
+    )
+    parser.add_argument(
+        "--list-skills",
+        action="store_true",
+        help="Lists available modular skills by category and exits",
+    )
+    parser.add_argument(
+        "--ext-list",
+        action="store_true",
+        help="Lists installed remote extensions and exits",
+    )
+    parser.add_argument(
+        "--ext-install",
+        "--ext-download",
+        dest="ext_install",
+        default=None,
+        metavar="ITEM",
+        help="Installs a remote extension from catalog (e.g. 'agents/code-reviewer.md' or 'skills/testing/pytest')",
+    )
+    parser.add_argument(
+        "--ext-update",
+        action="store_true",
+        help="Checks and updates all installed remote extensions",
+    )
+    parser.add_argument(
+        "--ext-remove",
+        dest="ext_remove",
+        default=None,
+        metavar="KEY",
+        help="Removes an installed remote extension by key",
+    )
+    parser.add_argument(
+        "--open-folder",
+        action="store_true",
+        help="Opens personal omni-agents folder in File Explorer (or displays path)",
     )
     parser.add_argument(
         "--no-update-check",
@@ -1970,10 +2033,199 @@ def main():
 
     scanned = scan_repository(repo_root, documents_dir=omni_docs_dir)
 
+    # Personal folder inline action
+    if args.open_folder:
+        if has_graphical_display():
+            open_folder_in_explorer(omni_docs_dir)
+        print(f"Personal omni-agents folder: {omni_docs_dir}")
+        sys.exit(0)
+
+    # Component discovery / inspection inline actions
+    if args.list_agents:
+        agents = scanned.get("agents", [])
+        print("\nAvailable Subagents:")
+        if not agents:
+            print("  (None found)")
+        for a in agents:
+            desc = a.get("description", "")
+            desc_str = f" - {desc[:70]}..." if desc else ""
+            print(f"  * {a['id']:<28}{desc_str}")
+        sys.exit(0)
+
+    if args.list_rules:
+        rules = scanned.get("rules", [])
+        print("\nAvailable Rules:")
+        if not rules:
+            print("  (None found)")
+        for r in rules:
+            desc = r.get("description", "")
+            desc_str = f" - {desc[:70]}..." if desc else ""
+            print(f"  * {r['id']:<24}{desc_str}")
+        sys.exit(0)
+
+    if args.list_skills:
+        skills_cat = scanned.get("skills_by_category", {})
+        print("\nAvailable Modular Skills by Category:")
+        if not skills_cat:
+            print("  (None found)")
+        for cat, items in sorted(skills_cat.items()):
+            print(f"\n  [{cat}] ({len(items)} skills):")
+            for item in items:
+                desc = item.get("description", "")
+                desc_str = f" - {desc[:60]}..." if desc else ""
+                print(f"    * {item['id']:<24}{desc_str}")
+        sys.exit(0)
+
+    # Remote Extensions inline actions
+    ext_dir = (omni_docs_dir / "ext") if omni_docs_dir else None
+    if args.ext_list:
+        manifest = load_manifest(ext_dir) if ext_dir else {}
+        installed = manifest.get("installed", {})
+        print("\nInstalled Remote Extensions:")
+        if not installed:
+            print("  (No extensions currently installed in ext/)")
+        for k, v in installed.items():
+            print(f"  * {k:<32} (sha: {v.get('sha', '')[:7]})")
+        sys.exit(0)
+
+    if args.ext_install:
+        if not ext_dir:
+            print("[x] Error: Personal documents directory is not available.")
+            sys.exit(1)
+        raw_target = args.ext_install.replace("\\", "/").strip("/")
+        parts = raw_target.split("/")
+        comp_type = parts[0] if parts[0] in ("agents", "rules", "skills") else None
+        comp_id = parts[-1]
+        cat = parts[1] if comp_type == "skills" and len(parts) > 2 else None
+
+        if not comp_type:
+            tree = fetch_remote_tree(app_config, timeout=5.0)
+            if tree:
+                if any(
+                    a["id"].lower() == comp_id.lower() for a in tree.get("agents", [])
+                ):
+                    comp_type = "agents"
+                elif any(
+                    r["id"].lower() == comp_id.lower() for r in tree.get("rules", [])
+                ):
+                    comp_type = "rules"
+                else:
+                    for c_name, c_skills in tree.get("skills_by_category", {}).items():
+                        if any(s["id"].lower() == comp_id.lower() for s in c_skills):
+                            comp_type = "skills"
+                            cat = c_name
+                            break
+        if not comp_type:
+            print(
+                f"[x] Error: Could not identify component type for '{args.ext_install}'."
+            )
+            print(
+                "    Use format: 'agents/<id>.md', 'rules/<id>', or 'skills/<cat>/<id>'"
+            )
+            sys.exit(1)
+
+        print(f"-> Installing remote {comp_type}: {comp_id}...")
+        ok = install_remote_component(
+            comp_type, comp_id, app_config, ext_dir, category=cat
+        )
+        if ok:
+            print(f"[OK] Successfully installed {comp_type}/{comp_id} in ext/")
+            sys.exit(0)
+        else:
+            print(f"[x] Failed to install {comp_type}/{comp_id}.")
+            sys.exit(1)
+
+    if args.ext_update:
+        if not ext_dir:
+            print("[x] Error: Personal documents directory is not available.")
+            sys.exit(1)
+        print("-> Checking for remote extension updates...")
+        updates = check_ext_updates(ext_dir, app_config, timeout=5.0)
+        if not updates:
+            print("[OK] All extensions in ext/ are up to date.")
+            sys.exit(0)
+        print(f"-> Found {len(updates)} update(s). Applying...")
+        tree = fetch_remote_tree(app_config, timeout=5.0)
+        for u in updates:
+            install_remote_component(
+                u["type"],
+                u["id"],
+                app_config,
+                ext_dir,
+                category=u.get("category"),
+                tree_data=tree,
+            )
+        print("[OK] Extensions updated successfully.")
+        sys.exit(0)
+
+    if args.ext_remove:
+        if not ext_dir:
+            print("[x] Error: Personal documents directory is not available.")
+            sys.exit(1)
+        manifest = load_manifest(ext_dir)
+        installed = manifest.get("installed", {})
+        key_to_del = next(
+            (k for k in installed if k.lower() == args.ext_remove.lower()), None
+        )
+        if not key_to_del:
+            print(
+                f"[x] Error: Extension '{args.ext_remove}' not found in installed extensions."
+            )
+            sys.exit(1)
+        del installed[key_to_del]
+        save_manifest(ext_dir, manifest)
+        target_file = ext_dir / key_to_del
+        if target_file.is_dir():
+            shutil.rmtree(target_file, ignore_errors=True)
+        elif target_file.is_file():
+            target_file.unlink(missing_ok=True)
+        print(f"[OK] Removed extension: {key_to_del}")
+        sys.exit(0)
+
+    # Resolve target_path default for inline actions if omitted
+    has_inline_action = (
+        args.sync
+        or args.clean
+        or args.agents is not None
+        or args.skills is not None
+        or (args.rule_profile is not None and not args.is_global)
+    )
+    if target_path is None and has_inline_action and not args.is_global:
+        target_path = Path.cwd().resolve()
+
+    # Global Clean via CLI
+    if args.is_global and args.clean:
+        tools = (
+            [
+                get_target(t)
+                for t in [
+                    x.strip().lower()
+                    for x in args.target_tool.replace(";", ",").split(",")
+                    if x.strip()
+                ]
+            ]
+            if args.target_tool and args.target_tool != "all"
+            else [target for target in get_all_targets() if target.supports_global]
+        )
+        for target in tools:
+            if target:
+                target.clean_global(lang=current_lang)
+        app_config["global_rules"] = []
+        save_app_config(repo_root, app_config, omni_docs_dir=omni_docs_dir)
+        print("\n[OK] Global clean completed.")
+        sys.exit(0)
+
     # Global Mode via CLI
     if args.is_global:
         tools = (
-            [get_target(args.target_tool)]
+            [
+                get_target(t)
+                for t in [
+                    x.strip().lower()
+                    for x in args.target_tool.replace(";", ",").split(",")
+                    if x.strip()
+                ]
+            ]
             if args.target_tool and args.target_tool != "all"
             else [target for target in get_all_targets() if target.supports_global]
         )
@@ -1981,15 +2233,27 @@ def main():
         rules_map = {r["id"]: r for r in rules}
         selected_rules = []
         if args.rule_profile:
-            matched = next(
-                (r for r in rules if r["id"].lower() == args.rule_profile.lower()),
-                None,
-            )
-            if not matched:
-                print(f"[!] Rule profile '{args.rule_profile}' not found.")
-                print(f"    Available: {', '.join(r['id'] for r in rules)}")
-                sys.exit(1)
-            selected_rules = [matched]
+            if args.rule_profile.lower() in ("none", "clear", "limpar"):
+                selected_rules = []
+            elif args.rule_profile.lower() in ("all", "todas"):
+                selected_rules = list(rules)
+            else:
+                rule_tokens = [
+                    tok.strip()
+                    for tok in args.rule_profile.replace(";", ",").split(",")
+                    if tok.strip()
+                ]
+                for tok in rule_tokens:
+                    matched = next(
+                        (r for r in rules if r["id"].lower() == tok.lower()), None
+                    )
+                    if matched:
+                        if matched not in selected_rules:
+                            selected_rules.append(matched)
+                    else:
+                        print(f"[!] Rule profile '{tok}' not found.")
+                        print(f"    Available: {', '.join(r['id'] for r in rules)}")
+                        sys.exit(1)
         else:
             configured_ids = app_config.get("global_rules", [])
             selected_rules = [
@@ -2005,13 +2269,19 @@ def main():
                     selected_rules=selected_rules,
                     assume_yes=args.assume_yes,
                 )
+        app_config["global_rules"] = [r["id"] for r in selected_rules]
+        save_app_config(repo_root, app_config, omni_docs_dir=omni_docs_dir)
         sys.exit(0)
 
     # Clean Mode via CLI
     if args.clean and target_path:
         state = load_workspace_state(target_path)
         tool_ids = (
-            [args.target_tool.lower()]
+            [
+                x.strip().lower()
+                for x in args.target_tool.replace(";", ",").split(",")
+                if x.strip()
+            ]
             if args.target_tool and args.target_tool != "all"
             else get_available_target_ids()
         )
@@ -2025,30 +2295,191 @@ def main():
         print("\n[OK] Clean completed.")
         sys.exit(0)
 
-    # Sync Mode via CLI
-    if args.sync and target_path:
+    # Workspace Configuration & Sync Mode via CLI
+    if has_inline_action and target_path:
         state = load_workspace_state(target_path)
         active_tools = state.get("active_targets", [])
         if args.target_tool:
-            if args.target_tool == "all":
+            if args.target_tool.lower() == "all":
                 active_tools = get_available_target_ids()
             else:
-                active_tools = [args.target_tool.lower()]
+                tool_tokens = [
+                    t.strip().lower()
+                    for t in args.target_tool.replace(";", ",").split(",")
+                    if t.strip()
+                ]
+                matched_tools = [t for t in tool_tokens if get_target(t) is not None]
+                if matched_tools:
+                    active_tools = matched_tools
+                else:
+                    print(
+                        f"[!] Warning: No recognized tools in '{args.target_tool}'. Supported: {', '.join(get_available_target_ids())}"
+                    )
         if not active_tools:
             active_tools = ["antigravity"]
+
+        # Agents
+        if args.agents is not None:
+            if args.agents.lower() in ("none", "clear", "limpar"):
+                selected_agent_ids = []
+            elif args.agents.lower() in ("all", "todos"):
+                selected_agent_ids = [a["id"] for a in scanned.get("agents", [])]
+            else:
+                agent_tokens = [
+                    tok.strip()
+                    for tok in args.agents.replace(";", ",").split(",")
+                    if tok.strip()
+                ]
+                selected_agent_ids = []
+                available_agents = scanned.get("agents", [])
+                for tok in agent_tokens:
+                    matched = next(
+                        (
+                            a
+                            for a in available_agents
+                            if a["id"].lower() == tok.lower()
+                            or a["id"].lower().replace(".md", "") == tok.lower()
+                        ),
+                        None,
+                    )
+                    if matched:
+                        if matched["id"] not in selected_agent_ids:
+                            selected_agent_ids.append(matched["id"])
+                    else:
+                        print(
+                            f"[!] Warning: Subagent '{tok}' not found in available agents."
+                        )
+        else:
+            selected_agent_ids = state.get("selected_agents", [])
+
+        # Rules
+        if args.rule_profile is not None:
+            if args.rule_profile.lower() in ("none", "clear", "limpar"):
+                selected_rule_ids = []
+            elif args.rule_profile.lower() in ("all", "todas"):
+                selected_rule_ids = [r["id"] for r in scanned.get("rules", [])]
+            else:
+                rule_tokens = [
+                    tok.strip()
+                    for tok in args.rule_profile.replace(";", ",").split(",")
+                    if tok.strip()
+                ]
+                selected_rule_ids = []
+                available_rules = scanned.get("rules", [])
+                for tok in rule_tokens:
+                    matched = next(
+                        (r for r in available_rules if r["id"].lower() == tok.lower()),
+                        None,
+                    )
+                    if matched:
+                        if matched["id"] not in selected_rule_ids:
+                            selected_rule_ids.append(matched["id"])
+                    else:
+                        print(
+                            f"[!] Warning: Rule '{tok}' not found in available rules."
+                        )
+        else:
+            selected_rule_ids = (
+                state.get("selected_rules")
+                if state.get("selected_rules") is not None
+                else [r["id"] for r in scanned.get("rules", [])]
+            )
+
+        # Skills
+        skills_by_cat = scanned.get("skills_by_category", {})
+        if args.skills is not None:
+            if args.skills.lower() in ("none", "clear", "limpar"):
+                selected_skills_dict = {}
+            elif args.skills.lower() in ("all", "todas"):
+                selected_skills_dict = {
+                    cat: [s["id"] for s in s_list]
+                    for cat, s_list in skills_by_cat.items()
+                }
+            else:
+                selected_skills_dict = {}
+                skill_tokens = [
+                    tok.strip()
+                    for tok in args.skills.replace(";", ",").split(",")
+                    if tok.strip()
+                ]
+                for tok in skill_tokens:
+                    if "/" in tok:
+                        c_part, s_part = tok.split("/", 1)
+                        c_match = next(
+                            (c for c in skills_by_cat if c.lower() == c_part.lower()),
+                            None,
+                        )
+                        if c_match:
+                            s_match = next(
+                                (
+                                    s
+                                    for s in skills_by_cat[c_match]
+                                    if s["id"].lower() == s_part.lower()
+                                ),
+                                None,
+                            )
+                            if s_match:
+                                selected_skills_dict.setdefault(c_match, set()).add(
+                                    s_match["id"]
+                                )
+                            else:
+                                print(
+                                    f"[!] Warning: Skill '{s_part}' not found in category '{c_match}'."
+                                )
+                        else:
+                            print(f"[!] Warning: Skill category '{c_part}' not found.")
+                    else:
+                        c_match = next(
+                            (c for c in skills_by_cat if c.lower() == tok.lower()),
+                            None,
+                        )
+                        if c_match:
+                            selected_skills_dict[c_match] = {
+                                s["id"] for s in skills_by_cat[c_match]
+                            }
+                        else:
+                            found = False
+                            for cat_name, cat_skills in skills_by_cat.items():
+                                s_match = next(
+                                    (
+                                        s
+                                        for s in cat_skills
+                                        if s["id"].lower() == tok.lower()
+                                    ),
+                                    None,
+                                )
+                                if s_match:
+                                    selected_skills_dict.setdefault(
+                                        cat_name, set()
+                                    ).add(s_match["id"])
+                                    found = True
+                                    break
+                            if not found:
+                                print(
+                                    f"[!] Warning: Skill or category '{tok}' not found in available skills."
+                                )
+                selected_skills_dict = {
+                    k: sorted(v) for k, v in selected_skills_dict.items() if v
+                }
+        else:
+            selected_skills_dict = state.get("selected_skills", {})
 
         apply_workspace_to_targets(
             target_path=target_path,
             repo_root=repo_root,
             scanned=scanned,
             active_target_ids=active_tools,
-            selected_agent_ids=state.get("selected_agents", []),
-            selected_rule_ids=state.get("selected_rules")
-            if state.get("selected_rules") is not None
-            else [r["id"] for r in scanned["rules"]],
-            selected_skills_dict=state.get("selected_skills", {}),
+            selected_agent_ids=selected_agent_ids,
+            selected_rule_ids=selected_rule_ids,
+            selected_skills_dict=selected_skills_dict,
             lang=current_lang,
         )
+
+        state["active_targets"] = active_tools
+        state["selected_agents"] = selected_agent_ids
+        state["selected_rules"] = selected_rule_ids
+        state["selected_skills"] = selected_skills_dict
+        save_workspace_state(target_path, state)
         print(f"\n[OK] {t('sync_success', current_lang)}")
         sys.exit(0)
 
