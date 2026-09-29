@@ -18,9 +18,11 @@ Supported Tools:
 from __future__ import annotations
 
 import argparse
+import contextlib
 import importlib.util
 import json
 import os
+import shutil
 import sys
 from pathlib import Path
 from typing import Any
@@ -30,19 +32,32 @@ SCRIPTS_DIR = Path(__file__).resolve().parent
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
-# Garante codificacao UTF-8 no terminal para suporte estavel a caracteres acentuados
+# Ensures UTF-8 terminal encoding for stable accented character support
 if sys.platform.startswith("win"):
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     if hasattr(sys.stderr, "reconfigure"):
         sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
+from env_paths import (
+    ensure_omni_documents_structure,
+    is_dev_mode,
+    open_folder_in_explorer,
+    save_omni_config,
+)
 from i18n import (
     get_available_languages,
     get_language_badge,
     get_language_name,
     resolve_language_code,
     t,
+)
+from remote_sync import (
+    check_ext_updates,
+    fetch_remote_tree,
+    install_remote_component,
+    load_manifest,
+    save_manifest,
 )
 from targets import (
     get_all_targets,
@@ -52,54 +67,71 @@ from targets import (
     save_workspace_state,
 )
 from targets.base import parse_frontmatter
+from updater import __version__, check_for_updates, prompt_and_upgrade
 
 
-def load_app_config(repo_root: Path) -> dict[str, Any]:
-    """Loads persistent local application preferences (config.json)."""
+def load_app_config(
+    repo_root: Path, omni_docs_dir: Path | None = None
+) -> dict[str, Any]:
+    """Loads persistent application preferences from Documents or repo root."""
+    if omni_docs_dir:
+        cfg_file = omni_docs_dir / "config.json"
+        if cfg_file.exists():
+            try:
+                return json.loads(cfg_file.read_text(encoding="utf-8"))
+            except (json.JSONDecodeError, OSError):
+                pass
     cfg_file = repo_root / "config.json"
-    if not cfg_file.exists():
-        return {}
-    try:
-        return json.loads(cfg_file.read_text(encoding="utf-8"))
-    except (json.JSONDecodeError, OSError):
-        return {}
+    if cfg_file.exists():
+        try:
+            return json.loads(cfg_file.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            pass
+    return {}
 
 
-def save_app_config(repo_root: Path, config: dict[str, Any]):
-    """Persists local application preferences to config.json."""
-    cfg_file = repo_root / "config.json"
-    try:
-        cfg_file.write_text(
-            json.dumps(config, indent=2, ensure_ascii=False) + "\n",
-            encoding="utf-8",
-        )
-    except OSError:
-        pass
+def save_app_config(
+    repo_root: Path,
+    config: dict[str, Any],
+    omni_docs_dir: Path | None = None,
+):
+    """Persists application preferences to Documents/omni-agent/config.json and repo root."""
+    if omni_docs_dir:
+        save_omni_config(config)
+    if is_dev_mode(repo_root):
+        cfg_file = repo_root / "config.json"
+        try:
+            cfg_file.write_text(
+                json.dumps(config, indent=2, ensure_ascii=False) + "\n",
+                encoding="utf-8",
+            )
+        except OSError:
+            pass
 
 
 def has_graphical_display() -> bool:
-    """Verifica se ha um display grafico disponivel no ambiente."""
+    """Checks if a graphical display environment is available."""
     if sys.platform.startswith("win") or sys.platform.startswith("darwin"):
         return True
     return bool(os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY"))
 
 
 def is_gui_available() -> bool:
-    """Verifica se o display grafico e o modulo Tkinter estao disponiveis."""
+    """Checks if both graphical display and Tkinter module are available."""
     if not has_graphical_display():
         return False
     return importlib.util.find_spec("tkinter") is not None
 
 
 def clear_screen():
-    """Limpa a tela do terminal de forma multiplataforma."""
+    """Cross-platform terminal screen cleaner."""
     os.system("cls" if sys.platform.startswith("win") else "clear")
 
 
 def pick_directory_gui(
     title: str = "Select Project Repository Directory",
 ) -> str | None:
-    """Abre interface grafica nativa (Tkinter) para selecao de pasta."""
+    """Opens native GUI file dialog (Tkinter) for directory selection."""
     try:
         import tkinter as tk
         from tkinter import filedialog
@@ -119,53 +151,43 @@ def pick_directory_gui(
         return None
 
 
-def scan_repository(repo_root: Path) -> dict[str, Any]:
-    """
-    Escaneia dinamicamente as pastas do repositorio:
-    - skills/<categoria>/<skill_name>/SKILL.md
-    - agents/*.md
-    - rules/*.md
-    """
-    data: dict[str, Any] = {"skills_by_category": {}, "agents": [], "rules": []}
+def _scan_source_directory(source_dir: Path) -> dict[str, Any]:
+    """Scans a directory containing skills/, agents/, and/or rules/ folders."""
+    skills_map: dict[str, dict[str, dict[str, Any]]] = {}
+    agents_map: dict[str, dict[str, Any]] = {}
+    rules_map: dict[str, dict[str, Any]] = {}
 
-    # 1. Escaneia Skills
-    skills_dir = repo_root / "skills"
+    # 1. Skills
+    skills_dir = source_dir / "skills"
     if skills_dir.exists() and skills_dir.is_dir():
         for category_dir in sorted(skills_dir.iterdir()):
             if category_dir.is_dir() and not category_dir.name.startswith("."):
                 cat_name = category_dir.name
-                skills_list = []
                 for item in sorted(category_dir.iterdir()):
                     skill_md = item / "SKILL.md"
                     if item.is_dir() and skill_md.exists():
                         name, desc = parse_frontmatter(skill_md)
-                        skills_list.append(
-                            {
-                                "id": item.name,
-                                "name": name,
-                                "description": desc,
-                                "path": item.resolve(),
-                            }
-                        )
-                if skills_list:
-                    data["skills_by_category"][cat_name] = skills_list
+                        skills_map.setdefault(cat_name, {})[item.name] = {
+                            "id": item.name,
+                            "name": name,
+                            "description": desc,
+                            "path": item.resolve(),
+                        }
 
-    # 2. Escaneia Subagentes
-    agents_dir = repo_root / "agents"
+    # 2. Subagents
+    agents_dir = source_dir / "agents"
     if agents_dir.exists() and agents_dir.is_dir():
         for item in sorted(agents_dir.glob("*.md")):
             name, desc = parse_frontmatter(item)
-            data["agents"].append(
-                {
-                    "id": item.name,
-                    "name": name,
-                    "description": desc,
-                    "path": item.resolve(),
-                }
-            )
+            agents_map[item.name] = {
+                "id": item.name,
+                "name": name,
+                "description": desc,
+                "path": item.resolve(),
+            }
 
-    # 3. Escaneia Regras
-    rules_dir = repo_root / "rules"
+    # 3. Rules
+    rules_dir = source_dir / "rules"
     if rules_dir.exists() and rules_dir.is_dir():
         for item in sorted(rules_dir.glob("*.md")):
             name, desc = parse_frontmatter(item)
@@ -178,20 +200,67 @@ def scan_repository(repo_root: Path) -> dict[str, Any]:
                             break
                 except (OSError, UnicodeDecodeError):
                     desc = ""
-            data["rules"].append(
-                {
-                    "id": item.name,
-                    "name": name,
-                    "description": desc,
-                    "path": item.resolve(),
-                }
+            rules_map[item.name] = {
+                "id": item.name,
+                "name": name,
+                "description": desc,
+                "path": item.resolve(),
+            }
+
+    return {"skills": skills_map, "agents": agents_map, "rules": rules_map}
+
+
+def scan_repository(
+    repo_root: Path, documents_dir: Path | None = None
+) -> dict[str, Any]:
+    """
+    Dynamically scans and consolidates components across hierarchical layers:
+    1. Default base / Repo Root (if present)
+    2. Remote extensions (Documents/omni-agent/ext)
+    3. User custom overrides (Documents/omni-agent/custom - highest precedence)
+    """
+    merged_skills: dict[str, dict[str, dict[str, Any]]] = {}
+    merged_agents: dict[str, dict[str, Any]] = {}
+    merged_rules: dict[str, dict[str, Any]] = {}
+
+    def _merge_layer(layer_data: dict[str, Any]):
+        for cat, skills in layer_data["skills"].items():
+            merged_skills.setdefault(cat, {}).update(skills)
+        merged_agents.update(layer_data["agents"])
+        merged_rules.update(layer_data["rules"])
+
+    # Layer 1: Repository base (or package)
+    if repo_root.exists() and repo_root.is_dir():
+        _merge_layer(_scan_source_directory(repo_root))
+
+    # Layers in Documents (ext and custom)
+    if documents_dir and documents_dir.exists() and documents_dir.is_dir():
+        # Layer 2: ext/ (downloaded extensions)
+        ext_dir = documents_dir / "ext"
+        if ext_dir.exists() and ext_dir.is_dir():
+            _merge_layer(_scan_source_directory(ext_dir))
+
+        # Layer 3: custom/ (user personal overrides - highest precedence)
+        custom_dir = documents_dir / "custom"
+        if custom_dir.exists() and custom_dir.is_dir():
+            _merge_layer(_scan_source_directory(custom_dir))
+
+    final_skills: dict[str, list[dict[str, Any]]] = {}
+    for cat_name, cat_skills in sorted(merged_skills.items()):
+        if cat_skills:
+            final_skills[cat_name] = sorted(
+                cat_skills.values(), key=lambda x: str(x["id"])
             )
 
-    return data
+    return {
+        "skills_by_category": final_skills,
+        "agents": sorted(merged_agents.values(), key=lambda x: str(x["id"])),
+        "rules": sorted(merged_rules.values(), key=lambda x: str(x["id"])),
+    }
 
 
 def resolve_workspace(current_target: Path | None, lang: str = "en") -> Path | None:
-    """Solicita a definicao do workspace alvo, abrindo janela grafica nativa se disponivel."""
+    """Prompts for target workspace path, opening native GUI dialog if available."""
     if current_target and current_target.exists() and current_target.is_dir():
         return current_target
 
@@ -214,7 +283,7 @@ def resolve_workspace(current_target: Path | None, lang: str = "en") -> Path | N
         except (EOFError, KeyboardInterrupt):
             return None
 
-        if val.lower() in ("v", "voltar", ""):
+        if val.lower() in ("v", "voltar", "volver", ""):
             return None
 
         clean_val = val.strip("\"'")
@@ -234,7 +303,7 @@ def apply_workspace_to_targets(
     selected_skills_dict: dict[str, list[str] | set[str]],
     lang: str = "en",
 ) -> bool:
-    """Executa a aplicacao das regras, agentes e skills em todos os targets ativos."""
+    """Applies rules, agents, and skills across all active target tools."""
     if not active_target_ids:
         print(f"  [!] {t('no_active_tools', lang)}")
         return False
@@ -283,10 +352,10 @@ def apply_workspace_to_targets(
 
 
 def confirm_exit_unsaved(lang: str = "en") -> bool:
-    """Pergunta ao usuário se deseja sair sem salvar caso haja alterações pendentes."""
+    """Prompts the user whether to discard unsaved changes."""
     try:
         resp = input(f"\n{t('unsaved_changes_warning', lang)}").strip().lower()
-        return resp in ("s", "sim", "y", "yes")
+        return resp in ("s", "sim", "y", "yes", "si", "sí")
     except (EOFError, KeyboardInterrupt):
         return True
 
@@ -298,7 +367,7 @@ def handle_target_selection(
     current_state: dict[str, Any],
     lang: str = "en",
 ) -> list[str]:
-    """Menu interativo para selecionar e alternar quais ferramentas serao configuradas."""
+    """Interactive menu to select and toggle target tools to configure."""
     all_targets = get_all_targets()
     active_set = set(current_state.get("active_targets", []))
     if not active_set:
@@ -328,12 +397,12 @@ def handle_target_selection(
         except (EOFError, KeyboardInterrupt):
             break
 
-        if choice in ("v", "voltar"):
+        if choice in ("v", "voltar", "volver"):
             if active_set != initial_set and not confirm_exit_unsaved(lang=lang):
                 continue
             break
 
-        if choice in ("s", "salvar", "save"):
+        if choice in ("s", "salvar", "save", "guardar"):
             new_active_list = [
                 target.target_id
                 for target in all_targets
@@ -370,7 +439,7 @@ def handle_target_selection(
 
         if choice == "all":
             active_set = {target.target_id for target in all_targets}
-        elif choice in ("limpar", "clear"):
+        elif choice in ("limpar", "clear", "limpiar"):
             active_set.clear()
         else:
             tokens = [
@@ -403,7 +472,7 @@ def handle_target_selection(
 
 
 def handle_global_configuration(repo_root: Path, lang: str = "en"):
-    """Menu para gerenciar instalacao de configuracoes globais (Antigravity, Claude, etc.)."""
+    """Menu for managing global machine-wide configuration links (Antigravity, Claude, etc.)."""
     clear_screen()
     print("\n" + "=" * 65)
     print(f"  {t('global_title', lang)}")
@@ -425,7 +494,7 @@ def handle_global_configuration(repo_root: Path, lang: str = "en"):
     except (EOFError, KeyboardInterrupt):
         return
 
-    if choice in ("v", "voltar", ""):
+    if choice in ("v", "voltar", "volver", ""):
         return
 
     if choice == "all":
@@ -438,7 +507,7 @@ def handle_global_configuration(repo_root: Path, lang: str = "en"):
             pass
         return
 
-    if choice in ("limpar", "clear"):
+    if choice in ("limpar", "clear", "limpiar"):
         print(f"\n-> {t('cleaning_global', lang)}")
         for target in targets_with_global:
             target.clean_global(lang=lang)
@@ -467,7 +536,7 @@ def handle_agents(
     current_state: dict[str, Any],
     lang: str = "en",
 ):
-    """Opcao: Selecao e ativacao de subagentes para o workspace."""
+    """Option: Subagents selection and activation for target workspace."""
     agents = scanned["agents"]
     if not agents:
         print(f"[!] {t('no_agents_found', lang)}")
@@ -502,14 +571,14 @@ def handle_agents(
         except (EOFError, KeyboardInterrupt):
             return
 
-        if user_input in ("v", "voltar"):
+        if user_input in ("v", "voltar", "volver"):
             if curr_selected != initial_selected and not confirm_exit_unsaved(
                 lang=lang
             ):
                 continue
             return
 
-        if user_input in ("s", "salvar", "save"):
+        if user_input in ("s", "salvar", "save", "guardar"):
             current_state["selected_agents"] = sorted(curr_selected)
             apply_workspace_to_targets(
                 target_path=target_path,
@@ -534,7 +603,7 @@ def handle_agents(
         if user_input == "all":
             curr_selected = {agent["id"] for agent in agents}
             print(f"  [+] {t('all_agents_marked', lang)}")
-        elif user_input in ("limpar", "clear"):
+        elif user_input in ("limpar", "clear", "limpiar"):
             curr_selected.clear()
             print(f"  [i] {t('all_agents_cleared', lang)}")
         else:
@@ -577,7 +646,7 @@ def handle_rules(
     current_state: dict[str, Any],
     lang: str = "en",
 ):
-    """Opcao: Selecao e ativacao de regras para o workspace."""
+    """Option: Rules selection and activation for target workspace."""
     rules = scanned["rules"]
     if not rules:
         print(f"[!] {t('no_rules_found', lang)}")
@@ -614,14 +683,14 @@ def handle_rules(
         except (EOFError, KeyboardInterrupt):
             return
 
-        if user_input in ("v", "voltar"):
+        if user_input in ("v", "voltar", "volver"):
             if curr_selected != initial_selected and not confirm_exit_unsaved(
                 lang=lang
             ):
                 continue
             return
 
-        if user_input in ("s", "salvar", "save"):
+        if user_input in ("s", "salvar", "save", "guardar"):
             current_state["selected_rules"] = sorted(curr_selected)
             apply_workspace_to_targets(
                 target_path=target_path,
@@ -645,7 +714,7 @@ def handle_rules(
 
         if user_input == "all":
             curr_selected = {rule["id"] for rule in rules}
-        elif user_input in ("limpar", "clear"):
+        elif user_input in ("limpar", "clear", "limpiar"):
             curr_selected.clear()
         else:
             tokens = [
@@ -667,7 +736,7 @@ def handle_rules(
 def handle_category_submenu(
     cat_name: str, skills: list[dict], selected_set: set[str], lang: str = "en"
 ) -> set[str]:
-    """Submenu dinamico para gerenciar as skills de uma categoria especifica."""
+    """Dynamic submenu to manage skills within a specific category."""
     current_selected = set(selected_set)
 
     while True:
@@ -694,13 +763,13 @@ def handle_category_submenu(
         except (EOFError, KeyboardInterrupt):
             break
 
-        if choice in ("v", "voltar", ""):
+        if choice in ("v", "voltar", "volver", ""):
             break
 
         if choice == "all":
             for skill in skills:
                 current_selected.add(skill["id"])
-        elif choice in ("limpar", "clear"):
+        elif choice in ("limpar", "clear", "limpiar"):
             current_selected.clear()
         else:
             tokens = [
@@ -738,7 +807,7 @@ def handle_skills(
     current_state: dict[str, Any],
     lang: str = "en",
 ):
-    """Opcao: Menu dinamico de categorias de skills com submenus individuais."""
+    """Option: Modular skills category menu with dedicated submenus."""
     skills_by_cat = scanned["skills_by_category"]
     if not skills_by_cat:
         print(f"[!] {t('no_skills_found', lang)}")
@@ -784,7 +853,7 @@ def handle_skills(
         except (EOFError, KeyboardInterrupt):
             break
 
-        if choice in ("v", "voltar"):
+        if choice in ("v", "voltar", "volver"):
             has_changed = any(
                 selected_by_cat.get(cat, set()) != initial_by_cat.get(cat, set())
                 for cat in set(selected_by_cat.keys()) | set(initial_by_cat.keys())
@@ -796,7 +865,7 @@ def handle_skills(
         if choice == "":
             continue
 
-        if choice in ("s", "salvar", "save"):
+        if choice in ("s", "salvar", "save", "guardar"):
             current_state["selected_skills"] = {
                 k: sorted(v) for k, v in selected_by_cat.items() if v
             }
@@ -821,7 +890,7 @@ def handle_skills(
             for cat_name, skills in skills_by_cat.items():
                 selected_by_cat[cat_name] = {s["id"] for s in skills}
 
-        elif choice in ("limpar", "clear"):
+        elif choice in ("limpar", "clear", "limpiar"):
             selected_by_cat.clear()
 
         elif choice.isdigit():
@@ -853,7 +922,7 @@ def handle_clean_workspace(
     current_state: dict[str, Any],
     lang: str = "en",
 ):
-    """Opcao: Desinstalacao e limpeza isolada por ferramenta."""
+    """Option: Cleanup and uninstallation isolated by target tool."""
     clear_screen()
     print("\n" + "=" * 65)
     print(f"  {t('clean_title', lang)}")
@@ -877,7 +946,7 @@ def handle_clean_workspace(
     except (EOFError, KeyboardInterrupt):
         return
 
-    if choice in ("v", "voltar", ""):
+    if choice in ("v", "voltar", "volver", ""):
         return
 
     if choice == "all":
@@ -914,6 +983,7 @@ def handle_language_selection(
     current_lang: str,
     app_config: dict[str, Any],
     workspace_state: dict[str, Any],
+    omni_docs_dir: Path | None = None,
 ) -> str:
     """Interactively allows user to toggle or choose UI language and persists it in config.json."""
     available_langs = get_available_languages()
@@ -942,7 +1012,7 @@ def handle_language_selection(
     except (EOFError, KeyboardInterrupt):
         return current_code
 
-    if choice in ("v", "voltar"):
+    if choice in ("v", "voltar", "volver"):
         return current_code
 
     if choice == "":
@@ -970,7 +1040,7 @@ def handle_language_selection(
             return current_code
 
     app_config["language"] = new_lang
-    save_app_config(repo_root, app_config)
+    save_app_config(repo_root, app_config, omni_docs_dir=omni_docs_dir)
 
     if target_path:
         workspace_state["language"] = new_lang
@@ -984,6 +1054,211 @@ def handle_language_selection(
         pass
 
     return new_lang
+
+
+def handle_remote_extensions(
+    documents_dir: Path,
+    config: dict[str, Any],
+    lang: str = "en",
+):
+    """Submenu for managing remote repository extensions in ext/."""
+    ext_dir = documents_dir / "ext"
+
+    while True:
+        clear_screen()
+        manifest = load_manifest(ext_dir)
+        installed = manifest.get("installed", {})
+
+        print("\n" + "=" * 65)
+        print(f"  {t('ext_title', lang)}")
+        print("=" * 65)
+        print(f"  {t('ext_installed_count', lang, count=len(installed))}")
+        repo_url = config.get("repository", {}).get(
+            "url", "https://github.com/TheCheepeer/omni-agent"
+        )
+        print(f"  {t('repo_label', lang)}:   {repo_url}")
+        print("-" * 65)
+        print(f"  {t('ext_menu_download', lang)}")
+        print(f"  {t('ext_menu_update', lang)}")
+        print(f"  {t('ext_menu_remove', lang)}")
+        print(f"  {t('ext_menu_back', lang)}")
+        print("=" * 65)
+
+        try:
+            choice = input(f"\n{t('choose_option', lang)}").strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            return
+
+        if choice in ("v", "voltar", "volver", ""):
+            return
+
+        elif choice == "1":
+            print(f"\n-> {t('ext_connecting', lang)}")
+            tree = fetch_remote_tree(config, timeout=2.5)
+            if not tree:
+                print(f"\n[!] {t('offline_notice', lang)}")
+                print(f"    {t('offline_action_error', lang)}")
+                try:
+                    input(f"\n{t('press_enter', lang)}")
+                except (EOFError, KeyboardInterrupt):
+                    pass
+                continue
+
+            clear_screen()
+            total_skills_count = sum(
+                len(v) for v in tree["skills_by_category"].values()
+            )
+            print("\n" + "=" * 65)
+            print(f"  {t('ext_download_title', lang)}")
+            print("=" * 65)
+            print(f"  {t('ext_agents_available', lang, count=len(tree['agents']))}")
+            print(f"  {t('ext_rules_available', lang, count=len(tree['rules']))}")
+            print(f"  {t('ext_skills_available', lang, count=total_skills_count)}")
+            print(f"  {t('ext_menu_back', lang)}")
+            print("=" * 65)
+
+            try:
+                sub_choice = input(f"\n{t('choose_option', lang)}").strip().lower()
+            except (EOFError, KeyboardInterrupt):
+                continue
+
+            if sub_choice == "1":
+                for idx, a in enumerate(tree["agents"], 1):
+                    is_in = "[x]" if f"agents/{a['id']}" in installed else "[ ]"
+                    print(f"  [{idx}] {is_in} {a['id']}")
+                sel = input(f"\n{t('ext_prompt_download', lang)}").strip()
+                if sel.isdigit() and 1 <= int(sel) <= len(tree["agents"]):
+                    target_agent = tree["agents"][int(sel) - 1]["id"]
+                    print(f"-> {t('ext_downloading', lang, item=target_agent)}")
+                    ok = install_remote_component(
+                        "agents", target_agent, config, ext_dir, tree_data=tree
+                    )
+                    msg = (
+                        t("ext_download_ok", lang, item=target_agent)
+                        if ok
+                        else t("ext_download_fail", lang, item=target_agent)
+                    )
+                    print(f"\n{'[OK]' if ok else '[x]'} {msg}")
+                    try:
+                        input(f"\n{t('press_enter', lang)}")
+                    except (EOFError, KeyboardInterrupt):
+                        pass
+
+            elif sub_choice == "2":
+                for idx, r in enumerate(tree["rules"], 1):
+                    is_in = "[x]" if f"rules/{r['id']}" in installed else "[ ]"
+                    print(f"  [{idx}] {is_in} {r['id']}")
+                sel = input(f"\n{t('ext_prompt_download', lang)}").strip()
+                if sel.isdigit() and 1 <= int(sel) <= len(tree["rules"]):
+                    target_rule = tree["rules"][int(sel) - 1]["id"]
+                    print(f"-> {t('ext_downloading', lang, item=target_rule)}")
+                    ok = install_remote_component(
+                        "rules", target_rule, config, ext_dir, tree_data=tree
+                    )
+                    msg = (
+                        t("ext_download_ok", lang, item=target_rule)
+                        if ok
+                        else t("ext_download_fail", lang, item=target_rule)
+                    )
+                    print(f"\n{'[OK]' if ok else '[x]'} {msg}")
+                    try:
+                        input(f"\n{t('press_enter', lang)}")
+                    except (EOFError, KeyboardInterrupt):
+                        pass
+
+            elif sub_choice == "3":
+                all_skills = []
+                for cat, items in sorted(tree["skills_by_category"].items()):
+                    for item in items:
+                        all_skills.append((cat, item["id"]))
+                for idx, (cat, s_id) in enumerate(all_skills, 1):
+                    is_in = "[x]" if f"skills/{cat}/{s_id}" in installed else "[ ]"
+                    print(f"  [{idx}] {is_in} {cat}/{s_id}")
+                sel = input(f"\n{t('ext_prompt_download', lang)}").strip()
+                if sel.isdigit() and 1 <= int(sel) <= len(all_skills):
+                    cat, s_id = all_skills[int(sel) - 1]
+                    print(f"-> {t('ext_downloading', lang, item=f'{cat}/{s_id}')}")
+                    ok = install_remote_component(
+                        "skills",
+                        s_id,
+                        config,
+                        ext_dir,
+                        category=cat,
+                        tree_data=tree,
+                    )
+                    msg = (
+                        t("ext_download_ok", lang, item=s_id)
+                        if ok
+                        else t("ext_download_fail", lang, item=s_id)
+                    )
+                    print(f"\n{'[OK]' if ok else '[x]'} {msg}")
+                    try:
+                        input(f"\n{t('press_enter', lang)}")
+                    except (EOFError, KeyboardInterrupt):
+                        pass
+
+        elif choice == "2":
+            print(f"\n-> {t('ext_checking_updates', lang)}")
+            updates = check_ext_updates(ext_dir, config, timeout=2.0)
+            if not updates:
+                print(f"[OK] {t('ext_up_to_date', lang)}")
+            else:
+                print(f"\n[!] {t('ext_updates_found', lang, count=len(updates))}")
+                for u in updates:
+                    print(
+                        f"    * {u['key']} ({u['current_sha'][:7]} -> {u['new_sha'][:7]})"
+                    )
+                try:
+                    up_choice = (
+                        input(f"\n{t('ext_prompt_update_all', lang)}").strip().lower()
+                    )
+                except (EOFError, KeyboardInterrupt):
+                    up_choice = "n"
+                if up_choice in ("", "s", "sim", "y", "yes", "si", "sí"):
+                    tree = fetch_remote_tree(config, timeout=3.0)
+                    for u in updates:
+                        install_remote_component(
+                            u["type"],
+                            u["id"],
+                            config,
+                            ext_dir,
+                            category=u.get("category"),
+                            tree_data=tree,
+                        )
+                    print(f"\n[OK] {t('sync_success', lang)}")
+            try:
+                input(f"\n{t('press_enter', lang)}")
+            except (EOFError, KeyboardInterrupt):
+                pass
+
+        elif choice == "3":
+            if not installed:
+                print(f"\n[!] {t('ext_none_installed', lang)}")
+                try:
+                    input(f"\n{t('press_enter', lang)}")
+                except (EOFError, KeyboardInterrupt):
+                    pass
+                continue
+
+            items_list = list(installed.keys())
+            print(f"\n{t('ext_installed_list_title', lang)}")
+            for idx, k in enumerate(items_list, 1):
+                print(f"  [{idx}] {k}")
+            sel = input(f"\n{t('ext_prompt_remove', lang)}").strip()
+            if sel.isdigit() and 1 <= int(sel) <= len(items_list):
+                key_to_del = items_list[int(sel) - 1]
+                del installed[key_to_del]
+                save_manifest(ext_dir, manifest)
+                target_file = ext_dir / key_to_del
+                if target_file.is_dir():
+                    shutil.rmtree(target_file, ignore_errors=True)
+                elif target_file.is_file():
+                    target_file.unlink(missing_ok=True)
+                print(f"\n[OK] {t('ext_removed_success', lang, key=key_to_del)}")
+                try:
+                    input(f"\n{t('press_enter', lang)}")
+                except (EOFError, KeyboardInterrupt):
+                    pass
 
 
 def main():
@@ -1038,11 +1313,28 @@ def main():
         action="store_true",
         help="Lists all supported tools and exits",
     )
+    parser.add_argument(
+        "--no-update-check",
+        action="store_true",
+        help="Disables automatic version and update checks on startup",
+    )
+    parser.add_argument(
+        "--update",
+        action="store_true",
+        help="Checks for tool updates and executes upgrade if available",
+    )
+    parser.add_argument(
+        "--info",
+        action="store_true",
+        help="Displays system paths, active configuration, and execution mode",
+    )
 
     args = parser.parse_args()
     repo_root = Path(__file__).resolve().parent.parent
+    is_dev = is_dev_mode(repo_root)
+    omni_docs_dir, _ = ensure_omni_documents_structure()
 
-    # Resolucao de Workspace
+    # Workspace resolution
     target_raw = args.target
     target_path = Path(target_raw).resolve() if target_raw else None
     if target_path and (not target_path.exists() or not target_path.is_dir()):
@@ -1051,7 +1343,7 @@ def main():
         )
         sys.exit(1)
 
-    app_config = load_app_config(repo_root)
+    app_config = load_app_config(repo_root, omni_docs_dir=omni_docs_dir)
     workspace_state = load_workspace_state(target_path) if target_path else {}
     # Default is ALWAYS English ('en'), unless specified via args, config.json, or workspace_state
     current_lang = resolve_language_code(
@@ -1060,6 +1352,31 @@ def main():
         or workspace_state.get("language")
         or "en"
     )
+
+    if args.info:
+        print("\nomni-agents Diagnostic Info:")
+        print(f"  CLI Version:      v{__version__}")
+        print(
+            f"  Execution Mode:   {'Local Dev Mode (Repository)' if is_dev else 'Global Mode (Documents)'}"
+        )
+        print(f"  Repo Root:        {repo_root}")
+        print(f"  Documents Dir:    {omni_docs_dir}")
+        print(
+            f"  Configured Repo:  {app_config.get('repository', {}).get('url', 'N/A')}"
+        )
+        print(f"  Default Language: {app_config.get('language', 'en')}")
+        sys.exit(0)
+
+    if args.update:
+        print(f"\n{t('update_checking', current_lang, version=__version__)}")
+        up_info = check_for_updates(
+            current_version=__version__, is_dev=is_dev, timeout=3.0
+        )
+        if up_info:
+            prompt_and_upgrade(up_info, lang=current_lang)
+        else:
+            print(f"\n{t('update_up_to_date', current_lang)}")
+        sys.exit(0)
 
     if args.list_tools:
         print("\nSupported Tools:")
@@ -1072,7 +1389,21 @@ def main():
             )
         sys.exit(0)
 
-    # Modo Global via CLI
+    # Automatic update check on startup
+    if (
+        not args.no_update_check
+        and not args.sync
+        and not args.clean
+        and not args.is_global
+    ):
+        with contextlib.suppress(OSError, TimeoutError):
+            up_info = check_for_updates(
+                current_version=__version__, is_dev=is_dev, timeout=1.5
+            )
+            if up_info and prompt_and_upgrade(up_info, lang=current_lang):
+                sys.exit(0)
+
+    # Global Mode via CLI
     if args.is_global:
         tools = (
             [get_target(args.target_tool)]
@@ -1085,9 +1416,9 @@ def main():
                 target.configure_global(repo_root, lang=current_lang)
         sys.exit(0)
 
-    scanned = scan_repository(repo_root)
+    scanned = scan_repository(repo_root, documents_dir=omni_docs_dir)
 
-    # Modo Limpeza via CLI
+    # Clean Mode via CLI
     if args.clean and target_path:
         state = load_workspace_state(target_path)
         tool_ids = (
@@ -1105,7 +1436,7 @@ def main():
         print("\n[OK] Clean completed.")
         sys.exit(0)
 
-    # Modo Sincronizacao via CLI
+    # Sync Mode via CLI
     if args.sync and target_path:
         state = load_workspace_state(target_path)
         active_tools = state.get("active_targets", [])
@@ -1131,7 +1462,7 @@ def main():
         print(f"\n[OK] {t('sync_success', current_lang)}")
         sys.exit(0)
 
-    # Menu Interativo
+    # Interactive Menu
     while True:
         clear_screen()
         workspace_state = load_workspace_state(target_path) if target_path else {}
@@ -1153,9 +1484,14 @@ def main():
 
         lang_badge = get_language_badge(current_lang)
 
+        mode_label = (
+            t("mode_dev", current_lang) if is_dev else t("mode_global", current_lang)
+        )
+
         print("\n" + "=" * 65)
-        print(f"  {t('app_title', current_lang)}")
+        print(f"  {t('app_title', current_lang)} (v{__version__})")
         print("=" * 65)
+        print(f"  {t('mode_label', current_lang)}:          {mode_label}")
         print(f"  {t('target_workspace', current_lang)}:     {target_display}")
         print(f"  {t('active_tools', current_lang)}: {active_tools_display}")
         print("-" * 65)
@@ -1164,6 +1500,8 @@ def main():
         print(f"  {t('menu_agents', current_lang)}")
         print(f"  {t('menu_rules', current_lang)}")
         print(f"  {t('menu_skills', current_lang)}")
+        print(f"  {t('menu_ext', current_lang)}")
+        print(f"  {t('menu_custom_folder', current_lang)}")
         print(f"  {t('menu_sync', current_lang)}")
         print(f"  {t('menu_clean', current_lang)}")
         print(f"  {t('menu_lang', current_lang, current=lang_badge)}")
@@ -1179,7 +1517,7 @@ def main():
             print(f"\n{t('exit_msg', current_lang)}\n")
             sys.exit(0)
 
-        if choice in ("t", "tool", "tools", "ferramentas"):
+        if choice in ("t", "tool", "tools", "ferramentas", "herramientas"):
             target_path = resolve_workspace(target_path, lang=current_lang)
             if target_path:
                 handle_target_selection(
@@ -1189,14 +1527,14 @@ def main():
         elif choice in ("1", "global"):
             handle_global_configuration(repo_root, lang=current_lang)
 
-        elif choice in ("2", "agents", "agent"):
+        elif choice in ("2", "agents", "agent", "agentes", "subagentes"):
             target_path = resolve_workspace(target_path, lang=current_lang)
             if target_path:
                 handle_agents(
                     target_path, repo_root, scanned, workspace_state, lang=current_lang
                 )
 
-        elif choice in ("3", "rules", "rule"):
+        elif choice in ("3", "rules", "rule", "regras", "reglas"):
             target_path = resolve_workspace(target_path, lang=current_lang)
             if target_path:
                 handle_rules(
@@ -1209,6 +1547,22 @@ def main():
                 handle_skills(
                     target_path, repo_root, scanned, workspace_state, lang=current_lang
                 )
+
+        elif choice in ("e", "ext", "extensoes", "extensiones", "extensions"):
+            handle_remote_extensions(
+                documents_dir=omni_docs_dir,
+                config=app_config,
+                lang=current_lang,
+            )
+            scanned = scan_repository(repo_root, documents_dir=omni_docs_dir)
+
+        elif choice in ("o", "open", "custom", "pessoal", "personal"):
+            open_folder_in_explorer(omni_docs_dir)
+            print(f"\n[OK] {t('folder_opened', current_lang, path=omni_docs_dir)}")
+            try:
+                input(f"\n{t('press_enter', current_lang)}")
+            except (EOFError, KeyboardInterrupt):
+                pass
 
         elif choice in ("s", "sync", "sincronizar"):
             target_path = resolve_workspace(target_path, lang=current_lang)
@@ -1231,7 +1585,7 @@ def main():
                 except (EOFError, KeyboardInterrupt):
                     pass
 
-        elif choice in ("c", "clean", "limpar"):
+        elif choice in ("c", "clean", "limpar", "limpiar"):
             target_path = resolve_workspace(target_path, lang=current_lang)
             if target_path:
                 handle_clean_workspace(target_path, workspace_state, lang=current_lang)
@@ -1243,9 +1597,10 @@ def main():
                 current_lang=current_lang,
                 app_config=app_config,
                 workspace_state=workspace_state,
+                omni_docs_dir=omni_docs_dir,
             )
 
-        elif choice in ("5", "sair", "exit", "q", "quit"):
+        elif choice in ("5", "sair", "exit", "q", "quit", "salir"):
             clear_screen()
             print(f"\n{t('exit_msg', current_lang)}\n")
             sys.exit(0)

@@ -227,4 +227,6 @@ def detect_system_language() -> str:
         val = os.environ.get(var, "").lower()
         if "pt" in val:
             return "pt"
+        if "es" in val:
+            return "es"
     return _DEFAULT_CODE

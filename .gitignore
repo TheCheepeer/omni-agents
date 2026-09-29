@@ -7,4 +7,6 @@ __pycache__/
 skills copy/
 config.json
 .agents/
-config.json
+*.egg-info/
+dist/
+build/

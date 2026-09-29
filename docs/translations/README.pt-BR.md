@@ -87,19 +87,49 @@ Para manter o consumo de tokens baixo e evitar que o modelo hesite entre dezenas
 
 ---
 
+## Instalação
+
+Instale o `omni-agents` como um comando CLI global em seu sistema com apenas uma linha:
+
+### Instaladores de Comando Único
+
+- **Windows (PowerShell):**
+    ```powershell
+    irm https://raw.githubusercontent.com/TheCheepeer/omni-agent/main/install.ps1 | iex
+    ```
+- **Linux / macOS:**
+    ```bash
+    curl -fsSL https://raw.githubusercontent.com/TheCheepeer/omni-agent/main/install.sh | bash
+    ```
+
+### Via Gerenciadores de Pacotes (`pipx` / `uv`)
+
+```bash
+pipx install omni-agents
+# Ou utilizando o uv:
+uv tool install omni-agents
+```
+
+Uma vez instalado, execute `omni-agents` (ou simplesmente `omni`) em qualquer terminal do sistema.
+
+---
+
 ## Configuração e Automação Multiplataforma
 
-O script [`scripts/configure_workspace.py`](../../scripts/configure_workspace.py) roda nativamente em **Windows, Linux e macOS** sem dependências externas (apenas a biblioteca padrão do Python).
+A ferramenta pode ser executada globalmente através do comando **`omni-agents`** (ou `omni`), ou diretamente pelo script fonte [`scripts/configure_workspace.py`](../../scripts/configure_workspace.py) dentro do repositório clonado (zero dependências externas).
 
 ### 1. Modo Interativo (TUI / GUI)
 
 ```bash
-# Iniciar o menu interativo:
+# Iniciar o menu interativo globalmente:
+omni-agents
+
+# Ou dentro do repositório clonado:
 python scripts/configure_workspace.py
 
 # Ou informando a pasta do projeto alvo diretamente:
-python scripts/configure_workspace.py /caminho/do/projeto
-python scripts/configure_workspace.py .
+omni-agents /caminho/do/projeto
+omni-agents .
 ```
 
 #### Estrutura do Menu Interativo:

@@ -87,19 +87,49 @@ To optimize token consumption and prevent model choice hesitation:
 
 ---
 
+## Installation
+
+Install `omni-agents` as a global CLI tool on your system with a single command:
+
+### One-Line Installers
+
+- **Windows (PowerShell):**
+    ```powershell
+    irm https://raw.githubusercontent.com/TheCheepeer/omni-agent/main/install.ps1 | iex
+    ```
+- **Linux / macOS:**
+    ```bash
+    curl -fsSL https://raw.githubusercontent.com/TheCheepeer/omni-agent/main/install.sh | bash
+    ```
+
+### Via Package Managers (`pipx` / `uv`)
+
+```bash
+pipx install omni-agents
+# Or using uv:
+uv tool install omni-agents
+```
+
+Once installed, execute `omni-agents` (or simply `omni`) anywhere in your terminal.
+
+---
+
 ## Cross-Platform Configuration & Automation
 
-The [`scripts/configure_workspace.py`](scripts/configure_workspace.py) script runs natively on **Windows, Linux, and macOS** using only the Python standard library (zero external dependencies).
+The tool can be executed globally via the **`omni-agents`** command (or `omni`), or directly through the source script [`scripts/configure_workspace.py`](scripts/configure_workspace.py) when working in the cloned repository (zero external dependencies).
 
 ### 1. Interactive Mode (TUI / GUI)
 
 ```bash
-# Launch interactive menu:
+# Launch interactive menu globally:
+omni-agents
+
+# Or within the cloned repository:
 python scripts/configure_workspace.py
 
 # Or specify target project directory directly:
-python scripts/configure_workspace.py /path/to/project
-python scripts/configure_workspace.py .
+omni-agents /path/to/project
+omni-agents .
 ```
 
 #### Interactive Menu Layout:

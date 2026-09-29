@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "omni-agents"
+version = "1.0.0"
+description = "Centralized hub to manage and distribute skills, rules, and subagents across multiple AI coding assistants"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [
+    { name = "TheCheepeer" },
+    { name = "João Sales" }
+]
+keywords = ["ai", "agents", "cursor", "claude", "antigravity", "copilot", "llm", "skills"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Environment :: Console",
+]
+
+[project.scripts]
+omni-agents = "scripts.configure_workspace:main"
+omni = "scripts.configure_workspace:main"
+
+[project.urls]
+Homepage = "https://github.com/TheCheepeer/omni-agent"
+Repository = "https://github.com/TheCheepeer/omni-agent.git"
+Issues = "https://github.com/TheCheepeer/omni-agent/issues"
+"João Sales (GitHub)" = "https://github.com/joao626"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["scripts*", "scripts.*"]
+
+[tool.setuptools.package-data]
+scripts = ["languages/*.json"]

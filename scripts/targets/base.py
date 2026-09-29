@@ -265,6 +265,20 @@ def save_workspace_state(target_path: Path, state: dict[str, Any]):
     update_gitignore(target_path, [".agents/"])
 
 
+def find_skill_file(
+    repo_root: Path, scanned: dict[str, Any], cat_name: str, skill_id: str
+) -> Path:
+    """Resolves the SKILL.md file of a skill considering scanned layers (repo, custom, ext)."""
+    skills_in_cat = scanned.get("skills_by_category", {}).get(cat_name, [])
+    for s in skills_in_cat:
+        if s.get("id") == skill_id:
+            p = Path(s.get("path"))
+            skill_md = p / "SKILL.md" if p.is_dir() else p
+            if skill_md.exists():
+                return skill_md
+    return repo_root / "skills" / cat_name / skill_id / "SKILL.md"
+
+
 class BaseTarget:
     """Base class defining the contract for a tool adapter."""
 

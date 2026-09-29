@@ -15,6 +15,7 @@ from typing import Any
 
 from .base import (
     BaseTarget,
+    find_skill_file,
     parse_frontmatter,
     safe_remove_file,
     safe_remove_tree,
@@ -37,6 +38,7 @@ class UniversalTarget(BaseTarget):
         rules: list[dict[str, Any]],
         skills_by_cat: dict[str, set[str]],
         title_suffix: str = "",
+        scanned: dict[str, Any] | None = None,
     ) -> Path:
         agents_md = target_path / "AGENTS.md"
 
@@ -98,7 +100,9 @@ class UniversalTarget(BaseTarget):
                     continue
                 sections.append(f"### Category: {cat_name.upper()}")
                 for s_id in sorted(skill_ids):
-                    skill_file = repo_root / "skills" / cat_name / s_id / "SKILL.md"
+                    skill_file = find_skill_file(
+                        repo_root, scanned or {}, cat_name, s_id
+                    )
                     if skill_file.exists():
                         _, s_desc = parse_frontmatter(skill_file)
                         desc_str = f" - {s_desc}" if s_desc else ""
@@ -123,7 +127,12 @@ class UniversalTarget(BaseTarget):
         lang: str = "en",
     ) -> bool:
         dest = self.generate_agents_md(
-            target_path, repo_root, agents, rules, skills_by_cat
+            target_path,
+            repo_root,
+            agents,
+            rules,
+            skills_by_cat,
+            scanned=scanned,
         )
         print(f"  [+] {t_target('universal_generated', lang, name=dest.name)}")
         return True
@@ -152,7 +161,13 @@ class KiroTarget(UniversalTarget):
         lang: str = "en",
     ) -> bool:
         dest = self.generate_agents_md(
-            target_path, repo_root, agents, rules, skills_by_cat, title_suffix=" - Kiro"
+            target_path,
+            repo_root,
+            agents,
+            rules,
+            skills_by_cat,
+            title_suffix=" - Kiro",
+            scanned=scanned,
         )
         kiro_dir = target_path / ".kiro"
         kiro_dir.mkdir(parents=True, exist_ok=True)
@@ -190,6 +205,7 @@ class OpenCodeTarget(UniversalTarget):
             rules,
             skills_by_cat,
             title_suffix=" - OpenCode",
+            scanned=scanned,
         )
         opencode_dir = target_path / ".opencode"
         opencode_dir.mkdir(parents=True, exist_ok=True)
@@ -227,6 +243,7 @@ class CodexTarget(UniversalTarget):
             rules,
             skills_by_cat,
             title_suffix=" - Codex",
+            scanned=scanned,
         )
         print(f"  [+] {t_target('codex_generated', lang, name=dest.name)}")
         return True

@@ -87,27 +87,58 @@ Para optimizar el consumo de tokens y evitar dudas en los modelos al seleccionar
 
 ---
 
-## Configuración Multiplataforma y Automatización
+## Instalación
 
-El script [`scripts/configure_workspace.py`](../../scripts/configure_workspace.py) se ejecuta de forma nativa en **Windows, Linux y macOS** utilizando únicamente la biblioteca estándar de Python (cero dependencias externas).
+Instale `omni-agents` como un comando CLI global en su sistema con una sola línea:
+
+### Instaladores de Comando Único
+
+- **Windows (PowerShell):**
+    ```powershell
+    irm https://raw.githubusercontent.com/TheCheepeer/omni-agent/main/install.ps1 | iex
+    ```
+- **Linux / macOS:**
+    ```bash
+    curl -fsSL https://raw.githubusercontent.com/TheCheepeer/omni-agent/main/install.sh | bash
+    ```
+
+### Vía Gestores de Paquetes (`pipx` / `uv`)
+
+```bash
+pipx install omni-agents
+# O usando uv:
+uv tool install omni-agents
+```
+
+Una vez instalado, ejecute `omni-agents` (o simplemente `omni`) desde cualquier terminal del sistema.
+
+---
+
+## Configuración y Automatización Multiplataforma
+
+La herramienta puede ejecutarse globalmente mediante el comando **`omni-agents`** (o `omni`), o directamente a través del script fuente [`scripts/configure_workspace.py`](../../scripts/configure_workspace.py) dentro del repositorio clonado (cero dependencias externas).
 
 ### 1. Modo Interactivo (TUI / GUI)
 
 ```bash
-# Iniciar el menú interactivo:
+# Iniciar el menú interactivo globalmente:
+omni-agents
+
+# O dentro del repositorio clonado:
 python scripts/configure_workspace.py
 
-# O especificar la ruta del proyecto destino directamente:
-python scripts/configure_workspace.py /ruta/al/proyecto
-python scripts/configure_workspace.py .
+# O especificando la ruta del proyecto destino directamente:
+omni-agents /ruta/al/proyecto
+omni-agents .
 ```
 
 #### Estructura del Menú Interactivo:
 
 ```text
 =================================================================
-  CONFIGURADOR MULTI-TOOL DE AGENTES, REGLAS Y SKILLS
+  CONFIGURADOR MULTI-TOOL DE AGENTES, REGLAS Y SKILLS (v1.0.0)
 =================================================================
+  Modo:               Modo de Desarrollo Local (Repositorio)
   Workspace Destino:  [/ruta/al/proyecto]
   Herramientas Activas: antigravity, cursor, claude
 -----------------------------------------------------------------
@@ -116,9 +147,11 @@ python scripts/configure_workspace.py .
   [2] Subagentes para el Workspace
   [3] Reglas para el Workspace
   [4] Skills Modulares para el Workspace
+  [e] Extensiones Remotas (Catálogo GitHub / ext/)
+  [o] Abrir Carpeta Personal (Documentos/omni-agent)
   [s] Sincronizar Todo (Sync herramientas activas en lote)
   [c] Limpiar / Desinstalar por Herramienta
-  [l] Idioma / Language: [EN | ES | PT-BR]
+  [l] Idioma / Language: [ES | EN | PT-BR]
   [5] Salir
 -----------------------------------------------------------------
   [w] Definir / Cambiar Workspace Destino
@@ -132,32 +165,38 @@ python scripts/configure_workspace.py .
 Ejecute comandos directamente en terminales o pipelines de CI/CD:
 
 ```bash
+# Diagnóstico e información de rutas del sistema:
+omni-agents --info
+
+# Comprobar y actualizar omni-agents:
+omni-agents --update
+
 # Listar todas las herramientas compatibles:
-python scripts/configure_workspace.py --list-tools
+omni-agents --list-tools
 
 # Sincronizar el workspace en todas las herramientas activas:
-python scripts/configure_workspace.py /ruta/al/proyecto --sync
+omni-agents /ruta/al/proyecto --sync
 
 # Configurar para una herramienta específica:
-python scripts/configure_workspace.py /ruta/al/proyecto --tool cursor --sync
-python scripts/configure_workspace.py /ruta/al/proyecto --tool claude --sync
-python scripts/configure_workspace.py /ruta/al/proyecto --tool copilot --sync
+omni-agents /ruta/al/proyecto --tool cursor --sync
+omni-agents /ruta/al/proyecto --tool claude --sync
+omni-agents /ruta/al/proyecto --tool copilot --sync
 
 # Configurar para todas las herramientas simultáneamente (Multi-Tool):
-python scripts/configure_workspace.py /ruta/al/proyecto --tool all --sync
+omni-agents /ruta/al/proyecto --tool all --sync
 
 # Remover configuración de una sola herramienta sin afectar a las demás:
-python scripts/configure_workspace.py /ruta/al/proyecto --tool cursor --clean
-python scripts/configure_workspace.py /ruta/al/proyecto --clean  # Remueve todas
+omni-agents /ruta/al/proyecto --tool cursor --clean
+omni-agents /ruta/al/proyecto --clean  # Remueve todas
 
 # Aplicar configuración global del sistema:
-python scripts/configure_workspace.py --global
-python scripts/configure_workspace.py --tool claude --global
+omni-agents --global
+omni-agents --tool claude --global
 
 # Forzar idioma de la interfaz:
-python scripts/configure_workspace.py --lang es
-python scripts/configure_workspace.py --lang en
-python scripts/configure_workspace.py --lang pt
+omni-agents --lang es
+omni-agents --lang en
+omni-agents --lang pt
 ```
 
 ---

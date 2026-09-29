@@ -12,6 +12,7 @@ from typing import Any
 
 from .base import (
     BaseTarget,
+    find_skill_file,
     parse_frontmatter,
     safe_remove_dir_if_empty,
     safe_remove_file,
@@ -126,7 +127,7 @@ class CursorTarget(BaseTarget):
                     continue
                 skill_sections.append(f"### Category: {cat_name.upper()}")
                 for s_id in sorted(skill_ids):
-                    skill_file = repo_root / "skills" / cat_name / s_id / "SKILL.md"
+                    skill_file = find_skill_file(repo_root, scanned, cat_name, s_id)
                     if skill_file.exists():
                         _, s_desc = parse_frontmatter(skill_file)
                         desc_str = f" - {s_desc}" if s_desc else ""

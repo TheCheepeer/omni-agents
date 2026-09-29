@@ -1,0 +1,12 @@
+{
+    "version": "1.0.0",
+    "language": "en",
+    "repository": {
+        "url": "https://github.com/TheCheepeer/omni-agent",
+        "branch": "main",
+        "raw_base_url": "https://raw.githubusercontent.com/TheCheepeer/omni-agent/main",
+        "api_base_url": "https://api.github.com/repos/TheCheepeer/omni-agent"
+    },
+    "check_updates_on_launch": true,
+    "active_targets": ["antigravity"]
+}

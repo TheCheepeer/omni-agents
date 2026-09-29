@@ -15,6 +15,7 @@ from typing import Any
 from .base import (
     BaseTarget,
     create_dir_link,
+    find_skill_file,
     is_link,
     remove_dir_link,
     safe_remove_dir_if_empty,
@@ -74,8 +75,13 @@ class AntigravityTarget(BaseTarget):
         for cat_name in sorted(skills_by_cat.keys()):
             skill_ids = skills_by_cat[cat_name]
             if skill_ids:
-                cat_path = (repo_root / "skills" / cat_name).resolve().as_posix()
-                entries.append({"path": cat_path, "include_only": sorted(skill_ids)})
+                cat_dirs: dict[str, list[str]] = {}
+                for s_id in skill_ids:
+                    s_file = find_skill_file(repo_root, scanned, cat_name, s_id)
+                    parent_dir = s_file.parent.parent.resolve().as_posix()
+                    cat_dirs.setdefault(parent_dir, []).append(s_id)
+                for cat_path, ids in sorted(cat_dirs.items()):
+                    entries.append({"path": cat_path, "include_only": sorted(ids)})
                 total_skills += len(skill_ids)
 
         skills_json_path = agents_dir / "skills.json"
