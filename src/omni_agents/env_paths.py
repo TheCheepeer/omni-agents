@@ -12,6 +12,7 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -162,7 +163,26 @@ def is_default_or_system_path(path: Path | None) -> bool:
     if resolved == resolved.parent or str(resolved) == resolved.anchor:
         return True
 
-    # 3. Operating system system directories
+    # 3. Temporary root directory itself (e.g. /tmp, /var/tmp, C:\Temp, but NOT subdirectories inside it)
+    temp_roots: set[Path] = set()
+    for tpath in (tempfile.gettempdir(), "/tmp", "/var/tmp"):
+        try:
+            temp_roots.add(Path(tpath).resolve())
+        except (OSError, RuntimeError):
+            pass
+
+    if resolved in temp_roots:
+        return True
+
+    # Subdirectories inside temp roots are valid project workspaces (e.g. unit tests, CI runners)
+    for troot in temp_roots:
+        try:
+            if resolved.is_relative_to(troot):
+                return False
+        except (ValueError, OSError):
+            continue
+
+    # 4. Operating system system directories
     system_dirs = []
     if sys.platform.startswith("win"):
         win_dir = Path(os.environ.get("SystemRoot", r"C:\Windows")).resolve()
@@ -180,7 +200,6 @@ def is_default_or_system_path(path: Path | None) -> bool:
             "/etc",
             "/usr",
             "/var",
-            "/tmp",
             "/bin",
             "/sbin",
             "/lib",

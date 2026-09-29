@@ -25,7 +25,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from omni_agents.core.config import load_app_config, save_app_config
-from omni_agents.env_paths import DEFAULT_CONFIG
+from omni_agents.env_paths import DEFAULT_CONFIG, is_default_or_system_path
 from omni_agents.i18n import t
 from omni_agents.targets.base import load_workspace_state, save_workspace_state
 from omni_agents.tui import theme
@@ -149,6 +149,16 @@ class TestToolConfigurationLifecycle(unittest.TestCase):
             # Verify saved on disk in workspace_state.json
             saved_ws = load_workspace_state(work_dir)
             self.assertEqual(saved_ws.get("active_targets"), ["claude"])
+
+    def test_is_default_or_system_path_permits_temp_workspaces(self):
+        """Temporary directories and projects within them must not be rejected as system directories."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            work_dir = Path(tmpdir) / "subproject"
+            self.assertFalse(is_default_or_system_path(work_dir))
+            self.assertFalse(is_default_or_system_path(Path(tmpdir)))
+
+        # Home directory itself must be detected as default/system
+        self.assertTrue(is_default_or_system_path(Path.home()))
 
 
 if __name__ == "__main__":
