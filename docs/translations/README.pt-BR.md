@@ -100,64 +100,98 @@ Para manter o consumo de tokens baixo e evitar que o modelo hesite entre dezenas
 
 ## Instalação
 
-O método oficial e padrão para instalar o `omni-agents` é via **`pip`**:
+Recomendamos fortemente a instalação do `omni-agents` através de **gerenciadores de ferramentas CLI isolados** (`pipx` ou `uv`). Isso garante que o Python do seu sistema operacional permaneça totalmente limpo e intocado, ao mesmo tempo em que disponibiliza os comandos `omni-agents` e `omni` globalmente no seu terminal.
+
+---
+
+### Método 1: Recomendado — Instalação Isolada via `pipx`
+
+O `pipx` instala aplicações de terminal em ambientes virtuais dedicados e registra os binários automaticamente no seu `PATH`.
+
+#### Passo 1: Instale o `pipx` no seu Sistema Operacional
+
+- **Windows (PowerShell):**
+  A forma oficial e recomendada de instalar o `pipx` no Windows é diretamente via `pip`:
+  ```powershell
+  python -m pip install --user pipx
+  python -m pipx ensurepath
+  ```
+  *(Feche e abra novamente a janela do PowerShell/terminal após executar o `ensurepath`).*
+
+- **Linux (Ubuntu / Debian):**
+  ```bash
+  sudo apt update && sudo apt install -y pipx
+  pipx ensurepath
+  ```
+  *(Fedora: `sudo dnf install pipx` | Arch Linux: `sudo pacman -S python-pipx` | Ou via pip: `python3 -m pip install --user pipx`)*
+
+- **macOS:**
+  ```bash
+  brew install pipx
+  pipx ensurepath
+  ```
+  *(Ou via pip: `python3 -m pip install --user pipx`)*
+
+#### Passo 2: Instale o `omni-agents`
+
+```bash
+pipx install omni-agents-cli
+```
+
+Para atualizar para a versão mais recente futuramente:
+```bash
+pipx upgrade omni-agents-cli
+```
+
+---
+
+### Método 2: Alternativa de Alta Performance — Instalação Isolada via `uv`
+
+O `uv` é um gerenciador moderno e extremamente rápido para ferramentas e pacotes Python, escrito em Rust.
+
+#### Passo 1: Instale o `uv` no seu Sistema Operacional
+
+- **Windows (PowerShell):**
+  ```powershell
+  powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+  ```
+  *(Ou via winget: `winget install astral-sh.uv`)*
+
+- **Linux e macOS:**
+  ```bash
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+  ```
+  *(Ou no macOS via Homebrew: `brew install uv`)*
+
+#### Passo 2: Instale o `omni-agents`
+
+```bash
+uv tool install omni-agents-cli
+```
+
+Para atualizar para a versão mais recente futuramente:
+```bash
+uv tool upgrade omni-agents-cli
+```
+
+---
+
+### Método 3: Instalação Direta via `pip`
+
+Caso prefira instalar diretamente no ambiente Python global ou atual:
 
 ```bash
 pip install omni-agents-cli
 ```
 
-Para atualizar futuramente para a versão mais recente:
+Para atualizar:
 ```bash
 pip install --upgrade omni-agents-cli
 ```
 
-Após a instalação, os comandos `omni-agents` (e o atalho `omni`) estarão disponíveis globalmente em qualquer terminal do seu sistema.
-
 ---
 
-### Métodos Alternativos de Instalação
-
-Caso prefira gerenciar ferramentas CLI em ambientes isolados ou usar scripts de comando único:
-
-#### Alternativa 1: Instalação Isolada via `pipx`
-
-O `pipx` instala aplicações de terminal em ambientes virtuais dedicados e registra os binários automaticamente no seu `PATH`.
-
-1. **Instale o `pipx` (caso ainda não possua):**
-   - **Windows (PowerShell):**
-     ```powershell
-     python -m pip install --user pipx
-     python -m pipx ensurepath
-     ```
-     *(Feche e abra novamente a janela do PowerShell/terminal após executar o `ensurepath`).*
-   - **Linux (Ubuntu / Debian):**
-     ```bash
-     sudo apt update && sudo apt install -y pipx
-     pipx ensurepath
-     ```
-     *(Fedora: `sudo dnf install pipx` | Arch Linux: `sudo pacman -S python-pipx`)*
-   - **macOS:**
-     ```bash
-     brew install pipx
-     pipx ensurepath
-     ```
-
-2. **Instale o `omni-agents`:**
-   ```bash
-   pipx install omni-agents-cli
-   ```
-   Para atualizar: `pipx upgrade omni-agents-cli`
-
-#### Alternativa 2: Alta Performance via `uv`
-
-Se você utiliza o `uv`, instale como ferramenta global isolada:
-
-```bash
-uv tool install omni-agents-cli
-```
-Para atualizar: `uv tool upgrade omni-agents-cli`
-
-#### Alternativa 3: Instaladores de Comando Único
+### Método 4: Instaladores de Comando Único
 
 - **Windows (PowerShell):**
   ```powershell

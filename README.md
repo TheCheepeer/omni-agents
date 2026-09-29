@@ -100,64 +100,98 @@ To optimize token consumption and prevent model choice hesitation:
 
 ## Installation
 
-The official and standard way to install `omni-agents` is via **`pip`**:
+We strongly recommend installing `omni-agents` via **isolated CLI package managers** (`pipx` or `uv`). This guarantees that your system and global Python environments remain completely untouched, while providing globally accessible `omni-agents` and `omni` commands across your system.
+
+---
+
+### Method 1: Recommended — Isolated Install via `pipx`
+
+`pipx` installs CLI tools in dedicated virtual environments and exposes them directly to your `PATH`.
+
+#### Step 1: Install `pipx` on Your Operating System
+
+- **Windows (PowerShell):**
+  The official and recommended way to install `pipx` on Windows is directly via `pip`:
+  ```powershell
+  python -m pip install --user pipx
+  python -m pipx ensurepath
+  ```
+  *(Restart your PowerShell or terminal window after running `ensurepath`).*
+
+- **Linux (Ubuntu / Debian):**
+  ```bash
+  sudo apt update && sudo apt install -y pipx
+  pipx ensurepath
+  ```
+  *(Fedora: `sudo dnf install pipx` | Arch Linux: `sudo pacman -S python-pipx` | Or via pip: `python3 -m pip install --user pipx`)*
+
+- **macOS:**
+  ```bash
+  brew install pipx
+  pipx ensurepath
+  ```
+  *(Or via pip: `python3 -m pip install --user pipx`)*
+
+#### Step 2: Install `omni-agents`
+
+```bash
+pipx install omni-agents-cli
+```
+
+To update to the latest version in the future:
+```bash
+pipx upgrade omni-agents-cli
+```
+
+---
+
+### Method 2: High-Performance Alternative — Isolated Install via `uv`
+
+`uv` is an ultra-fast, modern Python package and tool runner written in Rust.
+
+#### Step 1: Install `uv` on Your Operating System
+
+- **Windows (PowerShell):**
+  ```powershell
+  powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+  ```
+  *(Or via winget: `winget install astral-sh.uv`)*
+
+- **Linux & macOS:**
+  ```bash
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+  ```
+  *(Or on macOS via Homebrew: `brew install uv`)*
+
+#### Step 2: Install `omni-agents`
+
+```bash
+uv tool install omni-agents-cli
+```
+
+To update to the latest version in the future:
+```bash
+uv tool upgrade omni-agents-cli
+```
+
+---
+
+### Method 3: Direct Install via `pip`
+
+If you prefer installing directly into your global or current Python environment:
 
 ```bash
 pip install omni-agents-cli
 ```
 
-To upgrade to the latest version at any time:
+To upgrade:
 ```bash
 pip install --upgrade omni-agents-cli
 ```
 
-Once installed, the `omni-agents` (and shorthand `omni`) commands are available globally in your terminal.
-
 ---
 
-### Alternative Installation Methods
-
-If you prefer isolated CLI environments or automated one-line scripts:
-
-#### Alternative 1: Isolated Environment via `pipx`
-
-`pipx` installs CLI tools in dedicated virtual environments and exposes them directly to your `PATH`.
-
-1. **Install `pipx` (if not already installed):**
-   - **Windows (PowerShell):**
-     ```powershell
-     python -m pip install --user pipx
-     python -m pipx ensurepath
-     ```
-     *(Restart your terminal after running `ensurepath`).*
-   - **Linux (Ubuntu / Debian):**
-     ```bash
-     sudo apt update && sudo apt install -y pipx
-     pipx ensurepath
-     ```
-     *(Fedora: `sudo dnf install pipx` | Arch Linux: `sudo pacman -S python-pipx`)*
-   - **macOS:**
-     ```bash
-     brew install pipx
-     pipx ensurepath
-     ```
-
-2. **Install `omni-agents`:**
-   ```bash
-   pipx install omni-agents-cli
-   ```
-   To upgrade: `pipx upgrade omni-agents-cli`
-
-#### Alternative 2: High-Performance via `uv`
-
-If you use `uv`, you can install `omni-agents` as an isolated global tool:
-
-```bash
-uv tool install omni-agents-cli
-```
-To upgrade: `uv tool upgrade omni-agents-cli`
-
-#### Alternative 3: One-Line Convenience Scripts
+### Method 4: One-Line Convenience Scripts
 
 - **Windows (PowerShell):**
   ```powershell
