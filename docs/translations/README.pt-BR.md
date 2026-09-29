@@ -100,56 +100,13 @@ Para manter o consumo de tokens baixo e evitar que o modelo hesite entre dezenas
 
 ## Instalação
 
-Recomendamos fortemente a instalação do `omni-agents` através de **gerenciadores de ferramentas CLI isolados** (`pipx` ou `uv`). Isso garante que o Python do seu sistema operacional permaneça totalmente limpo e intocado, ao mesmo tempo em que disponibiliza os comandos `omni-agents` e `omni` globalmente no seu terminal.
+A forma oficial e recomendada de instalar e gerenciar o `omni-agents` é através do **`uv`**, o gerenciador moderno e extremamente rápido para ferramentas e pacotes Python escrito em Rust. A instalação via `uv tool` garante um ambiente isolado, execução instantânea e disponibilidade global dos comandos `omni-agents` e `omni` sem interferir no Python do seu sistema operacional.
 
 ---
 
-### Método 1: Recomendado — Instalação Isolada via `pipx`
+### Método 1: Oficial — Instalação Isolada via `uv`
 
-O `pipx` instala aplicações de terminal em ambientes virtuais dedicados e registra os binários automaticamente no seu `PATH`.
-
-#### Passo 1: Instale o `pipx` no seu Sistema Operacional
-
-- **Windows (PowerShell):**
-  A forma oficial e recomendada de instalar o `pipx` no Windows é diretamente via `pip`:
-  ```powershell
-  python -m pip install --user pipx
-  python -m pipx ensurepath
-  ```
-  *(Feche e abra novamente a janela do PowerShell/terminal após executar o `ensurepath`).*
-
-- **Linux (Ubuntu / Debian):**
-  ```bash
-  sudo apt update && sudo apt install -y pipx
-  pipx ensurepath
-  ```
-  *(Fedora: `sudo dnf install pipx` | Arch Linux: `sudo pacman -S python-pipx` | Ou via pip: `python3 -m pip install --user pipx`)*
-
-- **macOS:**
-  ```bash
-  brew install pipx
-  pipx ensurepath
-  ```
-  *(Ou via pip: `python3 -m pip install --user pipx`)*
-
-#### Passo 2: Instale o `omni-agents`
-
-```bash
-pipx install omni-agents-cli
-```
-
-Para atualizar para a versão mais recente futuramente:
-```bash
-pipx upgrade omni-agents-cli
-```
-
----
-
-### Método 2: Alternativa de Alta Performance — Instalação Isolada via `uv`
-
-O `uv` é um gerenciador moderno e extremamente rápido para ferramentas e pacotes Python, escrito em Rust.
-
-#### Passo 1: Instale o `uv` no seu Sistema Operacional
+#### Passo 1: Instale o `uv` no seu Sistema Operacional (caso não possua)
 
 - **Windows (PowerShell):**
   ```powershell
@@ -176,17 +133,56 @@ uv tool upgrade omni-agents-cli
 
 ---
 
-### Método 3: Instalação Direta via `pip`
+### Método 2: Instalação Padrão via `pip`
 
-Caso prefira instalar diretamente no ambiente Python global ou atual:
+Caso prefira instalar diretamente no ambiente Python do seu sistema sem o `uv`:
 
 ```bash
 pip install omni-agents-cli
 ```
 
-Para atualizar:
+Para atualizar para a versão mais recente:
 ```bash
 pip install --upgrade omni-agents-cli
+```
+
+---
+
+### Método 3: Alternativa — Instalação Isolada via `pipx`
+
+Caso utilize o `pipx` em seu fluxo de trabalho:
+
+#### Passo 1: Instale o `pipx` (caso não possua)
+
+- **Windows (PowerShell):**
+  ```powershell
+  python -m pip install --user pipx
+  python -m pipx ensurepath
+  ```
+  *(Feche e abra novamente a janela do PowerShell/terminal após executar o `ensurepath`).*
+
+- **Linux (Ubuntu / Debian):**
+  ```bash
+  sudo apt update && sudo apt install -y pipx
+  pipx ensurepath
+  ```
+  *(Fedora: `sudo dnf install pipx` | Arch Linux: `sudo pacman -S python-pipx`)*
+
+- **macOS:**
+  ```bash
+  brew install pipx
+  pipx ensurepath
+  ```
+
+#### Passo 2: Instale o `omni-agents`
+
+```bash
+pipx install omni-agents-cli
+```
+
+Para atualizar futuramente:
+```bash
+pipx upgrade omni-agents-cli
 ```
 
 ---
