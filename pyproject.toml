@@ -8,7 +8,7 @@ version = "1.0.0"
 description = "Centralized hub to manage and distribute skills, rules, and subagents across multiple AI coding assistants"
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "Apache-2.0" }
+license = "Apache-2.0"
 authors = [
     { name = "TheCheepeer" },
     { name = "João Sales" }
@@ -20,7 +20,6 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
-    "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
     "Environment :: Console",
 ]
@@ -30,14 +29,16 @@ omni-agents = "scripts.configure_workspace:main"
 omni = "scripts.configure_workspace:main"
 
 [project.urls]
-Homepage = "https://github.com/TheCheepeer/omni-agent"
-Repository = "https://github.com/TheCheepeer/omni-agent.git"
-Issues = "https://github.com/TheCheepeer/omni-agent/issues"
+Homepage = "https://github.com/TheCheepeer/omni-agents"
+Repository = "https://github.com/TheCheepeer/omni-agents.git"
+Issues = "https://github.com/TheCheepeer/omni-agents/issues"
 "João Sales (GitHub)" = "https://github.com/joao626"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["scripts*", "scripts.*"]
+include = ["scripts*", "scripts.*", "agents*", "rules*", "skills*"]
+exclude = ["*.__pycache__*", "build*", "dist*"]
+namespaces = true
 
 [tool.setuptools.package-data]
-scripts = ["languages/*.json"]
+"*" = ["*.*", "**/*.*", "**/**/*.*", "**/**/**/*.*"]

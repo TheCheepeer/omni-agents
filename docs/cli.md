@@ -85,7 +85,7 @@ The menu supports commands and shortcuts in English, Portuguese, and Spanish:
 | **Open / Show Personal Folder** | `open`, `custom`, `o`    | `abrir`, `pessoal`, `custom`, `o` | `abrir`, `personal`, `custom`, `o` |
 
 > **Desktop vs Headless Environment Detection**:
-> When accessing the personal folder (`[o]`), `omni-agents` automatically detects whether a graphical display environment is available. On desktop systems, it opens the operating system's default file manager at `Documents/omni-agent/`. On headless environments (e.g., remote SSH sessions, CI/CD runners, or containers), it outputs the absolute directory path directly to stdout without attempting to launch desktop processes.
+> When accessing the personal folder (`[o]`), `omni-agents` automatically detects whether a graphical display environment is available. On desktop systems, it opens the operating system's default file manager at `Documents/omni-agents/`. On headless environments (e.g., remote SSH sessions, CI/CD runners, or containers), it outputs the absolute directory path directly to stdout without attempting to launch desktop processes.
 
 ---
 
@@ -124,7 +124,7 @@ omni-agents --global --tool antigravity --rule pt-br-dev -y
 > When linking global directories (such as Antigravity `agents`, `skills`, or `rules`), `omni-agents` automatically inspects existing directory junctions and symbolic links:
 >
 > - **Same Target**: If a link already points to the requested source directory, no changes or prompts are made.
-> - **Different Target**: If an existing link points to another directory (e.g. switching between an installed copy in `Documents/omni-agent` and a local development clone, or switching rule profiles), `omni-agents` displays the current path and asks for confirmation before replacing it.
+> - **Different Target**: If an existing link points to another directory (e.g. switching between an installed copy in `Documents/omni-agents` and a local development clone, or switching rule profiles), `omni-agents` displays the current path and asks for confirmation before replacing it.
 > - **Broken / Dangling Link**: If an existing link points to a nonexistent directory (e.g. after moving or deleting an older clone), `omni-agents` detects the broken link and offers to repair and repoint it.
 > - **Physical Directory**: If a real directory already exists at the destination, it is safely backed up with a `.backup` suffix before creating the link.
 

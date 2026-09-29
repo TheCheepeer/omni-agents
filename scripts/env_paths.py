@@ -86,8 +86,13 @@ def get_system_documents_dir() -> Path:
 
 
 def get_omni_documents_dir() -> Path:
-    """Returns the omni-agent base directory inside Documents."""
-    return get_system_documents_dir() / "omni-agent"
+    """Returns the omni-agents base directory inside Documents."""
+    docs = get_system_documents_dir()
+    legacy_dir = docs / "omni-agent"
+    modern_dir = docs / "omni-agents"
+    if legacy_dir.exists() and not modern_dir.exists():
+        return legacy_dir
+    return modern_dir
 
 
 def is_dev_mode(repo_root: Path | None = None) -> bool:
