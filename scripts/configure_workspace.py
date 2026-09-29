@@ -41,6 +41,7 @@ if sys.platform.startswith("win"):
 
 from env_paths import (
     ensure_omni_documents_structure,
+    is_default_or_system_path,
     is_dev_mode,
     open_folder_in_explorer,
     save_omni_config,
@@ -506,6 +507,29 @@ def resolve_workspace(current_target: Path | None, lang: str = "en") -> Path | N
         if p.exists() and p.is_dir():
             return p
         print(f"[x] {t('path_invalid', lang, path=p)}")
+
+
+def confirm_or_choose_project_workspace(
+    target_path: Path | None, lang: str = "en"
+) -> Path | None:
+    """
+    If the current workspace target is a default user home or system directory,
+    warns the user and prompts them to pick an actual project folder.
+    """
+    if not is_default_or_system_path(target_path):
+        return target_path
+
+    print(f"\n{t('default_path_confirm_prompt', lang, path=target_path)}", end="")
+    try:
+        ans = input().strip().lower()
+    except (EOFError, KeyboardInterrupt):
+        return target_path
+
+    if ans in ("", "s", "y", "sim", "yes"):
+        chosen = resolve_workspace(None, lang=lang)
+        if chosen:
+            return chosen
+    return target_path
 
 
 def apply_workspace_to_targets(
@@ -1054,6 +1078,10 @@ def handle_rules(
         print("=" * 65)
         ws_display = str(target_path) if target_path else t("not_defined", lang)
         print(f"  {t('target_workspace', lang)}: {ws_display}")
+        if is_default_or_system_path(target_path):
+            print(
+                f"  {t('default_path_warning_banner', lang, path=target_path).splitlines()[0]}"
+            )
         print(f"  {t('global_dir_label', lang)}:     ~/.gemini/config/rules\n")
 
         ws_names = (
@@ -1119,10 +1147,17 @@ def handle_rules(
             continue
 
         if choice in ("s", "salvar", "save", "guardar"):
-            if curr_selected_workspace and not target_path:
-                target_path = resolve_workspace(None, lang=lang)
+            if curr_selected_workspace:
                 if not target_path:
-                    continue
+                    target_path = resolve_workspace(None, lang=lang)
+                    if not target_path:
+                        continue
+                elif is_default_or_system_path(target_path):
+                    target_path = confirm_or_choose_project_workspace(
+                        target_path, lang=lang
+                    )
+                    if not target_path:
+                        continue
 
             # 1. Apply workspace rules
             if target_path:
@@ -1964,12 +1999,18 @@ def main():
 
     # Workspace resolution
     target_raw = args.target
-    target_path = Path(target_raw).resolve() if target_raw else None
-    if target_path and (not target_path.exists() or not target_path.is_dir()):
-        print(
-            f"\n[x] Error: Path does not exist or is not a directory: {target_path}\n"
-        )
-        sys.exit(1)
+    if target_raw:
+        target_path = Path(target_raw).resolve()
+        if not target_path.exists() or not target_path.is_dir():
+            print(
+                f"\n[x] Error: Path does not exist or is not a directory: {target_path}\n"
+            )
+            sys.exit(1)
+    else:
+        try:
+            target_path = Path.cwd().resolve()
+        except OSError:
+            target_path = None
 
     app_config = load_app_config(repo_root, omni_docs_dir=omni_docs_dir)
     workspace_state = load_workspace_state(target_path) if target_path else {}
@@ -2275,6 +2316,20 @@ def main():
 
     # Clean Mode via CLI
     if args.clean and target_path:
+        if is_default_or_system_path(target_path) and not args.assume_yes:
+            print(f"\n{t('default_path_cli_warning', current_lang, path=target_path)}")
+            try:
+                confirm = (
+                    input(t("default_path_cli_prompt", current_lang, path=target_path))
+                    .strip()
+                    .lower()
+                )
+            except (EOFError, KeyboardInterrupt):
+                sys.exit(1)
+            if confirm not in ("s", "y", "sim", "yes"):
+                print("[!] Aborted.")
+                sys.exit(1)
+
         state = load_workspace_state(target_path)
         tool_ids = (
             [
@@ -2297,6 +2352,20 @@ def main():
 
     # Workspace Configuration & Sync Mode via CLI
     if has_inline_action and target_path:
+        if is_default_or_system_path(target_path) and not args.assume_yes:
+            print(f"\n{t('default_path_cli_warning', current_lang, path=target_path)}")
+            try:
+                confirm = (
+                    input(t("default_path_cli_prompt", current_lang, path=target_path))
+                    .strip()
+                    .lower()
+                )
+            except (EOFError, KeyboardInterrupt):
+                sys.exit(1)
+            if confirm not in ("s", "y", "sim", "yes"):
+                print("[!] Aborted.")
+                sys.exit(1)
+
         state = load_workspace_state(target_path)
         active_tools = state.get("active_targets", [])
         if args.target_tool:
@@ -2514,6 +2583,12 @@ def main():
         print("=" * 65)
         print(f"  {t('mode_label', current_lang)}:          {mode_label}")
         print(f"  {t('target_workspace', current_lang)}:     {target_display}")
+        if is_default_or_system_path(target_path):
+            print()
+            for wline in t(
+                "default_path_warning_banner", current_lang, path=target_path
+            ).splitlines():
+                print(f"  {wline}")
         print(f"  {t('active_tools', current_lang)}: {active_tools_display}")
         print("-" * 65)
         print(f"  {t('menu_select_tools', current_lang)}")
@@ -2542,8 +2617,12 @@ def main():
             sys.exit(0)
 
         if choice in ("t", "tool", "tools", "ferramentas", "herramientas"):
+            target_path = confirm_or_choose_project_workspace(
+                target_path, lang=current_lang
+            )
             target_path = resolve_workspace(target_path, lang=current_lang)
             if target_path:
+                workspace_state = load_workspace_state(target_path)
                 handle_target_selection(
                     target_path, repo_root, scanned, workspace_state, lang=current_lang
                 )
@@ -2558,8 +2637,12 @@ def main():
             )
 
         elif choice in ("2", "agents", "agent", "agentes", "subagentes"):
+            target_path = confirm_or_choose_project_workspace(
+                target_path, lang=current_lang
+            )
             target_path = resolve_workspace(target_path, lang=current_lang)
             if target_path:
+                workspace_state = load_workspace_state(target_path)
                 sources = scan_component_sources(repo_root, documents_dir=omni_docs_dir)
                 selected_scanned = select_component_source(
                     "agents",
@@ -2602,8 +2685,12 @@ def main():
                 )
 
         elif choice in ("4", "skills", "skill"):
+            target_path = confirm_or_choose_project_workspace(
+                target_path, lang=current_lang
+            )
             target_path = resolve_workspace(target_path, lang=current_lang)
             if target_path:
+                workspace_state = load_workspace_state(target_path)
                 sources = scan_component_sources(repo_root, documents_dir=omni_docs_dir)
                 selected_scanned = select_component_source(
                     "skills",
@@ -2652,8 +2739,12 @@ def main():
                 pass
 
         elif choice in ("s", "sync", "sincronizar"):
+            target_path = confirm_or_choose_project_workspace(
+                target_path, lang=current_lang
+            )
             target_path = resolve_workspace(target_path, lang=current_lang)
             if target_path:
+                workspace_state = load_workspace_state(target_path)
                 active_tools = workspace_state.get("active_targets") or ["antigravity"]
                 apply_workspace_to_targets(
                     target_path=target_path,
@@ -2674,8 +2765,12 @@ def main():
                     pass
 
         elif choice in ("c", "clean", "limpar", "limpiar"):
+            target_path = confirm_or_choose_project_workspace(
+                target_path, lang=current_lang
+            )
             target_path = resolve_workspace(target_path, lang=current_lang)
             if target_path:
+                workspace_state = load_workspace_state(target_path)
                 handle_clean_workspace(target_path, workspace_state, lang=current_lang)
 
         elif choice in ("l", "lang", "idioma", "language"):

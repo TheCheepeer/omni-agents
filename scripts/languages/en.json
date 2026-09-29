@@ -142,7 +142,11 @@
         "source_layer_all": "[3] All Combined (ext + custom) - {count} available",
         "source_empty_ext": "The extensions folder (ext/{type}/) is empty.\n    You haven't downloaded any items from the official repository yet.\n\n-> To download official extensions, use option [e] in the main menu:\n   [e] Remote Extensions (GitHub Catalog / ext/)",
         "source_empty_custom": "The personal custom folder (custom/{type}/) is empty.\n\n-> To add your own custom files, place them in:\n   {path}\n\n(Tip: Use option [o] in the main menu to open the folder in File Explorer)",
-        "source_empty_all": "No items found in ext/{type}/ or custom/{type}/.\n\n* Download extensions using option [e] in the main menu.\n* Or add personal custom files using option [o]."
+        "source_empty_all": "No items found in ext/{type}/ or custom/{type}/.\n\n* Download extensions using option [e] in the main menu.\n* Or add personal custom files using option [o].",
+        "default_path_warning_banner": "[!] WARNING: Default user/system directory detected ({path})!\n    Recommended: Type 'w' to select your project folder.",
+        "default_path_confirm_prompt": "[!] Attention: Current target workspace is a default user directory:\n    {path}\n    Do you want to select a project folder before continuing? [Y/n]: ",
+        "default_path_cli_warning": "[!] Warning: Running in default user directory ({path}).\n    Recommended: run inside your project folder or pass path: omni-agents /path/to/project",
+        "default_path_cli_prompt": "Do you really want to apply configurations in the user directory ({path})? [y/N]: "
     },
     "targets": {
         "dir_not_link": "Existing directory is not a link: {dst}",

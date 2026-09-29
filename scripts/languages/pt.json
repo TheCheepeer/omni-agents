@@ -149,7 +149,11 @@
         "source_layer_all": "[3] Todos Combinados (ext + custom) - {count} disponível(is)",
         "source_empty_ext": "A pasta de extensões (ext/{type}/) está vazia.\n    Você ainda não baixou nenhum item do repositório oficial.\n\n-> Para baixar extensões oficiais, use a opção [e] no menu principal:\n   [e] Extensões Remotas (Catálogo GitHub / ext/)",
         "source_empty_custom": "A pasta personalizada (custom/{type}/) está vazia.\n\n-> Para adicionar seus próprios arquivos, coloque-os em:\n   {path}\n\n(Dica: Use a opção [o] no menu principal para abrir a pasta no Explorador de Arquivos)",
-        "source_empty_all": "Nenhum item encontrado em ext/{type}/ ou custom/{type}/.\n\n* Baixe extensões usando a opção [e] no menu principal.\n* Ou adicione seus arquivos personalizados usando a opção [o]."
+        "source_empty_all": "Nenhum item encontrado em ext/{type}/ ou custom/{type}/.\n\n* Baixe extensões usando a opção [e] no menu principal.\n* Ou adicione seus arquivos personalizados usando a opção [o].",
+        "default_path_warning_banner": "[!] AVISO: Diretório padrão do sistema/usuário detectado ({path})!\n    Recomendado: Digite 'w' para selecionar a pasta do seu projeto.",
+        "default_path_confirm_prompt": "[!] Atenção: O workspace alvo atual é o diretório padrão de usuário:\n    {path}\n    Deseja selecionar uma pasta de projeto antes de continuar? [S/n]: ",
+        "default_path_cli_warning": "[!] Aviso: Executando no diretório padrão do usuário ({path}).\n    Recomendado executar dentro da pasta do projeto ou passar o caminho: omni-agents /caminho/do/projeto",
+        "default_path_cli_prompt": "Deseja realmente aplicar configurações no diretório de usuário ({path})? [s/N]: "
     },
     "targets": {
         "dir_not_link": "Diretório existente não é um link: {dst}",

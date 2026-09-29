@@ -15,7 +15,9 @@ omni-agents [TARGET_PATH] [OPTIONS]
 omni [TARGET_PATH] [OPTIONS]
 ```
 
-When run without arguments, `omni-agents` detects the current working directory as the target workspace and opens an interactive Terminal User Interface (TUI). When executed with operational flags like `--sync` or `--clean`, it runs headlessly without user intervention.
+When run without arguments, `omni-agents` automatically detects the current working directory as the target workspace and opens an interactive Terminal User Interface (TUI). When executed with operational flags like `--sync` or `--clean`, it runs headlessly without user intervention.
+
+> **Default / System Directory Protection**: If `omni-agents` is launched from a default shell home directory (such as `C:\Users\<username>` in Windows PowerShell, `/home/<username>` in Linux, or `/Users/<username>` in macOS) or drive roots (`C:\`, `/`), it displays a warning banner and prompts to select a project workspace. In non-interactive CLI mode, it requests confirmation before applying changes to home directories, unless `-y` / `--yes` is passed.
 
 ---
 

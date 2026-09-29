@@ -151,7 +151,11 @@
         "source_layer_all": "[3] Todos Combinados (ext + custom) - {count} disponible(s)",
         "source_empty_ext": "La carpeta de extensiones (ext/{type}/) está vacía.\n    Aún no ha descargado ningún elemento del repositorio oficial.\n\n-> Para descargar extensiones oficiales, use la opción [e] en el menú principal:\n   [e] Extensiones Remotas (Catálogo GitHub / ext/)",
         "source_empty_custom": "La carpeta personalizada (custom/{type}/) está vacía.\n\n-> Para agregar sus propios archivos, colóquelos en:\n   {path}\n\n(Consejo: Use la opción [o] en el menú principal para abrir la carpeta en el Explorador de Archivos)",
-        "source_empty_all": "No se encontraron elementos en ext/{type}/ o custom/{type}/.\n\n* Descargue extensiones oficiales usando la opción [e] en el menú principal.\n* O agregue sus archivos personalizados usando la opción [o]."
+        "source_empty_all": "No se encontraron elementos en ext/{type}/ o custom/{type}/.\n\n* Descargue extensiones oficiales usando la opción [e] en el menú principal.\n* O agregue sus archivos personalizados usando la opción [o].",
+        "default_path_warning_banner": "[!] ADVERTENCIA: ¡Directorio predeterminado de usuario/sistema detectado ({path})!\n    Recomendado: Escriba 'w' para seleccionar la carpeta de su proyecto.",
+        "default_path_confirm_prompt": "[!] Atención: El workspace actual es el directorio predeterminado de usuario:\n    {path}\n    ¿Desea seleccionar una carpeta de proyecto antes de continuar? [S/n]: ",
+        "default_path_cli_warning": "[!] Advertencia: Ejecutando en el directorio predeterminado del usuario ({path}).\n    Recomendado: ejecute dentro de la carpeta del proyecto o pase la ruta: omni-agents /ruta/al/proyecto",
+        "default_path_cli_prompt": "¿Realmente desea aplicar configuraciones en el directorio de usuario ({path})? [s/N]: "
     },
     "targets": {
         "dir_not_link": "El directorio existente no es un enlace simbólico: {dst}",

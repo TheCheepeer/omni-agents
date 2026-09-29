@@ -120,6 +120,67 @@ def is_dev_mode(repo_root: Path | None = None) -> bool:
     )
 
 
+def is_default_or_system_path(path: Path | None) -> bool:
+    """
+    Detects if a given path is a default user home directory, drive root,
+    or operating system system directory (where workspace projects are not usually located).
+    """
+    if not path:
+        return False
+
+    try:
+        resolved = path.resolve()
+        home = Path.home().resolve()
+    except (OSError, RuntimeError):
+        return False
+
+    # 1. Exact user home directory or parent profiles directory (e.g. C:\Users\name, C:\Users, /home, /Users)
+    if resolved == home or resolved == home.parent:
+        return True
+
+    # 2. Drive root (e.g. C:\, D:\, /)
+    if resolved == resolved.parent or str(resolved) == resolved.anchor:
+        return True
+
+    # 3. Operating system system directories
+    system_dirs = []
+    if sys.platform.startswith("win"):
+        win_dir = Path(os.environ.get("SystemRoot", r"C:\Windows")).resolve()
+        system_dirs.extend(
+            [
+                win_dir,
+                win_dir / "System32",
+                Path(r"C:\Program Files").resolve(),
+                Path(r"C:\Program Files (x86)").resolve(),
+                Path(os.environ.get("ProgramData", r"C:\ProgramData")).resolve(),
+            ]
+        )
+    else:
+        for s in (
+            "/etc",
+            "/usr",
+            "/var",
+            "/tmp",
+            "/bin",
+            "/sbin",
+            "/lib",
+            "/opt",
+            "/System",
+            "/Library",
+            "/Applications",
+        ):
+            system_dirs.append(Path(s).resolve())
+
+    for sdir in system_dirs:
+        try:
+            if resolved == sdir or resolved.is_relative_to(sdir):
+                return True
+        except (ValueError, OSError):
+            continue
+
+    return False
+
+
 def ensure_omni_documents_structure() -> tuple[Path, dict[str, Any]]:
     """
     Ensures that the directory structure in Documents/omni-agents exists.

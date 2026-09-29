@@ -23,9 +23,9 @@ if str(SCRIPTS_DIR) not in sys.path:
 
 from i18n import t
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
-USER_AGENT = "omni-agents/1.0.0 (Python urllib)"
+USER_AGENT = "omni-agents/1.0.1 (Python urllib)"
 
 
 def _parse_version_tuple(ver_str: str) -> tuple[int, ...]:
