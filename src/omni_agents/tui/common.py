@@ -9,6 +9,7 @@ import os
 import sys
 
 from omni_agents.i18n import t
+from omni_agents.tui.theme import COLOR_WARNING, console
 
 
 def clear_screen() -> None:
@@ -17,9 +18,12 @@ def clear_screen() -> None:
 
 
 def confirm_exit_unsaved(lang: str = "en") -> bool:
-    """Prompts the user whether to discard unsaved changes."""
+    """Prompts the user whether to discard unsaved changes using a styled warning prompt."""
     try:
-        resp = input(f"\n{t('unsaved_changes_warning', lang)}").strip().lower()
+        warning_text = t("unsaved_changes_warning", lang)
+        arrow = f"[bold {COLOR_WARNING}]![/bold {COLOR_WARNING}] "
+        console.print(f"\n{arrow}[white]{warning_text}[/white]", end="")
+        resp = input().strip().lower()
         return resp in ("s", "sim", "y", "yes", "si", "sí")
     except (EOFError, KeyboardInterrupt):
         return True

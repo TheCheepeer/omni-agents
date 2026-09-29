@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 Skills management and category selection menu for omni-agents TUI.
+Rendered using styled category cards, badge counts, and selection panels.
 """
 
 from __future__ import annotations
@@ -11,39 +12,45 @@ from typing import Any
 from omni_agents.core.linker import apply_workspace_to_targets
 from omni_agents.i18n import t
 from omni_agents.tui.common import clear_screen, confirm_exit_unsaved
+from omni_agents.tui.theme import (
+    COLOR_MUTED,
+    COLOR_PRIMARY,
+    COLOR_SUCCESS,
+    Panel,
+    Table,
+    box,
+    console,
+    escape,
+    get_styled_choice,
+    press_enter_to_continue,
+    render_banner,
+    render_selection_card,
+)
 
 
 def handle_category_submenu(
-    cat_name: str, skills: list[dict], selected_set: set[str], lang: str = "en"
+    cat_name: str, skills: list[dict[str, Any]], selected_set: set[str], lang: str = "en"
 ) -> set[str]:
     """Dynamic submenu to manage skills within a specific category."""
     current_selected = set(selected_set)
 
     while True:
         clear_screen()
-        print("\n" + "-" * 65)
-        print(f"  {t('cat_title', lang, cat=cat_name.upper(), count=len(skills))}")
-        print("-" * 65)
+        render_selection_card(
+            title=f"{t('table_col_category', lang).upper()}: {cat_name.upper()}",
+            items=skills,
+            instructions=t("cat_nav", lang),
+            selected_ids=current_selected,
+            id_key="id",
+            name_key="id",
+            desc_key="description",
+            footer_hint=t("hint_cat_toggle", lang),
+            subtitle=t("cat_skills_available", lang, count=len(skills)),
+        )
 
-        for idx, skill in enumerate(skills, 1):
-            is_sel = "[x]" if skill["id"] in current_selected else "[ ]"
-            desc_preview = (
-                skill["description"][:58] + "..."
-                if len(skill["description"]) > 58
-                else skill["description"]
-            )
-            print(f"  [{idx:2d}] {is_sel} {skill['id']:<24} - {desc_preview}")
+        choice = get_styled_choice(t("your_choice", lang))
 
-        print("\n" + "-" * 65)
-        print(t("cat_nav", lang))
-        print("-" * 65)
-
-        try:
-            choice = input(f"\n{t('your_choice', lang)}").strip().lower()
-        except (EOFError, KeyboardInterrupt):
-            break
-
-        if choice in ("v", "voltar", "volver", ""):
+        if choice in ("v", "voltar", "volver", "q", ""):
             break
 
         if choice == "all":
@@ -91,11 +98,8 @@ def handle_skills(
     """Option: Modular skills category menu with dedicated submenus."""
     skills_by_cat = scanned["skills_by_category"]
     if not skills_by_cat:
-        print(f"[!] {t('no_skills_found', lang)}")
-        try:
-            input(f"\n{t('press_enter_menu', lang)}")
-        except (EOFError, KeyboardInterrupt):
-            pass
+        render_banner(t("no_skills_found", lang), level="warning")
+        press_enter_to_continue(t("press_enter_menu", lang))
         return
 
     raw_saved = current_state.get("selected_skills", {})
@@ -108,33 +112,64 @@ def handle_skills(
         total_selected = sum(len(v) for v in selected_by_cat.values())
         cats_with_selection = len([c for c, v in selected_by_cat.items() if v])
 
-        print("\n" + "=" * 65)
-        print(f"  {t('skills_title', lang)}")
-        print("=" * 65)
-        print(f"{t('target_workspace', lang)}: {target_path}\n")
-        print(t("categories_available", lang))
+        # Category Table
+        cat_table = Table(box=None, show_header=False, padding=(0, 1), expand=True)
+        cat_table.add_column(t("table_col_index", lang), style="dim", width=6, justify="right")
+        cat_table.add_column(t("table_col_category", lang), style="bold white", width=22)
+        cat_table.add_column(t("table_col_status", lang), width=18)
+        cat_table.add_column(t("table_col_description", lang), style=COLOR_MUTED)
 
         for idx, cat_name in enumerate(categories, 1):
             skills = skills_by_cat[cat_name]
             sel_count = len(selected_by_cat.get(cat_name, set()))
-            status = (
-                f"({sel_count}/{len(skills)})" if sel_count > 0 else f"({len(skills)})"
+            if sel_count > 0:
+                status_markup = (
+                    f"[bold {COLOR_SUCCESS}]● {sel_count}/{len(skills)} {t('status_active', lang).lower()}[/bold {COLOR_SUCCESS}]"
+                )
+            else:
+                status_markup = f"[{COLOR_MUTED}]○ {len(skills)} {t('status_available', lang).lower()}[/{COLOR_MUTED}]"
+
+            preview_skills = ", ".join(s["id"] for s in skills[:3])
+            if len(skills) > 3:
+                preview_skills += f" {t('more_items', lang, count=len(skills) - 3)}"
+
+            cat_table.add_row(
+                escape(f"[{idx:2d}]"),
+                escape(cat_name.upper()),
+                status_markup,
+                escape(preview_skills),
             )
-            print(f"  [{idx:2d}] {cat_name.upper():<16} {status}")
 
-        print(
-            f"\n{t('total_skills_sel', lang, skills=total_selected, cats=cats_with_selection)}"
+        summary_text = t(
+            "total_skills_sel",
+            lang,
+            skills=total_selected,
+            cats=cats_with_selection,
         )
-        print("\n" + "-" * 65)
-        print(t("skills_nav", lang))
-        print("-" * 65)
 
-        try:
-            choice = input(f"\n{t('choose_option', lang)}").strip().lower()
-        except (EOFError, KeyboardInterrupt):
-            break
+        categories_panel = Panel(
+            cat_table,
+            title=f"[bold white]{escape(t('skills_title', lang))}[/bold white]",
+            title_align="left",
+            subtitle=f"[bold {COLOR_PRIMARY}]{escape(summary_text)}[/bold {COLOR_PRIMARY}]",
+            subtitle_align="right",
+            box=box.ROUNDED,
+            border_style="dim cyan",
+            padding=(1, 1),
+        )
+        console.print(categories_panel)
 
-        if choice in ("v", "voltar", "volver"):
+        instructions_panel = Panel(
+            f"[{COLOR_MUTED}]{escape(t('skills_nav', lang))}[/{COLOR_MUTED}]",
+            box=box.ROUNDED,
+            border_style="dim",
+            padding=(0, 1),
+        )
+        console.print(instructions_panel)
+
+        choice = get_styled_choice(t("choose_option", lang))
+
+        if choice in ("v", "voltar", "volver", "q"):
             has_changed = any(
                 selected_by_cat.get(cat, set()) != initial_by_cat.get(cat, set())
                 for cat in set(selected_by_cat.keys()) | set(initial_by_cat.keys())
@@ -160,11 +195,8 @@ def handle_skills(
                 selected_skills_dict=current_state["selected_skills"],
                 lang=lang,
             )
-            print(f"\n[OK] {t('skills_synced', lang)}")
-            try:
-                input(f"\n{t('press_enter_menu', lang)}")
-            except (EOFError, KeyboardInterrupt):
-                pass
+            render_banner(t("skills_synced", lang), level="success")
+            press_enter_to_continue(t("press_enter_menu", lang))
             break
 
         if choice == "all":
@@ -186,7 +218,7 @@ def handle_skills(
                 else:
                     selected_by_cat.pop(cat_name, None)
             else:
-                print(f"[!] {t('invalid_option', lang)}")
+                render_banner(t("invalid_option", lang), level="warning")
         elif choice in skills_by_cat:
             cat_name = choice
             skills = skills_by_cat[cat_name]

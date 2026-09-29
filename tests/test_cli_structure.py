@@ -4,6 +4,7 @@ Unit tests for the omni_agents modular package architecture using src/ layout.
 
 from __future__ import annotations
 
+import io
 import os
 import subprocess
 import sys
@@ -130,6 +131,106 @@ class TestOmniAgentsPackage(unittest.TestCase):
         )
         self.assertEqual(proc.returncode, 0)
         self.assertIn("Diagnostic Info", proc.stdout)
+
+    def test_tui_theme_components(self):
+        from omni_agents.tui import theme
+        from omni_agents.tui.theme import Console
+
+        # Test string parsing
+        k, title, desc = theme.parse_menu_item("[t] Select Target Tools (Antigravity, Cursor, Claude...)")
+        self.assertEqual(k, "t")
+        self.assertEqual(title, "Select Target Tools")
+        self.assertEqual(desc, "Antigravity, Cursor, Claude...")
+
+        # Test rendering without exception
+        record_console = Console(file=io.StringIO(), record=True, highlight=False)
+        old_console = theme.console
+        theme.console = record_console
+        try:
+            theme.render_header(
+                title="TEST TITLE",
+                version="1.0.0",
+                workspace="/test/path",
+                mode="Test Mode",
+                active_targets=["antigravity", "cursor"],
+            )
+            theme.render_menu_card(
+                title="Actions",
+                items=[("t", "Target Tools", "Toggle assistants")],
+            )
+            theme.render_selection_card(
+                title="Select Targets",
+                items=[{"id": "test", "name": "Test Tool", "description": "A tool"}],
+                instructions="Test instructions",
+                selected_ids={"test"},
+            )
+            theme.render_banner("Test Banner", level="success")
+            output = record_console.export_text()
+            self.assertIn("TEST TITLE", output)
+            self.assertIn("Target Tools", output)
+            self.assertIn("Test Tool", output)
+            self.assertIn("Test Banner", output)
+        finally:
+            theme.console = old_console
+
+    def test_i18n_catalogs_consistency_and_zero_emojis(self):
+        import json
+        import re
+
+        lang_dir = SRC_DIR / "omni_agents" / "languages"
+        # Regex for common emojis
+        emoji_pattern = re.compile(
+            r"[\U0001F600-\U0001F64F"
+            r"\U0001F300-\U0001F5FF"
+            r"\U0001F680-\U0001F6FF"
+            r"\U0001F700-\U0001F77F"
+            r"\U0001F780-\U0001F7FF"
+            r"\U0001F800-\U0001F8FF"
+            r"\U0001F900-\U0001F9FF"
+            r"\U0001FA00-\U0001FA6F"
+            r"\U0001FA70-\U0001FAFF"
+            r"\U00002702-\U000027B0"
+            r"\U000024C2-\U0001F251]"
+        )
+
+        critical_keys = [
+            "target_workspace",
+            "active_tools",
+            "mode_label",
+            "table_col_index",
+            "table_col_rule",
+            "table_col_workspace",
+            "table_col_global",
+            "table_col_description",
+            "table_col_status",
+            "status_active",
+            "status_inactive",
+            "status_available",
+            "hint_toggle_save_return",
+        ]
+
+        for lang_file in lang_dir.glob("*.json"):
+            content = lang_file.read_text(encoding="utf-8")
+            # Strict Zero-emoji check
+            found_emojis = emoji_pattern.findall(content)
+            self.assertEqual(
+                found_emojis,
+                [],
+                f"Found emoji in {lang_file.name}: {found_emojis}",
+            )
+
+            data = json.loads(content)
+            ui_dict = data.get("ui", {})
+            for key in critical_keys:
+                self.assertIn(key, ui_dict, f"Missing '{key}' in {lang_file.name}")
+
+    def test_portuguese_purity_in_menu(self):
+        # Ensure the Portuguese menu translations are not mixed with unadapted English words
+        for key in ["menu_select_tools", "menu_rules", "menu_skills", "menu_sync", "menu_clean"]:
+            text = t(key, "pt")
+            self.assertNotIn("Workspace", text)
+            self.assertNotIn("Skills", text)
+            self.assertNotIn("Sync", text)
 
 
 if __name__ == "__main__":

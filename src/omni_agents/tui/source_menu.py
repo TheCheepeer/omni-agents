@@ -2,6 +2,7 @@
 """
 Source layer selection menu for omni-agents TUI.
 Allows selecting component origin (repository, extensions, custom, or merged).
+Rendered using modern action cards and item count badges.
 """
 
 from __future__ import annotations
@@ -11,6 +12,19 @@ from typing import Any
 
 from omni_agents.i18n import t
 from omni_agents.tui.common import clear_screen
+from omni_agents.tui.theme import (
+    COLOR_MUTED,
+    COLOR_PRIMARY,
+    COLOR_SUCCESS,
+    Panel,
+    Table,
+    box,
+    console,
+    escape,
+    get_styled_choice,
+    press_enter_to_continue,
+    render_banner,
+)
 
 
 def select_component_source(
@@ -57,40 +71,65 @@ def select_component_source(
 
     while True:
         clear_screen()
-        print("\n" + "=" * 65)
-        print(f"  {t('source_menu_title', lang, type=type_display)}")
-        print("=" * 65)
-        if target_path:
-            print(f"  {t('target_workspace', lang)}: {target_path}")
-        print("-" * 65)
+
+        table = Table(box=None, show_header=False, padding=(0, 1), expand=True)
+        table.add_column("Key", style=f"bold {COLOR_PRIMARY}", width=6, justify="right")
+        table.add_column("Layer", style="bold white", width=26)
+        table.add_column("Count", width=16)
 
         if is_dev:
-            print(
-                f"  {t('source_layer_repo', lang, type=component_type, count=repo_count)}"
+            table.add_row(
+                "[1]",
+                t("source_layer_repo_name", lang),
+                f"[bold {COLOR_SUCCESS}]● {repo_count} {t('items_count', lang)}[/bold {COLOR_SUCCESS}]",
             )
-            print(
-                f"  {t('source_layer_ext_dev', lang, type=component_type, count=ext_count)}"
+            table.add_row(
+                "[2]",
+                t("source_layer_ext_name", lang),
+                f"[{COLOR_MUTED}]● {ext_count} {t('items_count', lang)}[/{COLOR_MUTED}]",
             )
-            print(
-                f"  {t('source_layer_custom_dev', lang, type=component_type, count=custom_count)}"
+            table.add_row(
+                "[3]",
+                t("source_layer_custom_name", lang),
+                f"[{COLOR_MUTED}]● {custom_count} {t('items_count', lang)}[/{COLOR_MUTED}]",
             )
-            print(f"  {t('source_layer_all_dev', lang, count=all_count)}")
+            table.add_row(
+                "[4]",
+                t("source_layer_merged_name", lang),
+                f"[bold {COLOR_PRIMARY}]● {all_count} {t('items_count', lang)} ({t('recommended', lang)})[/bold {COLOR_PRIMARY}]",
+            )
         else:
-            print(
-                f"  {t('source_layer_ext', lang, type=component_type, count=ext_count)}"
+            table.add_row(
+                "[1]",
+                t("source_layer_ext_name", lang),
+                f"[{COLOR_MUTED}]● {ext_count} {t('items_count', lang)}[/{COLOR_MUTED}]",
             )
-            print(
-                f"  {t('source_layer_custom', lang, type=component_type, count=custom_count)}"
+            table.add_row(
+                "[2]",
+                t("source_layer_custom_name", lang),
+                f"[{COLOR_MUTED}]● {custom_count} {t('items_count', lang)}[/{COLOR_MUTED}]",
             )
-            print(f"  {t('source_layer_all', lang, count=all_count)}")
+            table.add_row(
+                "[3]",
+                t("source_layer_merged_name", lang),
+                f"[bold {COLOR_PRIMARY}]● {all_count} {t('items_count', lang)} ({t('recommended', lang)})[/bold {COLOR_PRIMARY}]",
+            )
 
-        print(f"  {t('ext_menu_back', lang)}")
-        print("-" * 65)
+        table.add_row("[v]", t("ext_menu_back", lang), "")
 
-        try:
-            choice = input(f"\n{t('choose_option', lang)}").strip().lower()
-        except (EOFError, KeyboardInterrupt):
-            return None
+        panel = Panel(
+            table,
+            title=f"[bold white]{escape(t('source_menu_title', lang, type=type_display))}[/bold white]",
+            title_align="left",
+            subtitle=f"[{COLOR_MUTED}]{escape(str(target_path) if target_path else '')}[/{COLOR_MUTED}]",
+            subtitle_align="right",
+            box=box.ROUNDED,
+            border_style="dim cyan",
+            padding=(1, 1),
+        )
+        console.print(panel)
+
+        choice = get_styled_choice(t("choose_option", lang))
 
         if choice in ("v", "voltar", "volver", "back", "q", "exit"):
             return None
@@ -114,27 +153,31 @@ def select_component_source(
                 selected_layer = "merged"
 
         if not selected_layer:
-            print(f"[!] {t('invalid_option', lang)}")
-            try:
-                input(f"\n{t('press_enter', lang)}")
-            except (EOFError, KeyboardInterrupt):
-                pass
+            render_banner(t("invalid_option", lang), level="warning")
+            press_enter_to_continue(t("press_enter", lang))
             continue
 
         layer_count = _get_count(selected_layer)
         if layer_count == 0:
             clear_screen()
-            print("\n" + "=" * 65)
-            print(f"  {type_display.upper()}")
-            print("=" * 65)
             if selected_layer == "ext":
-                print(f"\n[!] {t('source_empty_ext', lang, type=component_type)}")
+                render_banner(
+                    t("source_empty_ext", lang, type=component_type), level="warning"
+                )
             elif selected_layer == "custom":
-                print(
-                    f"\n[!] {t('source_empty_custom', lang, type=component_type, path=custom_subpath)}"
+                render_banner(
+                    t(
+                        "source_empty_custom",
+                        lang,
+                        type=component_type,
+                        path=custom_subpath,
+                    ),
+                    level="warning",
                 )
             elif selected_layer == "merged":
-                print(f"\n[!] {t('source_empty_all', lang, type=component_type)}")
+                render_banner(
+                    t("source_empty_all", lang, type=component_type), level="warning"
+                )
             else:
                 fallback_key = (
                     "no_agents_found"
@@ -143,11 +186,9 @@ def select_component_source(
                     if component_type == "rules"
                     else "no_skills_found"
                 )
-                print(f"\n[!] {t(fallback_key, lang)}")
-            try:
-                input(f"\n{t('press_enter_menu', lang)}")
-            except (EOFError, KeyboardInterrupt):
-                pass
+                render_banner(t(fallback_key, lang), level="warning")
+
+            press_enter_to_continue(t("press_enter_menu", lang))
             continue
 
         return sources[selected_layer]

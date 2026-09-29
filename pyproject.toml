@@ -23,6 +23,10 @@ classifiers = [
     "Operating System :: OS Independent",
     "Environment :: Console",
 ]
+dependencies = [
+    "rich>=13.7.0",
+    "questionary>=2.1.0",
+]
 
 [project.scripts]
 omni-agents = "omni_agents.cli:main"

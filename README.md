@@ -100,31 +100,102 @@ To optimize token consumption and prevent model choice hesitation:
 
 ## Installation
 
-Install `omni-agents` as a global CLI tool on your system with a single command:
+We strongly recommend installing `omni-agents` via **isolated CLI package managers** (`pipx` or `uv`). This guarantees that your system and global Python environments remain completely untouched, while providing globally accessible `omni-agents` and `omni` commands across your system.
 
-### One-Line Installers
+---
 
-- **Windows (PowerShell):**
-    ```powershell
-    irm https://raw.githubusercontent.com/TheCheepeer/omni-agents/main/install.ps1 | iex
-    ```
-- **Linux / macOS:**
-    ```bash
-    curl -fsSL https://raw.githubusercontent.com/TheCheepeer/omni-agents/main/install.sh | bash
-    ```
+### Method 1: Recommended — Isolated Install via `pipx`
 
-### Via Python Package Manager (`pip`)
+`pipx` installs CLI tools in dedicated virtual environments and exposes them directly to your `PATH`.
 
-```bash
-pip install omni-agents-cli
-```
+#### Step 1: Install `pipx` on Your Operating System
 
-Or via isolated CLI tool managers (`pipx` / `uv`):
+- **Windows:**
+  Using Windows Package Manager (recommended):
+  ```powershell
+  winget install pipx
+  ```
+  Or via Python:
+  ```powershell
+  python -m pip install --user pipx
+  python -m pipx ensurepath
+  ```
+  *(Restart your PowerShell or terminal window after running `ensurepath`).*
+
+- **Linux (Ubuntu / Debian):**
+  ```bash
+  sudo apt update && sudo apt install -y pipx
+  pipx ensurepath
+  ```
+  *(Fedora: `sudo dnf install pipx` | Arch Linux: `sudo pacman -S python-pipx`)*
+
+- **macOS:**
+  ```bash
+  brew install pipx
+  pipx ensurepath
+  ```
+
+#### Step 2: Install `omni-agents`
 
 ```bash
 pipx install omni-agents-cli
-# Or using uv:
+```
+
+To update to the latest version in the future:
+```bash
+pipx upgrade omni-agents-cli
+```
+
+---
+
+### Method 2: High-Performance Alternative — Isolated Install via `uv`
+
+`uv` is an ultra-fast, modern Python package and tool runner written in Rust.
+
+#### Step 1: Install `uv` on Your Operating System
+
+- **Windows (PowerShell):**
+  ```powershell
+  powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+  ```
+  *(Or via winget: `winget install astral-sh.uv`)*
+
+- **Linux & macOS:**
+  ```bash
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+  ```
+  *(Or on macOS via Homebrew: `brew install uv`)*
+
+#### Step 2: Install `omni-agents`
+
+```bash
 uv tool install omni-agents-cli
+```
+
+To update to the latest version in the future:
+```bash
+uv tool upgrade omni-agents-cli
+```
+
+---
+
+### Method 3: One-Line Convenience Scripts
+
+- **Windows (PowerShell):**
+  ```powershell
+  irm https://raw.githubusercontent.com/TheCheepeer/omni-agents/main/install.ps1 | iex
+  ```
+- **Linux / macOS:**
+  ```bash
+  curl -fsSL https://raw.githubusercontent.com/TheCheepeer/omni-agents/main/install.sh | bash
+  ```
+
+---
+
+### Method 4: Standard `pip`
+
+```bash
+pip install omni-agents-cli
 ```
 
 Once installed, execute `omni-agents` (or simply `omni`) anywhere in your terminal.

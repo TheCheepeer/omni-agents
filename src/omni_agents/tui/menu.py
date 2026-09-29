@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 Main interactive terminal loop for omni-agents TUI.
+Rendered using modern rounded panels and status indicators.
 """
 
 from __future__ import annotations
@@ -31,6 +32,13 @@ from omni_agents.tui.targets_menu import (
     handle_global_configuration,
     handle_target_selection,
 )
+from omni_agents.tui.theme import (
+    get_styled_choice,
+    press_enter_to_continue,
+    render_banner,
+    render_header,
+    render_menu_card,
+)
 from omni_agents.updater import __version__
 
 
@@ -55,60 +63,62 @@ def run_interactive_loop(
         ):
             current_lang = resolve_language_code(workspace_state["language"])
 
-        active_tools_display = (
-            ", ".join(workspace_state.get("active_targets", []))
-            if workspace_state.get("active_targets")
-            else t("none_default", current_lang)
-        )
+        active_targets = workspace_state.get("active_targets", [])
         target_display = (
             str(target_path) if target_path else t("not_defined", current_lang)
         )
-
         lang_badge = get_language_badge(current_lang)
-
         mode_label = (
             t("mode_dev", current_lang) if is_dev else t("mode_global", current_lang)
         )
 
-        print("\n" + "=" * 65)
-        print(f"  {t('app_title', current_lang)} (v{__version__})")
-        print("=" * 65)
-        print(f"  {t('mode_label', current_lang)}:          {mode_label}")
-        print(f"  {t('target_workspace', current_lang)}:     {target_display}")
+        warning_banner = None
         if is_default_or_system_path(target_path):
-            print()
-            for wline in t(
+            warning_banner = t(
                 "default_path_warning_banner", current_lang, path=target_path
-            ).splitlines():
-                print(f"  {wline}")
-        print(f"  {t('active_tools', current_lang)}: {active_tools_display}")
-        print("-" * 65)
-        print(f"  {t('menu_select_tools', current_lang)}")
-        print(f"  {t('menu_global', current_lang)}")
-        print(f"  {t('menu_agents', current_lang)}")
-        print(f"  {t('menu_rules', current_lang)}")
-        print(f"  {t('menu_skills', current_lang)}")
-        print(f"  {t('menu_ext', current_lang)}")
-        if has_graphical_display():
-            print(f"  {t('menu_custom_folder', current_lang)}")
-        else:
-            print(f"  {t('menu_custom_folder_headless', current_lang)}")
-        print(f"  {t('menu_sync', current_lang)}")
-        print(f"  {t('menu_clean', current_lang)}")
-        print(f"  {t('menu_lang', current_lang, current=lang_badge)}")
-        print(f"  {t('menu_exit', current_lang)}")
-        print("-" * 65)
-        print(f"  {t('menu_change_workspace', current_lang)}")
-        print("=" * 65)
+            )
 
-        try:
-            choice = input(f"\n{t('choose_option', current_lang)}").strip().lower()
-        except (EOFError, KeyboardInterrupt):
+        render_header(
+            title=t("app_title", current_lang),
+            version=__version__,
+            workspace=target_display,
+            mode=mode_label,
+            active_targets=active_targets,
+            warning_banner=warning_banner,
+            lang=current_lang,
+        )
+
+        menu_items = [
+            t("menu_select_tools", current_lang),
+            t("menu_global", current_lang),
+            t("menu_agents", current_lang),
+            t("menu_rules", current_lang),
+            t("menu_skills", current_lang),
+            t("menu_ext", current_lang),
+            t("menu_custom_folder", current_lang)
+            if has_graphical_display()
+            else t("menu_custom_folder_headless", current_lang),
+            t("menu_sync", current_lang),
+            t("menu_clean", current_lang),
+            t("menu_lang", current_lang, current=lang_badge),
+            t("menu_change_workspace", current_lang),
+            t("menu_exit", current_lang),
+        ]
+
+        render_menu_card(
+            title=t("context_actions_title", current_lang),
+            items=menu_items,
+            footer_hint=t("hint_type_key_or_quit", current_lang),
+        )
+
+        choice = get_styled_choice(t("choose_option", current_lang))
+
+        if choice in ("5", "sair", "exit", "q", "quit", "salir"):
             clear_screen()
-            print(f"\n{t('exit_msg', current_lang)}\n")
+            render_banner(t("exit_msg", current_lang), level="info")
             sys.exit(0)
 
-        if choice in ("t", "tool", "tools", "ferramentas", "herramientas"):
+        elif choice in ("t", "tool", "tools", "ferramentas", "herramientas"):
             target_path = confirm_or_choose_project_workspace(
                 target_path, lang=current_lang
             )
@@ -214,21 +224,21 @@ def run_interactive_loop(
             if has_graphical_display():
                 opened = open_folder_in_explorer(omni_docs_dir)
                 if opened:
-                    print(
-                        f"\n[OK] {t('folder_opened', current_lang, path=omni_docs_dir)}"
+                    render_banner(
+                        t("folder_opened", current_lang, path=omni_docs_dir),
+                        level="success",
                     )
                 else:
-                    print(
-                        f"\n[i] {t('folder_path_info', current_lang, path=omni_docs_dir)}"
+                    render_banner(
+                        t("folder_path_info", current_lang, path=omni_docs_dir),
+                        level="info",
                     )
             else:
-                print(
-                    f"\n[i] {t('folder_path_info', current_lang, path=omni_docs_dir)}"
+                render_banner(
+                    t("folder_path_info", current_lang, path=omni_docs_dir),
+                    level="info",
                 )
-            try:
-                input(f"\n{t('press_enter', current_lang)}")
-            except (EOFError, KeyboardInterrupt):
-                pass
+            press_enter_to_continue(t("press_enter", current_lang))
 
         elif choice in ("s", "sync", "sincronizar"):
             target_path = confirm_or_choose_project_workspace(
@@ -250,11 +260,8 @@ def run_interactive_loop(
                     selected_skills_dict=workspace_state.get("selected_skills", {}),
                     lang=current_lang,
                 )
-                print(f"\n[OK] {t('sync_success', current_lang)}")
-                try:
-                    input(f"\n{t('press_enter', current_lang)}")
-                except (EOFError, KeyboardInterrupt):
-                    pass
+                render_banner(t("sync_success", current_lang), level="success")
+                press_enter_to_continue(t("press_enter", current_lang))
 
         elif choice in ("c", "clean", "limpar", "limpiar"):
             target_path = confirm_or_choose_project_workspace(
@@ -275,15 +282,11 @@ def run_interactive_loop(
                 omni_docs_dir=omni_docs_dir,
             )
 
-        elif choice in ("5", "sair", "exit", "q", "quit", "salir"):
-            clear_screen()
-            print(f"\n{t('exit_msg', current_lang)}\n")
-            sys.exit(0)
-
         elif choice in ("w", "workspace"):
             new_target = resolve_workspace(None, lang=current_lang)
             if new_target:
                 target_path = new_target
 
         else:
-            print(f"[!] {t('invalid_option', current_lang)}")
+            render_banner(t("invalid_option", current_lang), level="warning")
+            press_enter_to_continue(t("press_enter", current_lang))

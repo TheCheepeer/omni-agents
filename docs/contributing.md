@@ -11,20 +11,30 @@ Thank you for contributing to `omni-agents`! This guide explains how to set up y
 - **Python**: `>=3.10` (Tested up to `3.13.x`).
 - **Git**: Installed and available in your `PATH`.
 
-### Clone & Editable Installation
-
-Clone the repository and install it in editable mode:
-
+### Clone & Environment Setup
+ 
+Clone the repository and set up an isolated virtual environment (`.venv`) so your global Python remains clean:
+ 
 ```bash
 git clone https://github.com/TheCheepeer/omni-agents.git
 cd omni-agents
 
-# Install editable CLI entry points (omni-agents and omni)
+# 1. Create and activate a local virtual environment
+# Windows:
+python -m venv .venv
+.venv\Scripts\activate
+
+# Linux / macOS:
+python3 -m venv .venv
+source .venv/bin/activate
+
+# 2. Install dependencies and local package in editable mode
+pip install -r requirements.txt
 pip install -e .
 ```
-
+ 
 Verify your active environment:
-
+ 
 ```bash
 omni-agents --info
 ```

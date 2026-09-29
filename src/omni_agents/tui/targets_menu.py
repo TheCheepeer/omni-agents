@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 Target selection and global configuration menu for omni-agents TUI.
+Rendered using modern selection cards and status indicators.
 """
 
 from __future__ import annotations
@@ -13,6 +14,12 @@ from omni_agents.core.linker import apply_workspace_to_targets
 from omni_agents.i18n import t
 from omni_agents.targets import get_all_targets
 from omni_agents.tui.common import clear_screen, confirm_exit_unsaved
+from omni_agents.tui.theme import (
+    get_styled_choice,
+    press_enter_to_continue,
+    render_banner,
+    render_selection_card,
+)
 
 
 def handle_target_selection(
@@ -29,30 +36,32 @@ def handle_target_selection(
         active_set.add("antigravity")
     initial_set = set(active_set)
 
+    target_items = [
+        {
+            "id": target.target_id,
+            "name": target.display_name,
+            "description": target.get_description(lang),
+        }
+        for target in all_targets
+    ]
+
     while True:
         clear_screen()
-        print("\n" + "=" * 65)
-        print(f"  {t('target_selection_title', lang)}")
-        print("=" * 65)
-        print(f"{t('target_workspace', lang)}: {target_path}\n")
-        print(f"{t('target_available', lang)}")
+        render_selection_card(
+            title=t("target_selection_title", lang),
+            items=target_items,
+            instructions=t("target_commands", lang),
+            selected_ids=active_set,
+            id_key="id",
+            name_key="name",
+            desc_key="description",
+            footer_hint=t("hint_toggle_save_return", lang),
+            subtitle=f"{t('target_workspace', lang)}: {target_path}",
+        )
 
-        for idx, target in enumerate(all_targets, 1):
-            is_active = "[x]" if target.target_id in active_set else "[ ]"
-            print(
-                f"  [{idx}] {is_active} {target.display_name:<26} - {target.get_description(lang)}"
-            )
+        choice = get_styled_choice(t("your_choice", lang))
 
-        print("\n" + "-" * 65)
-        print(t("target_commands", lang))
-        print("-" * 65)
-
-        try:
-            choice = input(f"\n{t('your_choice', lang)}").strip().lower()
-        except (EOFError, KeyboardInterrupt):
-            break
-
-        if choice in ("v", "voltar", "volver"):
+        if choice in ("v", "voltar", "volver", "q"):
             if active_set != initial_set and not confirm_exit_unsaved(lang=lang):
                 continue
             break
@@ -64,11 +73,8 @@ def handle_target_selection(
                 if target.target_id in active_set
             ]
             if not new_active_list:
-                print(f"  [!] {t('must_select_one_tool', lang)}")
-                try:
-                    input(t("press_enter", lang))
-                except (EOFError, KeyboardInterrupt):
-                    pass
+                render_banner(t("must_select_one_tool", lang), level="warning")
+                press_enter_to_continue(t("press_enter", lang))
                 continue
 
             current_state["active_targets"] = new_active_list
@@ -82,11 +88,8 @@ def handle_target_selection(
                 selected_skills_dict=current_state.get("selected_skills", {}),
                 lang=lang,
             )
-            print(f"\n[OK] {t('targets_updated', lang)}")
-            try:
-                input(f"\n{t('press_enter', lang)}")
-            except (EOFError, KeyboardInterrupt):
-                pass
+            render_banner(t("targets_updated", lang), level="success")
+            press_enter_to_continue(t("press_enter", lang))
             return new_active_list
 
         if choice == "":
@@ -134,28 +137,34 @@ def handle_global_configuration(
     lang: str = "en",
 ) -> None:
     """Menu for managing global machine-wide configuration links (Antigravity, Claude, etc.)."""
-    clear_screen()
-    print("\n" + "=" * 65)
-    print(f"  {t('global_title', lang)}")
-    print("=" * 65)
-    print(t("global_subtitle", lang))
-
     targets_with_global = [
         target for target in get_all_targets() if target.supports_global
     ]
-    for idx, target in enumerate(targets_with_global, 1):
-        print(f"  [{idx}] {target.display_name:<26} - {target.get_description(lang)}")
+    global_items = [
+        {
+            "id": target.target_id,
+            "name": target.display_name,
+            "description": target.get_description(lang),
+        }
+        for target in targets_with_global
+    ]
 
-    print("\n" + "-" * 65)
-    print(t("global_options", lang))
-    print("-" * 65)
+    clear_screen()
+    render_selection_card(
+        title=t("global_title", lang),
+        items=global_items,
+        instructions=t("global_options", lang),
+        selected_ids=set(),
+        id_key="id",
+        name_key="name",
+        desc_key="description",
+        footer_hint=t("hint_link_global", lang),
+        subtitle=t("global_subtitle", lang),
+    )
 
-    try:
-        choice = input(f"\n{t('your_choice', lang)}").strip().lower()
-    except (EOFError, KeyboardInterrupt):
-        return
+    choice = get_styled_choice(t("your_choice", lang))
 
-    if choice in ("v", "voltar", "volver", ""):
+    if choice in ("v", "voltar", "volver", "q", ""):
         return
 
     rules = scanned.get("rules", [])
@@ -165,43 +174,34 @@ def handle_global_configuration(
 
     if choice == "all":
         for target in targets_with_global:
-            print(f"\n-> {t('linking', lang, tool=target.display_name)}")
+            render_banner(t("linking", lang, tool=target.display_name), level="info")
             target.configure_global(
                 repo_root,
                 lang=lang,
                 selected_rules=configured_rules,
             )
-        print(f"\n[i] {t('global_rules_info_note', lang)}")
-        try:
-            input(f"\n{t('press_enter', lang)}")
-        except (EOFError, KeyboardInterrupt):
-            pass
+        render_banner(t("global_rules_info_note", lang), level="success")
+        press_enter_to_continue(t("press_enter", lang))
         return
 
     if choice in ("limpar", "clear", "limpiar"):
-        print(f"\n-> {t('cleaning_global', lang)}")
+        render_banner(t("cleaning_global", lang), level="warning")
         for target in targets_with_global:
             target.clean_global(lang=lang)
         app_config["global_rules"] = []
         save_app_config(repo_root, app_config, omni_docs_dir=omni_docs_dir)
-        try:
-            input(f"\n{t('press_enter', lang)}")
-        except (EOFError, KeyboardInterrupt):
-            pass
+        press_enter_to_continue(t("press_enter", lang))
         return
 
     if choice.isdigit():
         num = int(choice)
         if 1 <= num <= len(targets_with_global):
             target = targets_with_global[num - 1]
-            print(f"\n-> {t('linking', lang, tool=target.display_name)}")
+            render_banner(t("linking", lang, tool=target.display_name), level="info")
             target.configure_global(
                 repo_root,
                 lang=lang,
                 selected_rules=configured_rules,
             )
-            print(f"\n[i] {t('global_rules_info_note', lang)}")
-            try:
-                input(f"\n{t('press_enter', lang)}")
-            except (EOFError, KeyboardInterrupt):
-                pass
+            render_banner(t("global_rules_info_note", lang), level="success")
+            press_enter_to_continue(t("press_enter", lang))
