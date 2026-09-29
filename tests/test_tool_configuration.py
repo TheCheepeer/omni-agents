@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import io
 import json
-import os
 import sys
 import tempfile
 import unittest
@@ -24,10 +23,10 @@ if str(SRC_DIR) not in sys.path:
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from omni_agents.core.config import load_app_config, save_app_config
+from omni_agents.core.config import load_app_config
 from omni_agents.env_paths import DEFAULT_CONFIG, is_default_or_system_path
 from omni_agents.i18n import t
-from omni_agents.targets.base import load_workspace_state, save_workspace_state
+from omni_agents.targets.base import load_workspace_state
 from omni_agents.tui import theme
 from omni_agents.tui.targets_menu import handle_target_selection
 
@@ -85,11 +84,13 @@ class TestToolConfigurationLifecycle(unittest.TestCase):
             docs_dir = Path(tmpdir)
             cfg_file = docs_dir / "config.json"
             cfg_file.write_text(
-                json.dumps({
-                    "version": "1.0.0",
-                    "language": "pt",
-                    "active_targets": ["antigravity"],
-                }),
+                json.dumps(
+                    {
+                        "version": "1.0.0",
+                        "language": "pt",
+                        "active_targets": ["antigravity"],
+                    }
+                ),
                 encoding="utf-8",
             )
 
@@ -102,11 +103,13 @@ class TestToolConfigurationLifecycle(unittest.TestCase):
             docs_dir = Path(tmpdir)
             cfg_file = docs_dir / "config.json"
             cfg_file.write_text(
-                json.dumps({
-                    "version": "1.0.0",
-                    "tools_configured": True,
-                    "active_targets": ["antigravity"],
-                }),
+                json.dumps(
+                    {
+                        "version": "1.0.0",
+                        "tools_configured": True,
+                        "active_targets": ["antigravity"],
+                    }
+                ),
                 encoding="utf-8",
             )
 
@@ -127,8 +130,11 @@ class TestToolConfigurationLifecycle(unittest.TestCase):
 
             # Simulate user typing "2" (Claude), then "s" (save)
             inputs = ["2", "s"]
-            with patch("omni_agents.tui.targets_menu.get_styled_choice", side_effect=inputs), patch(
-                "omni_agents.tui.targets_menu.press_enter_to_continue"
+            with (
+                patch(
+                    "omni_agents.tui.targets_menu.get_styled_choice", side_effect=inputs
+                ),
+                patch("omni_agents.tui.targets_menu.press_enter_to_continue"),
             ):
                 chosen = handle_target_selection(
                     target_path=work_dir,

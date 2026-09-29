@@ -99,87 +99,65 @@ Para optimizar el consumo de tokens y evitar dudas en los modelos al seleccionar
 ---
 
 ## Instalación
- 
-Recomendamos ampliamente instalar `omni-agents` a través de **gestores de herramientas CLI aislados** (`pipx` o `uv`). Esto garantiza que el entorno Python global de su sistema permanezca intacto y limpio, manteniendo los comandos `omni-agents` y `omni` accesibles globalmente en su terminal.
+
+El método oficial y estándar para instalar `omni-agents` es a través de **`pip`**:
+
+```bash
+pip install omni-agents-cli
+```
+
+Para actualizar a la versión más reciente en cualquier momento:
+```bash
+pip install --upgrade omni-agents-cli
+```
+
+Una vez instalado, los comandos `omni-agents` (y el acceso directo `omni`) estarán disponibles globalmente en su terminal.
 
 ---
 
-### Método 1: Recomendado — Instalación Aislada vía `pipx`
+### Métodos Alternativos de Instalación
+
+Si prefiere gestionar herramientas CLI en entornos aislados o utilizar scripts de una sola línea:
+
+#### Alternativa 1: Instalación Aislada vía `pipx`
 
 `pipx` instala aplicaciones de terminal en entornos virtuales dedicados y expone sus ejecutables directamente en su `PATH`.
 
-#### Paso 1: Instale `pipx` en su Sistema Operativo
+1. **Instale `pipx` (si aún no lo tiene):**
+   - **Windows (PowerShell):**
+     ```powershell
+     python -m pip install --user pipx
+     python -m pipx ensurepath
+     ```
+     *(Cierre y vuelva a abrir la ventana de PowerShell/terminal tras ejecutar `ensurepath`).*
+   - **Linux (Ubuntu / Debian):**
+     ```bash
+     sudo apt update && sudo apt install -y pipx
+     pipx ensurepath
+     ```
+     *(Fedora: `sudo dnf install pipx` | Arch Linux: `sudo pacman -S python-pipx`)*
+   - **macOS:**
+     ```bash
+     brew install pipx
+     pipx ensurepath
+     ```
 
-- **Windows:**
-  Vía Administrador de Paquetes de Windows (recomendado):
-  ```powershell
-  winget install pipx
-  ```
-  O mediante PowerShell con Python:
-  ```powershell
-  python -m pip install --user pipx
-  python -m pipx ensurepath
-  ```
-  *(Reinicie su ventana de terminal o PowerShell tras ejecutar `ensurepath`).*
+2. **Instale `omni-agents`:**
+   ```bash
+   pipx install omni-agents-cli
+   ```
+   Para actualizar: `pipx upgrade omni-agents-cli`
 
-- **Linux (Ubuntu / Debian):**
-  ```bash
-  sudo apt update && sudo apt install -y pipx
-  pipx ensurepath
-  ```
-  *(Fedora: `sudo dnf install pipx` | Arch Linux: `sudo pacman -S python-pipx`)*
+#### Alternativa 2: Alto Rendimiento vía `uv`
 
-- **macOS:**
-  ```bash
-  brew install pipx
-  pipx ensurepath
-  ```
-
-#### Paso 2: Instale `omni-agents`
-
-```bash
-pipx install omni-agents-cli
-```
-
-Para actualizar a la versión más reciente en el futuro:
-```bash
-pipx upgrade omni-agents-cli
-```
-
----
-
-### Método 2: Alternativa de Alto Rendimiento — Instalación Aislada vía `uv`
-
-`uv` es un gestor moderno y ultrarrápido para paquetes y herramientas Python, desarrollado en Rust.
-
-#### Paso 1: Instale `uv` en su Sistema Operativo
-
-- **Windows (PowerShell):**
-  ```powershell
-  powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-  ```
-  *(O mediante winget: `winget install astral-sh.uv`)*
-
-- **Linux y macOS:**
-  ```bash
-  curl -LsSf https://astral.sh/uv/install.sh | sh
-  ```
-  *(O en macOS con Homebrew: `brew install uv`)*
-
-#### Paso 2: Instale `omni-agents`
+Si utiliza `uv`, instale como herramienta global aislada:
 
 ```bash
 uv tool install omni-agents-cli
 ```
+Para actualizar: `uv tool upgrade omni-agents-cli`
 
-Para actualizar a la versión más reciente en el futuro:
-```bash
-uv tool upgrade omni-agents-cli
-```
-
----
-
-### Método 3: Instaladores de Comando Único
+#### Alternativa 3: Instaladores de Una Sola Línea
 
 - **Windows (PowerShell):**
   ```powershell
@@ -189,16 +167,6 @@ uv tool upgrade omni-agents-cli
   ```bash
   curl -fsSL https://raw.githubusercontent.com/TheCheepeer/omni-agents/main/install.sh | bash
   ```
-
----
-
-### Método 4: `pip` Convencional
-
-```bash
-pip install omni-agents-cli
-```
-
-Una vez instalado, ejecute `omni-agents` (o simplemente `omni`) desde cualquier terminal del sistema.
 
 ---
 
