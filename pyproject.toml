@@ -46,7 +46,13 @@ exclude = ["*__pycache__*", "build*", "dist*"]
 namespaces = true
 
 [tool.setuptools.package-data]
-"omni_agents" = ["languages/*.json", "languages/*.md"]
+"omni_agents" = [
+    "languages/*.json",
+    "languages/*.md",
+    "builtin/**/*",
+    "builtin/*/*/*",
+    "builtin/*/*/*/*",
+]
 
 [tool.setuptools.dynamic]
 version = {attr = "omni_agents.__version__"}

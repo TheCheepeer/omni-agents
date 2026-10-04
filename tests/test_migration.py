@@ -6,15 +6,14 @@ Unit tests for migration and legacy global junctions cleanup.
 from __future__ import annotations
 
 import json
-import os
 import sys
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from omni_agents import __version__
 from omni_agents.core.migration import cleanup_legacy_global_environment
-from omni_agents.targets.base import is_link, remove_dir_link
 
 
 class TestLegacyMigration(unittest.TestCase):
@@ -53,7 +52,9 @@ class TestLegacyMigration(unittest.TestCase):
         claude_dir = self.fake_home / ".claude"
         claude_dir.mkdir(parents=True, exist_ok=True)
         claude_file = claude_dir / "CLAUDE.md"
-        claude_file.write_text("# Managed by omni-agents\nRule content", encoding="utf-8")
+        claude_file.write_text(
+            "# Managed by omni-agents\nRule content", encoding="utf-8"
+        )
 
         # Create dummy config with legacy key
         cfg_file = self.docs_dir / "config.json"
@@ -63,7 +64,7 @@ class TestLegacyMigration(unittest.TestCase):
         )
 
         with patch("pathlib.Path.home", return_value=self.fake_home):
-            removed = cleanup_legacy_global_environment(
+            cleanup_legacy_global_environment(
                 omni_docs_dir=self.docs_dir,
                 repo_root=self.root,
                 lang="en",
@@ -76,7 +77,7 @@ class TestLegacyMigration(unittest.TestCase):
         # Verify config was updated
         updated_cfg = json.loads(cfg_file.read_text(encoding="utf-8"))
         self.assertNotIn("global_rules", updated_cfg)
-        self.assertEqual(updated_cfg.get("version"), "1.0.3")
+        self.assertEqual(updated_cfg.get("version"), __version__)
         self.assertTrue(updated_cfg.get("legacy_global_cleaned"))
 
     def test_idempotent_migration_on_clean_environment(self):

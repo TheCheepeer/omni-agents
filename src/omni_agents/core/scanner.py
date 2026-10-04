@@ -159,6 +159,13 @@ def scan_component_sources(
         else empty_raw
     )
 
+    builtin_dir = Path(__file__).resolve().parent.parent / "builtin"
+    builtin_raw = (
+        _scan_source_directory(builtin_dir)
+        if builtin_dir.exists() and builtin_dir.is_dir()
+        else empty_raw
+    )
+
     merged_skills: dict[str, dict[str, dict[str, Any]]] = {}
     merged_agents: dict[str, dict[str, Any]] = {}
     merged_rules: dict[str, dict[str, Any]] = {}
@@ -169,6 +176,7 @@ def scan_component_sources(
         merged_agents.update(layer_data["agents"])
         merged_rules.update(layer_data["rules"])
 
+    _merge_layer(builtin_raw)
     if is_dev:
         _merge_layer(repo_raw)
     _merge_layer(ext_raw)

@@ -1,0 +1,5 @@
+include README.md
+include LICENSE
+include NOTICE
+recursive-include src/omni_agents/languages *
+recursive-include src/omni_agents/builtin *

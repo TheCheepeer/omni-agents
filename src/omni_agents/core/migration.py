@@ -11,6 +11,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+from omni_agents import __version__
 from omni_agents.core.config import load_app_config, save_app_config
 from omni_agents.i18n import t
 from omni_agents.targets.base import (
@@ -87,8 +88,8 @@ def cleanup_legacy_global_environment(
             if "global_rules" in cfg:
                 del cfg["global_rules"]
                 changed = True
-            if cfg.get("version") != "1.0.3":
-                cfg["version"] = "1.0.3"
+            if cfg.get("version") != __version__:
+                cfg["version"] = __version__
                 changed = True
             if not cfg.get("legacy_global_cleaned"):
                 cfg["legacy_global_cleaned"] = True

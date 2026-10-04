@@ -395,7 +395,7 @@ def save_workspace_state(
 def find_skill_file(
     repo_root: Path, scanned: dict[str, Any], cat_name: str, skill_id: str
 ) -> Path:
-    """Resolves the SKILL.md file of a skill considering scanned layers (repo, custom, ext)."""
+    """Resolves the SKILL.md file of a skill considering scanned layers (builtin, repo, custom, ext)."""
     skills_in_cat = scanned.get("skills_by_category", {}).get(cat_name, [])
     for s in skills_in_cat:
         if s.get("id") == skill_id:
@@ -403,7 +403,25 @@ def find_skill_file(
             skill_md = p / "SKILL.md" if p.is_dir() else p
             if skill_md.exists():
                 return skill_md
-    return repo_root / "skills" / cat_name / skill_id / "SKILL.md"
+
+    # Check built-in packaged skills
+    builtin_candidate = (
+        Path(__file__).resolve().parent.parent
+        / "builtin"
+        / "skills"
+        / cat_name
+        / skill_id
+        / "SKILL.md"
+    )
+    if builtin_candidate.exists():
+        return builtin_candidate
+
+    # Check repository root if in dev mode
+    repo_candidate = repo_root / "skills" / cat_name / skill_id / "SKILL.md"
+    if repo_candidate.exists():
+        return repo_candidate
+
+    return builtin_candidate
 
 
 class BaseTarget:
