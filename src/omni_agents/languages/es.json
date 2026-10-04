@@ -201,7 +201,11 @@
         "default_path_warning_banner": "[!] ADVERTENCIA: ¡Directorio predeterminado de usuario/sistema detectado ({path})!\n    Recomendado: Escriba 'w' para seleccionar la carpeta de su proyecto.",
         "default_path_confirm_prompt": "[!] Atención: El workspace actual es el directorio predeterminado de usuario:\n    {path}\n    ¿Desea seleccionar una carpeta de proyecto antes de continuar? [S/n]: ",
         "default_path_cli_warning": "[!] Advertencia: Ejecutando en el directorio predeterminado del usuario ({path}).\n    Recomendado: ejecute dentro de la carpeta del proyecto o pase la ruta: omni-agents /ruta/al/proyecto",
-        "default_path_cli_prompt": "¿Realmente desea aplicar configuraciones en el directorio de usuario ({path})? [s/N]: "
+        "default_path_cli_prompt": "¿Realmente desea aplicar configuraciones en el directorio de usuario ({path})? [s/N]: ",
+        "legacy_cleanup_detected": "Configuración global heredada detectada (v1.0.2). Eliminando enlaces globales...",
+        "legacy_cleanup_item": "Enlace heredado eliminado: {path}",
+        "legacy_cleanup_completed": "Entorno migrado con éxito al modelo 100% centrado en el espacio de trabajo.",
+        "global_mode_deprecated": "El modo global fue descontinuado en la v1.0.3 a favor del modelo centrado en el espacio de trabajo.\nConfigure su proyecto directamente usando 'omni-agents <ruta>' o 'omni-agents --list-workspaces'."
     },
     "targets": {
         "dir_not_link": "El directorio existente no es un enlace simbólico: {dst}",
@@ -251,11 +255,11 @@
     "target_descriptions": {
         "antigravity": {
             "display_name": "Google Antigravity",
-            "description": "Configuración vía .agents/ (workspace) y ~/.gemini/config/ (global)"
+            "description": "Configuración mediante .agents/ y manifiesto de skills en el espacio de trabajo"
         },
         "claude": {
             "display_name": "Claude Code (Anthropic)",
-            "description": "Genera CLAUDE.md en la raíz del workspace e instrucciones globales en ~/.claude/"
+            "description": "Genera CLAUDE.md y skills modulares en la raíz del espacio de trabajo"
         },
         "cursor": {
             "display_name": "Cursor IDE",

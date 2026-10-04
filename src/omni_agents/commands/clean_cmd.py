@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from omni_agents.core.config import save_app_config
+from omni_agents.core.migration import cleanup_legacy_global_environment
 from omni_agents.env_paths import is_default_or_system_path
 from omni_agents.i18n import t
 from omni_agents.targets import (
@@ -40,12 +41,20 @@ def clean_global_cli(
             ]
         ]
         if target_tool and target_tool != "all"
-        else [target for target in get_all_targets() if target.supports_global]
+        else [target for target in get_all_targets() if hasattr(target, "clean_global")]
     )
     for target in tools:
-        if target:
+        if target and hasattr(target, "clean_global"):
             target.clean_global(lang=current_lang)
-    app_config["global_rules"] = []
+
+    cleanup_legacy_global_environment(
+        omni_docs_dir=omni_docs_dir,
+        repo_root=repo_root,
+        lang=current_lang,
+        verbose=False,
+    )
+
+    app_config.pop("global_rules", None)
     save_app_config(repo_root, app_config, omni_docs_dir=omni_docs_dir)
     print("\n[OK] Global clean completed.")
 

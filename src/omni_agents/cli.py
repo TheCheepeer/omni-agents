@@ -32,8 +32,9 @@ from omni_agents.commands.list_cmd import (
     list_tools,
     list_workspaces,
 )
-from omni_agents.commands.sync_cmd import configure_global_cli, sync_workspace_cli
+from omni_agents.commands.sync_cmd import sync_workspace_cli
 from omni_agents.core.config import load_app_config
+from omni_agents.core.migration import cleanup_legacy_global_environment
 from omni_agents.core.scanner import scan_repository
 from omni_agents.core.workspace import has_graphical_display
 from omni_agents.env_paths import (
@@ -42,7 +43,7 @@ from omni_agents.env_paths import (
     is_dev_mode,
     open_folder_in_explorer,
 )
-from omni_agents.i18n import resolve_language_code
+from omni_agents.i18n import resolve_language_code, t
 from omni_agents.targets import load_workspace_state
 from omni_agents.tui.menu import run_interactive_loop
 from omni_agents.updater import (
@@ -126,10 +127,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Removes configurations from target workspace for specified tool(s) (or all)",
     )
     parser.add_argument(
+        "-g",
         "--global",
         dest="is_global",
         action="store_true",
-        help="Applies global configuration for specified tool(s) (or all)",
+        help="Legacy global mode (deprecated in v1.0.3; unlinks global artifacts when combined with --clean)",
     )
     parser.add_argument(
         "-y",
@@ -251,6 +253,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         or "en"
     )
 
+    # 0. Automatic migration: clean legacy v1.0.2 global junctions and obsolete config keys
+    cleanup_legacy_global_environment(
+        omni_docs_dir=omni_docs_dir,
+        repo_root=repo_root,
+        lang=current_lang,
+        verbose=True,
+    )
+
     # 1. Diagnostics & Information
     if args.info:
         show_info(
@@ -349,18 +359,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         return 0
 
-    # 7. Global Configuration Mode via CLI
+    # 7. Global Configuration Mode via CLI (Deprecated in v1.0.3)
     if args.is_global:
-        configure_global_cli(
-            target_tool=args.target_tool,
-            rule_profile=args.rule_profile,
-            assume_yes=args.assume_yes,
-            app_config=app_config,
-            scanned=scanned,
-            repo_root=repo_root,
-            omni_docs_dir=omni_docs_dir,
-            current_lang=current_lang,
-        )
+        print(f"\n[!] {t('global_mode_deprecated', current_lang)}\n")
         return 0
 
     # 8. Workspace Clean Mode via CLI

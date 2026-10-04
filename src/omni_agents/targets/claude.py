@@ -26,9 +26,9 @@ class ClaudeTarget(BaseTarget):
     target_id = "claude"
     display_name = "Claude Code (Anthropic)"
     description = (
-        "Generates CLAUDE.md in workspace root and global instructions in ~/.claude/"
+        "Generates CLAUDE.md and modular skills in workspace root"
     )
-    supports_global = True
+    supports_global = False
 
     def configure_workspace(
         self,

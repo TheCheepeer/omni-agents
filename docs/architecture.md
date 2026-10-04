@@ -106,57 +106,63 @@ Different operating systems and developer environments have varying permissions 
 
 ## 4. Target Adapter Pattern
 
-All supported AI coding tools inherit from the abstract base class `TargetConfigurator` defined in `scripts/targets/base.py`.
+All supported AI coding tools inherit from the abstract base class `BaseTarget` defined in `src/omni_agents/targets/base.py`.
 
 ```python
-class TargetConfigurator(ABC):
-    name: str
+class BaseTarget(ABC):
+    target_id: str
     display_name: str
-    target_dir_name: str
+    description: str
+    supports_global: bool = False
 
     @abstractmethod
-    def configure(
+    def configure_workspace(
         self,
-        workspace_root: str | Path,
-        selected_rules: list[str] | set[str] | None = None,
-        selected_skills: list[str] | set[str] | None = None,
-        selected_subagents: list[str] | set[str] | None = None,
-        global_mode: bool = False,
-        link_mode: str = "auto",
+        target_path: Path,
+        repo_root: Path,
+        scanned: dict[str, Any],
+        agents: list[dict[str, Any]],
+        rules: list[dict[str, Any]],
+        skills_by_cat: dict[str, set[str]],
+        lang: str = "en",
     ) -> bool:
         pass
 
     @abstractmethod
-    def clean(self, workspace_root: str | Path, global_mode: bool = False) -> bool:
+    def clean_workspace(self, target_path: Path, lang: str = "en") -> bool:
         pass
 ```
 
 ### Supported Target Adapters
 
-1. **Antigravity (`scripts/targets/antigravity.py`)**:
-    - Workspace destination: `.gemini/`
-    - Global destination: `~/.gemini/antigravity/`
-    - Rules: Linked into `rules/`
-    - Skills: Linked into `skills/`
-    - Subagents: Linked into `subagents/`
+1. **Antigravity (`src/omni_agents/targets/antigravity.py`)**:
+    - Workspace destination: `.agents/`
+    - Subagents: `.agents/agents/*.md`
+    - Rules: `.agents/rules/*.md`
+    - Skills: `.agents/skills.json` declarative manifest
+    - Driver: Bundles `omni-tune` as mandatory built-in skill
 
-2. **Cursor (`scripts/targets/cursor.py`)**:
-    - Workspace destination: `.cursor/`
-    - Rules: Formatted as `.cursorrules` or `.cursor/rules/`
-    - Skills & Subagents: Configured as tool instructions
+2. **Cursor (`src/omni_agents/targets/cursor.py`)**:
+    - Workspace destination: `.cursor/rules/*.mdc`
+    - Rules & metadata: Formatted with `globs` and `alwaysApply` frontmatter
 
-3. **Claude Code (`scripts/targets/claude.py`)**:
-    - Workspace destination: `.claude/`
-    - Rules: Formatted as `CLAUDE.md` / `.claude/rules/`
+3. **Claude Code (`src/omni_agents/targets/claude.py`)**:
+    - Workspace destination: `CLAUDE.md` in project root
     - Skills: Integrated into `.claude/skills/`
 
-4. **GitHub Copilot (`scripts/targets/copilot.py`)**:
+4. **GitHub Copilot (`src/omni_agents/targets/copilot.py`)**:
     - Workspace destination: `.github/copilot-instructions.md`
-    - Rules: Merged into project instructions file
+    - Rules & guidelines: Consolidated project instructions
 
-5. **Universal (`scripts/targets/universal.py`)**:
-    - Workspace destination: `.agents/`
-    - Implements the open multi-agent configuration layout, readable by custom LLM runners and community extensions.
+5. **Universal Ecosystem (`src/omni_agents/targets/universal.py`)**:
+    - **Universal**: `AGENTS.md` in workspace root
+    - **Kiro**: `AGENTS.md` and `.kiro/steering/`
+    - **OpenCode**: `AGENTS.md` and `.opencode/rules/`
+    - **Codex**: `AGENTS.md` optimized for OpenAI Codex
+
+### Central Workspace Registry
+
+To track all configured repositories across the machine, `omni-agents` maintains a registry at `~/Documents/omni-agents/workspaces.json`. Whenever a workspace is synchronized or cleaned, its entry is automatically registered or updated. Users can list all tracked workspaces via `omni-agents --list-workspaces` or switch between them directly in the interactive TUI via `[w]`.
 
 ---
 

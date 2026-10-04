@@ -97,7 +97,7 @@ If network access is unavailable or GitHub API rate limits are encountered:
 
 ## 4. Automatic Update & Self-Upgrade Engine
 
-The self-update engine (`scripts/updater.py`) keeps `omni-agents` up to date across execution modes:
+The self-update engine (`src/omni_agents/updater.py`) keeps `omni-agents` up to date across execution modes:
 
 ### Upgrade Execution Flow
 

@@ -62,46 +62,47 @@ omni-agents --info
 
 ## 3. Adding a New Target Adapter
 
-All tool adapters reside in `scripts/targets/` and subclass `TargetConfigurator` from `scripts/targets/base.py`.
+All tool adapters reside in `src/omni_agents/targets/` and subclass `BaseTarget` from `src/omni_agents/targets/base.py`.
 
 ### Step-by-Step Implementation
 
 1. **Create the Adapter File**:
-   Create a new file in `scripts/targets/<tool_name>.py`:
+   Create a new file in `src/omni_agents/targets/<tool_name>.py`:
 
     ```python
     from pathlib import Path
-    from scripts.targets.base import TargetConfigurator
+    from typing import Any
+    from omni_agents.targets.base import BaseTarget
 
-    class MyNewToolConfigurator(TargetConfigurator):
-        name = "mynewtool"
+    class MyNewToolTarget(BaseTarget):
+        target_id = "mynewtool"
         display_name = "My New Tool (.mynewtool)"
-        target_dir_name = ".mynewtool"
+        description = "Generates instructions in .mynewtool/"
+        supports_global = False
 
-        def configure(
+        def configure_workspace(
             self,
-            workspace_root: str | Path,
-            selected_rules: list[str] | set[str] | None = None,
-            selected_skills: list[str] | set[str] | None = None,
-            selected_subagents: list[str] | set[str] | None = None,
-            global_mode: bool = False,
-            link_mode: str = "auto",
+            target_path: Path,
+            repo_root: Path,
+            scanned: dict[str, Any],
+            agents: list[dict[str, Any]],
+            rules: list[dict[str, Any]],
+            skills_by_cat: dict[str, set[str]],
+            lang: str = "en",
         ) -> bool:
-            target_dir = self.resolve_target_dir(workspace_root, global_mode)
-            # Implement configuration and linking logic here
+            # Implement workspace configuration logic here
             return True
 
-        def clean(self, workspace_root: str | Path, global_mode: bool = False) -> bool:
-            target_dir = self.resolve_target_dir(workspace_root, global_mode)
-            # Implement cleanup logic here
+        def clean_workspace(self, target_path: Path, lang: str = "en") -> bool:
+            # Implement workspace cleanup logic here
             return True
     ```
 
 2. **Register the Adapter**:
    Import and register your class in `TARGET_REGISTRY` in `src/omni_agents/targets/__init__.py`.
 
-3. **Validate Linking**:
-   Ensure directory junctions are used on Windows and symbolic links on Unix/macOS, falling back to physical copy with an `omni-manifest.json` file.
+3. **Add Target Descriptions**:
+   Add the tool's display name and description in all 3 language catalogs (`en.json`, `pt.json`, `es.json`) under `target_descriptions`.
 
 ---
 

@@ -111,14 +111,14 @@ Apply components to the current workspace (`.`):
 <omni> . --tools antigravity --skills none --sync -y
 ```
 
-### D. Global Machine-Wide Configuration
-Apply user-level guidelines across all projects on the machine:
+### D. Central Workspaces & Inspection
+Inspect and manage tracked workspaces configured with omni-agents across your machine:
 ```bash
-# Configure global rules and core skills:
-<omni> --global --tools antigravity --rule general --sync -y
+# List all tracked workspaces across your system:
+<omni> --list-workspaces
 
-# Clean global configuration:
-<omni> --global --clean --tools antigravity
+# Diagnostics and system path information:
+<omni> --info
 ```
 
 ### E. Remote Extensions Management

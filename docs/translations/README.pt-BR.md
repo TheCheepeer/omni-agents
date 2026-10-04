@@ -12,8 +12,8 @@ O sistema unifica a gestão de contexto e exporta automaticamente para os format
 
 | Ferramenta             | Identificador | Escopo             | Arquivos e Destinos Gerados                                           |
 | :--------------------- | :------------ | :----------------- | :-------------------------------------------------------------------- |
-| **Google Antigravity** | `antigravity` | Global + Workspace | `.agents/` (`skills.json`, `rules/`, `agents/`) e `~/.gemini/config/` |
-| **Claude Code**        | `claude`      | Global + Workspace | `CLAUDE.md` na raiz do projeto e `~/.claude/CLAUDE.md`                |
+| **Google Antigravity** | `antigravity` | Workspace          | `.agents/` (`skills.json`, `rules/`, `agents/`)                       |
+| **Claude Code**        | `claude`      | Workspace          | `CLAUDE.md` na raiz do projeto e `.claude/skills/`                     |
 | **Cursor IDE**         | `cursor`      | Workspace          | `.cursor/rules/*.mdc` (com metadados de globs e alwaysApply)          |
 | **GitHub Copilot**     | `copilot`     | Workspace          | `.github/copilot-instructions.md` consolidado                         |
 | **Universal**          | `universal`   | Workspace          | `AGENTS.md` padronizado na raiz do projeto                            |
@@ -273,9 +273,8 @@ omni-agents /caminho/do/projeto --tool all --sync
 omni-agents /caminho/do/projeto --tool cursor --clean
 omni-agents /caminho/do/projeto --clean  # Remove todas
 
-# Aplicar configuração global da máquina:
-omni-agents --global
-omni-agents --tool claude --global
+# Configurar subagentes, regras e skills específicos:
+omni-agents /caminho/do/projeto --tools antigravity,claude --agents code-reviewer --sync
 
 # Forçar idioma da interface:
 omni-agents --lang pt

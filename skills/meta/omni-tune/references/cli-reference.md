@@ -31,7 +31,7 @@ Where `<omni>` can be:
 | `--agent`, `--agents` | `-a` | `<id1,id2>` or `all`, `none` | Subagent ID(s) to activate in workspace. |
 | `--rule`, `--rules` | `-r` | `<id1,id2>` or `all`, `none` | Rule profile ID(s) to apply (e.g. `general`, `pt-br-dev`). |
 | `--skill`, `--skills` | `-s` | `<id1,id2>` or `all`, `none` | Skill ID(s) or categories to activate in workspace. |
-| `--global` | | *(flag)* | Targets global user tool configuration directories (`~/.gemini/config`, `~/.claude`) instead of workspace folders. |
+| `--global` | `-g` | *(flag)* | Legacy global mode (deprecated in v1.0.3; used with `--clean` to remove global junctions/symlinks). |
 
 ### Operational Modes
 

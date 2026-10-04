@@ -199,7 +199,11 @@
         "default_path_warning_banner": "[!] AVISO: Diretório padrão do sistema/usuário detectado ({path})!\n    Recomendado: Digite 'w' para selecionar a pasta do seu projeto.",
         "default_path_confirm_prompt": "[!] Atenção: O projeto atual é o diretório padrão de usuário:\n    {path}\n    Deseja selecionar uma pasta de projeto antes de continuar? [S/n]: ",
         "default_path_cli_warning": "[!] Aviso: Executando no diretório padrão do usuário ({path}).\n    Recomendado executar dentro da pasta do projeto ou passar o caminho: omni-agents /caminho/do/projeto",
-        "default_path_cli_prompt": "Deseja realmente aplicar configurações no diretório de usuário ({path})? [s/N]: "
+        "default_path_cli_prompt": "Deseja realmente aplicar configurações no diretório de usuário ({path})? [s/N]: ",
+        "legacy_cleanup_detected": "Configuração global legada detectada (v1.0.2). Removendo junctions globais...",
+        "legacy_cleanup_item": "Removido link legado: {path}",
+        "legacy_cleanup_completed": "Ambiente migrado com sucesso para o modelo 100% focado no workspace.",
+        "global_mode_deprecated": "O modo global foi descontinuado na v1.0.3 em favor do modelo centrado no workspace.\nConfigure seu projeto diretamente usando 'omni-agents <caminho>' ou 'omni-agents --list-workspaces'."
     },
     "targets": {
         "dir_not_link": "Diretório existente não é um link: {dst}",
@@ -249,11 +253,11 @@
     "target_descriptions": {
         "antigravity": {
             "display_name": "Google Antigravity",
-            "description": "Configuração via .agents/ (projeto) e ~/.gemini/config/ (global)"
+            "description": "Configuração via .agents/ e manifesto de skills no workspace"
         },
         "claude": {
             "display_name": "Claude Code (Anthropic)",
-            "description": "Gera CLAUDE.md na raiz do projeto e instruções globais em ~/.claude/"
+            "description": "Gera CLAUDE.md e skills modulares na raiz do workspace"
         },
         "cursor": {
             "display_name": "Cursor IDE",

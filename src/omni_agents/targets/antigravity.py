@@ -30,9 +30,9 @@ class AntigravityTarget(BaseTarget):
     target_id = "antigravity"
     display_name = "Google Antigravity"
     description = (
-        "Configuration via .agents/ (workspace) and ~/.gemini/config/ (global)"
+        "Configuration via .agents/ and skills manifest in workspace"
     )
-    supports_global = True
+    supports_global = False
 
     def configure_workspace(
         self,
@@ -112,6 +112,7 @@ class AntigravityTarget(BaseTarget):
 
         safe_remove_tree(agents_dir / "agents")
         safe_remove_tree(agents_dir / "rules")
+        safe_remove_tree(agents_dir / "skills")
         safe_remove_file(agents_dir / "skills.json")
 
         safe_remove_dir_if_empty(agents_dir)
