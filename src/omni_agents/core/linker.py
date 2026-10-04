@@ -49,6 +49,8 @@ def apply_workspace_to_targets(
     skills_by_cat: dict[str, set[str]] = {
         k: set(v) for k, v in selected_skills_dict.items() if v
     }
+    # Always bundle omni-tune as the mandatory built-in driver skill
+    skills_by_cat.setdefault("meta", set()).add("omni-tune")
 
     print(f"\n-> {t('applying_configs', lang, count=len(active_target_ids))}")
     for t_id in active_target_ids:

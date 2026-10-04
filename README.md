@@ -233,16 +233,15 @@ omni-agents .
   Active Tools:       antigravity, cursor, claude
 -----------------------------------------------------------------
   [t] Select Target Tools (Antigravity, Cursor, Claude...)
-  [1] Global Machine Configuration (Antigravity & Claude)
-  [2] Subagents for Workspace
-  [3] Rules for Workspace
-  [4] Modular Skills for Workspace
+  [1] Subagents for Workspace
+  [2] Rules for Workspace
+  [3] Modular Skills for Workspace
+  [e] Remote Extensions (Catalog & Community Packages)
+  [w] Set / Change Target Workspace (Recent Projects Switcher)
   [s] Synchronize All (Sync active tools in batch)
   [c] Clean / Uninstall by Tool
-  [l] Language / Idioma: [EN | PT-BR]
-  [5] Exit
------------------------------------------------------------------
-  [w] Set / Change Target Workspace
+  [l] Language / Idioma: [EN | PT-BR | ES]
+  [q] Exit
 =================================================================
 ```
 
@@ -255,6 +254,9 @@ Execute commands directly within scripts or CI/CD pipelines:
 ```bash
 # List all supported tools:
 omni-agents --list-tools
+
+# List tracked workspaces across your system:
+omni-agents --list-workspaces
 
 # Synchronize workspace across all active tools:
 omni-agents /path/to/project --sync

@@ -56,3 +56,21 @@ def list_skills(scanned: dict[str, Any]) -> None:
             desc = item.get("description", "")
             desc_str = f" - {desc[:60]}..." if desc else ""
             print(f"    * {item['id']:<24}{desc_str}")
+
+
+def list_workspaces(omni_docs_dir: Any = None, lang: str = "en") -> None:
+    """Lists all tracked workspaces and their configured AI tools."""
+    from omni_agents.core.workspace import load_tracked_workspaces
+    from omni_agents.i18n import t
+
+    workspaces = load_tracked_workspaces(omni_docs_dir)
+    print(f"\n{t('tracked_workspaces_title', lang)}:")
+    if not workspaces:
+        print(f"  {t('no_tracked_workspaces', lang)}")
+        return
+
+    for item in workspaces:
+        p = item.get("path", "")
+        tools = item.get("active_tools", [])
+        tools_str = f" [{', '.join(tools)}]" if tools else " [no active tools]"
+        print(f"  * {p:<50}{tools_str}")

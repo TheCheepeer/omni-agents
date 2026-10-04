@@ -28,10 +28,7 @@ from omni_agents.tui.language_menu import handle_language_selection
 from omni_agents.tui.rules_menu import handle_rules
 from omni_agents.tui.skills_menu import handle_skills
 from omni_agents.tui.source_menu import select_component_source
-from omni_agents.tui.targets_menu import (
-    handle_global_configuration,
-    handle_target_selection,
-)
+from omni_agents.tui.targets_menu import handle_target_selection
 from omni_agents.tui.theme import (
     get_styled_choice,
     press_enter_to_continue,
@@ -108,13 +105,11 @@ def run_interactive_loop(
             current_lang = resolve_language_code(workspace_state["language"])
 
         active_targets = workspace_state.get("active_targets", [])
-        target_display = (
-            str(target_path) if target_path else t("not_defined", current_lang)
-        )
+        if target_path and not is_default_or_system_path(target_path):
+            target_display = str(target_path)
+        else:
+            target_display = t("not_defined", current_lang)
         lang_badge = get_language_badge(current_lang)
-        mode_label = (
-            t("mode_dev", current_lang) if is_dev else t("mode_global", current_lang)
-        )
 
         warning_banner = None
         if is_default_or_system_path(target_path):
@@ -126,7 +121,7 @@ def run_interactive_loop(
             title=t("app_title", current_lang),
             version=__version__,
             workspace=target_display,
-            mode=mode_label,
+            mode=None,
             active_targets=active_targets,
             warning_banner=warning_banner,
             lang=current_lang,
@@ -134,7 +129,6 @@ def run_interactive_loop(
 
         menu_items = [
             t("menu_select_tools", current_lang),
-            t("menu_global", current_lang),
             t("menu_agents", current_lang),
             t("menu_rules", current_lang),
             t("menu_skills", current_lang),
@@ -164,9 +158,11 @@ def run_interactive_loop(
 
         elif choice in ("t", "tool", "tools", "ferramentas", "herramientas"):
             target_path = confirm_or_choose_project_workspace(
-                target_path, lang=current_lang
+                target_path, lang=current_lang, omni_docs_dir=omni_docs_dir
             )
-            target_path = resolve_workspace(target_path, lang=current_lang)
+            target_path = resolve_workspace(
+                target_path, lang=current_lang, omni_docs_dir=omni_docs_dir
+            )
             if target_path:
                 workspace_state = load_workspace_state(target_path)
                 handle_target_selection(
@@ -179,23 +175,18 @@ def run_interactive_loop(
                     omni_docs_dir=omni_docs_dir,
                 )
 
-        elif choice in ("1", "global"):
-            handle_global_configuration(
-                repo_root,
-                scanned,
-                app_config=app_config,
-                omni_docs_dir=omni_docs_dir,
-                lang=current_lang,
-            )
-
-        elif choice in ("2", "agents", "agent", "agentes", "subagentes"):
+        elif choice in ("1", "agents", "agent", "agentes", "subagentes"):
             target_path = confirm_or_choose_project_workspace(
-                target_path, lang=current_lang
+                target_path, lang=current_lang, omni_docs_dir=omni_docs_dir
             )
-            target_path = resolve_workspace(target_path, lang=current_lang)
+            target_path = resolve_workspace(
+                target_path, lang=current_lang, omni_docs_dir=omni_docs_dir
+            )
             if target_path:
                 workspace_state = load_workspace_state(target_path)
-                sources = scan_component_sources(repo_root, documents_dir=omni_docs_dir)
+                sources = scan_component_sources(
+                    repo_root, documents_dir=omni_docs_dir
+                )
                 selected_scanned = select_component_source(
                     "agents",
                     sources,
@@ -214,36 +205,50 @@ def run_interactive_loop(
                         lang=current_lang,
                     )
 
-        elif choice in ("3", "rules", "rule", "regras", "reglas"):
-            sources = scan_component_sources(repo_root, documents_dir=omni_docs_dir)
-            selected_scanned = select_component_source(
-                "rules",
-                sources,
-                is_dev=is_dev,
-                omni_docs_dir=omni_docs_dir,
-                target_path=target_path,
-                lang=current_lang,
-            )
-            if selected_scanned:
-                target_path = handle_rules(
-                    target_path,
-                    repo_root,
-                    selected_scanned,
-                    workspace_state,
-                    app_config,
-                    omni_docs_dir=omni_docs_dir,
-                    all_scanned=sources["merged"],
-                    lang=current_lang,
-                )
-
-        elif choice in ("4", "skills", "skill"):
+        elif choice in ("2", "rules", "rule", "regras", "reglas"):
             target_path = confirm_or_choose_project_workspace(
-                target_path, lang=current_lang
+                target_path, lang=current_lang, omni_docs_dir=omni_docs_dir
             )
-            target_path = resolve_workspace(target_path, lang=current_lang)
+            target_path = resolve_workspace(
+                target_path, lang=current_lang, omni_docs_dir=omni_docs_dir
+            )
             if target_path:
                 workspace_state = load_workspace_state(target_path)
-                sources = scan_component_sources(repo_root, documents_dir=omni_docs_dir)
+                sources = scan_component_sources(
+                    repo_root, documents_dir=omni_docs_dir
+                )
+                selected_scanned = select_component_source(
+                    "rules",
+                    sources,
+                    is_dev=is_dev,
+                    omni_docs_dir=omni_docs_dir,
+                    target_path=target_path,
+                    lang=current_lang,
+                )
+                if selected_scanned:
+                    target_path = handle_rules(
+                        target_path,
+                        repo_root,
+                        selected_scanned,
+                        workspace_state,
+                        app_config,
+                        omni_docs_dir=omni_docs_dir,
+                        all_scanned=sources["merged"],
+                        lang=current_lang,
+                    )
+
+        elif choice in ("3", "skills", "skill", "habilidades"):
+            target_path = confirm_or_choose_project_workspace(
+                target_path, lang=current_lang, omni_docs_dir=omni_docs_dir
+            )
+            target_path = resolve_workspace(
+                target_path, lang=current_lang, omni_docs_dir=omni_docs_dir
+            )
+            if target_path:
+                workspace_state = load_workspace_state(target_path)
+                sources = scan_component_sources(
+                    repo_root, documents_dir=omni_docs_dir
+                )
                 selected_scanned = select_component_source(
                     "skills",
                     sources,
@@ -354,8 +359,13 @@ def run_interactive_loop(
                 omni_docs_dir=omni_docs_dir,
             )
 
-        elif choice in ("w", "workspace"):
-            new_target = resolve_workspace(None, lang=current_lang)
+        elif choice in ("w", "workspace", "projeto", "proyecto"):
+            new_target = resolve_workspace(
+                None,
+                lang=current_lang,
+                omni_docs_dir=omni_docs_dir,
+                force_prompt=True,
+            )
             if new_target:
                 target_path = new_target
 

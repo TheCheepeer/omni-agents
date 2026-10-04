@@ -227,25 +227,21 @@ omni-agents .
 
 ```text
 =================================================================
-  CONFIGURADOR MULTI-TOOL DE AGENTES, REGLAS Y SKILLS (v1.0.0)
+  CONFIGURADOR MULTI-TOOL DE AGENTES, REGLAS Y SKILLS
 =================================================================
-  Modo:               Modo de Desarrollo Local (Repositorio)
   Workspace Destino:  [/ruta/al/proyecto]
   Herramientas Activas: antigravity, cursor, claude
 -----------------------------------------------------------------
   [t] Seleccionar Herramientas Destino (Antigravity, Cursor, Claude...)
-  [1] Configuración Global del Sistema (Antigravity y Claude)
-  [2] Subagentes para el Workspace
-  [3] Reglas para el Workspace
-  [4] Skills Modulares para el Workspace
+  [1] Subagentes para el Workspace
+  [2] Reglas para el Workspace
+  [3] Skills Modulares para el Workspace
   [e] Extensiones Remotas (Catálogo GitHub / ext/)
-  [o] Abrir Carpeta Personal (Documentos/omni-agents)
+  [w] Definir / Cambiar Workspace Destino (Proyectos Recientes)
   [s] Sincronizar Todo (Sync herramientas activas en lote)
   [c] Limpiar / Desinstalar por Herramienta
   [l] Idioma / Language: [ES | EN | PT-BR]
-  [5] Salir
------------------------------------------------------------------
-  [w] Definir / Cambiar Workspace Destino
+  [q] Salir
 =================================================================
 ```
 
@@ -264,6 +260,9 @@ omni-agents --update
 
 # Listar todas las herramientas compatibles:
 omni-agents --list-tools
+
+# Listar proyectos administrados en el sistema:
+omni-agents --list-workspaces
 
 # Sincronizar el workspace en todas las herramientas activas:
 omni-agents /ruta/al/proyecto --sync

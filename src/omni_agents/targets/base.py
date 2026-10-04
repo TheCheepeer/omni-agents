@@ -6,6 +6,7 @@ Cross-platform (Windows, Linux, macOS) using only Python standard library.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import shutil
@@ -364,7 +365,9 @@ def load_workspace_state(target_path: Path) -> dict[str, Any]:
         }
 
 
-def save_workspace_state(target_path: Path, state: dict[str, Any]):
+def save_workspace_state(
+    target_path: Path, state: dict[str, Any], omni_docs_dir: Path | None = None
+):
     """Persists workspace state to support synchronization and targeted uninstallation."""
     state_file = target_path / ".agents" / "workspace_state.json"
     state_file.parent.mkdir(parents=True, exist_ok=True)
@@ -373,6 +376,20 @@ def save_workspace_state(target_path: Path, state: dict[str, Any]):
         encoding="utf-8",
     )
     update_gitignore(target_path, [".agents/"])
+
+    with contextlib.suppress(OSError, ImportError, ValueError, KeyError):
+        from omni_agents.core.workspace import (
+            add_tracked_workspace,
+            remove_tracked_workspace,
+        )
+
+        active_tools = state.get("active_targets", [])
+        if active_tools:
+            add_tracked_workspace(
+                target_path, active_tools, omni_docs_dir=omni_docs_dir
+            )
+        else:
+            remove_tracked_workspace(target_path, omni_docs_dir=omni_docs_dir)
 
 
 def find_skill_file(

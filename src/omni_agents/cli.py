@@ -30,6 +30,7 @@ from omni_agents.commands.list_cmd import (
     list_rules,
     list_skills,
     list_tools,
+    list_workspaces,
 )
 from omni_agents.commands.sync_cmd import configure_global_cli, sync_workspace_cli
 from omni_agents.core.config import load_app_config
@@ -161,6 +162,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--list-skills",
         action="store_true",
         help="Lists available modular skills by category and exits",
+    )
+    parser.add_argument(
+        "--list-workspaces",
+        action="store_true",
+        help="Lists all tracked workspaces and exits",
     )
     parser.add_argument(
         "--ext-list",
@@ -297,6 +303,10 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     if args.list_skills:
         list_skills(scanned)
+        return 0
+
+    if args.list_workspaces:
+        list_workspaces(omni_docs_dir=omni_docs_dir, lang=current_lang)
         return 0
 
     # 5. Remote extensions operations

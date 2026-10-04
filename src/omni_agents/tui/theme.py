@@ -73,7 +73,7 @@ def render_header(
     title: str,
     version: str,
     workspace: str,
-    mode: str,
+    mode: str | None = None,
     active_targets: Sequence[str] | None = None,
     warning_banner: str | None = None,
     lang: str = "en",
@@ -84,7 +84,7 @@ def render_header(
 ) -> None:
     """
     Renders a modern rounded header panel displaying app metadata,
-    workspace target, execution mode, and active target pills with full i18n support.
+    workspace target, and active target pills with full i18n support.
     """
     from omni_agents.i18n import t
 
@@ -98,7 +98,8 @@ def render_header(
     grid.add_column()
 
     grid.add_row(ws_lbl, f"[bold white]{escape(str(workspace))}[/bold white]")
-    grid.add_row(m_lbl, f"[bold {COLOR_SUCCESS}]{escape(mode)}[/bold {COLOR_SUCCESS}]")
+    if mode:
+        grid.add_row(m_lbl, f"[bold {COLOR_SUCCESS}]{escape(mode)}[/bold {COLOR_SUCCESS}]")
 
     if active_targets:
         target_pills = "  ".join(

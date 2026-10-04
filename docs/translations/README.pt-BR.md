@@ -233,16 +233,15 @@ omni-agents .
   Ferramentas Ativas: antigravity, cursor, claude
 -----------------------------------------------------------------
   [t] Selecionar Ferramentas Alvo (Antigravity, Cursor, Claude...)
-  [1] Configuração Global da Máquina (Antigravity e Claude)
-  [2] Subagentes para o Workspace
-  [3] Regras para o Workspace
-  [4] Skills Modulares para o Workspace
+  [1] Subagentes para o Workspace
+  [2] Regras para o Workspace
+  [3] Skills Modulares para o Workspace
+  [e] Extensões Remotas (Catálogo e Pacotes da Comunidade)
+  [w] Definir / Alterar Workspace Alvo (Projetos Recentes)
   [s] Sincronizar Tudo (Sync em todas as ferramentas ativas)
   [c] Limpeza / Desinstalação por Ferramenta
-  [l] Idioma / Language: [PT-BR | EN]
-  [5] Sair
------------------------------------------------------------------
-  [w] Definir / Alterar Workspace Alvo
+  [l] Idioma / Language: [PT-BR | EN | ES]
+  [q] Sair
 =================================================================
 ```
 
@@ -255,6 +254,9 @@ O configurador pode ser executado diretamente em scripts ou rotinas de CI/CD:
 ```bash
 # Listar todas as ferramentas suportadas:
 omni-agents --list-tools
+
+# Listar projetos gerenciados no computador:
+omni-agents --list-workspaces
 
 # Sincronizar workspace para todas as ferramentas ativas salvas:
 omni-agents /caminho/do/projeto --sync
