@@ -96,5 +96,7 @@ def clean_workspace_cli(
             adapter.clean_workspace(target_path, lang=current_lang)
             if tid in state.get("active_targets", []):
                 state["active_targets"].remove(tid)
+    if not state.get("active_targets"):
+        state["tools_configured"] = False
     save_workspace_state(target_path, state)
     print("\n[OK] Clean completed.")

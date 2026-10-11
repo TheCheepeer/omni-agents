@@ -323,6 +323,16 @@ def parse_frontmatter(file_path: Path) -> tuple[str, str]:
 
 def load_workspace_state(target_path: Path) -> dict[str, Any]:
     """Loads saved state and preferences from target workspace."""
+    if not target_path or not target_path.exists():
+        return {
+            "language": None,
+            "active_targets": [],
+            "selected_agents": [],
+            "selected_rules": [],
+            "selected_skills": {},
+            "tools_configured": False,
+        }
+
     state_file = target_path / ".agents" / "workspace_state.json"
     if not state_file.exists():
         # Fallback to legacy skills.json if present
@@ -340,20 +350,24 @@ def load_workspace_state(target_path: Path) -> dict[str, Any]:
                 pass
 
         return {
+            "language": None,
             "active_targets": [],
             "selected_agents": [],
             "selected_rules": [],
             "selected_skills": {k: sorted(v) for k, v in selected_skills.items()},
+            "tools_configured": False,
         }
 
     try:
         data = json.loads(state_file.read_text(encoding="utf-8"))
+        active = data.get("active_targets", [])
         return {
             "language": data.get("language"),
-            "active_targets": data.get("active_targets", []),
+            "active_targets": active,
             "selected_agents": data.get("selected_agents", []),
             "selected_rules": data.get("selected_rules", []),
             "selected_skills": data.get("selected_skills", {}),
+            "tools_configured": bool(data.get("tools_configured", bool(active))),
         }
     except (json.JSONDecodeError, OSError):
         return {
@@ -362,6 +376,7 @@ def load_workspace_state(target_path: Path) -> dict[str, Any]:
             "selected_agents": [],
             "selected_rules": [],
             "selected_skills": {},
+            "tools_configured": False,
         }
 
 

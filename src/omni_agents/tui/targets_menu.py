@@ -36,8 +36,6 @@ def handle_target_selection(
     """Interactive menu to select and toggle target tools to configure."""
     all_targets = get_all_targets()
     active_set = set(current_state.get("active_targets", []))
-    if not active_set and app_config and app_config.get("active_targets"):
-        active_set = set(app_config.get("active_targets", []))
     initial_set = set(active_set)
 
     target_items = [
@@ -98,9 +96,12 @@ def handle_target_selection(
                 continue
 
             current_state["active_targets"] = new_active_list
-            if app_config is not None:
-                app_config["active_targets"] = new_active_list
-                app_config["tools_configured"] = True
+            current_state["tools_configured"] = True
+            if app_config is not None and (
+                "active_targets" in app_config or "tools_configured" in app_config
+            ):
+                app_config.pop("active_targets", None)
+                app_config.pop("tools_configured", None)
                 save_app_config(repo_root, app_config, omni_docs_dir=omni_docs_dir)
 
             if (

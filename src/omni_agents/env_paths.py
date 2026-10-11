@@ -31,8 +31,6 @@ DEFAULT_CONFIG: dict[str, Any] = {
         "api_base_url": "https://api.github.com/repos/TheCheepeer/omni-agents",
     },
     "check_updates_on_launch": True,
-    "active_targets": [],
-    "tools_configured": False,
 }
 
 
@@ -276,9 +274,9 @@ def ensure_omni_documents_structure() -> tuple[Path, dict[str, Any]]:
     merged_config = dict(DEFAULT_CONFIG)
     merged_config.update(config)
 
-    # Clean legacy default antigravity if tools were never explicitly configured
-    if not merged_config.get("tools_configured") and merged_config.get("active_targets") == ["antigravity"]:
-        merged_config["active_targets"] = []
+    # Global app config never stores workspace-scoped tool selections
+    merged_config.pop("active_targets", None)
+    merged_config.pop("tools_configured", None)
 
     # Ensure repository block integrity
     if (

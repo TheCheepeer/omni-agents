@@ -41,6 +41,27 @@ If running directly inside a cloned git repository (Local Dev Mode), a local `co
 | `links_mode`        | `string`        | `"auto"`                                       | Strategy for linking files to targets (`"auto"`, `"junction"`, `"symlink"`, `"copy"`).          |
 | `enabled_targets`   | `array[string]` | All targets                                    | List of target adapter names visible in the interactive menu.                                   |
 
+### Workspace-Scoped State (`.agents/workspace_state.json`)
+
+Target tool selections and synchronized configurations are strictly isolated per workspace rather than globally in `config.json`. Each project repository maintains its own state file:
+
+```json
+{
+  "tools_configured": true,
+  "active_targets": [
+    "antigravity",
+    "cursor"
+  ],
+  "selected_agents": [],
+  "selected_rules": [],
+  "selected_skills": {}
+}
+```
+
+- **First-Run Prompt**: When navigating to an unconfigured workspace for the first time, `omni-agents` prompts the user to select tools for that workspace.
+- **Strict Isolation**: Selections made in Project A never leak into Project B.
+- **Persistence**: Selections remain in `.agents/workspace_state.json` until modified via `[t]` or removed via `[c]`.
+
 ---
 
 ## 2. Directory Layout & Custom Overrides

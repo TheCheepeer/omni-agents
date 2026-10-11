@@ -50,52 +50,45 @@ def run_interactive_loop(
     explicit_lang: bool = False,
 ) -> None:
     """Main interactive terminal loop for navigating configuration menus."""
-    # Check if tools need to be asked on first run
-    tools_configured = app_config.get("tools_configured", False)
-    initial_workspace_state = (
-        load_workspace_state(target_path) if target_path else {}
-    )
-    has_workspace_tools = bool(initial_workspace_state.get("active_targets"))
-    saved_app_tools = app_config.get("active_targets", [])
-    has_app_tools = bool(saved_app_tools) and (
-        saved_app_tools != ["antigravity"] or tools_configured
-    )
-
-    if not tools_configured and not has_workspace_tools and not has_app_tools:
+    def _prompt_workspace_tools_if_needed(path: Path | None) -> None:
+        nonlocal current_lang
         if (
-            not explicit_lang
-            and not app_config.get("language")
-            and initial_workspace_state.get("language")
+            not path
+            or not path.exists()
+            or not path.is_dir()
+            or is_default_or_system_path(path)
         ):
-            current_lang = resolve_language_code(
-                initial_workspace_state["language"]
-            )
+            return
+        state = load_workspace_state(path)
+        if not state.get("tools_configured") and not state.get("active_targets"):
+            if (
+                not explicit_lang
+                and not app_config.get("language")
+                and state.get("language")
+            ):
+                current_lang = resolve_language_code(state["language"])
 
-        chosen = handle_target_selection(
-            target_path=target_path,
-            repo_root=repo_root,
-            scanned=scanned,
-            current_state=initial_workspace_state,
-            lang=current_lang,
-            app_config=app_config,
-            omni_docs_dir=omni_docs_dir,
-            is_first_run=True,
-        )
-        if chosen and target_path:
-            initial_workspace_state["active_targets"] = chosen
+            chosen = handle_target_selection(
+                target_path=path,
+                repo_root=repo_root,
+                scanned=scanned,
+                current_state=state,
+                lang=current_lang,
+                app_config=app_config,
+                omni_docs_dir=omni_docs_dir,
+                is_first_run=True,
+            )
+            if chosen:
+                state["active_targets"] = chosen
+                state["tools_configured"] = True
+                save_workspace_state(path, state)
+
+    # Check if tools need to be asked on first run for this workspace
+    _prompt_workspace_tools_if_needed(target_path)
 
     while True:
         clear_screen()
         workspace_state = load_workspace_state(target_path) if target_path else {}
-        if (
-            not workspace_state.get("active_targets")
-            and app_config.get("active_targets")
-            and app_config.get("tools_configured")
-            and target_path
-            and not is_default_or_system_path(target_path)
-        ):
-            workspace_state["active_targets"] = list(app_config["active_targets"])
-            save_workspace_state(target_path, workspace_state)
 
         if (
             not explicit_lang
@@ -302,11 +295,7 @@ def run_interactive_loop(
             target_path = resolve_workspace(target_path, lang=current_lang)
             if target_path:
                 workspace_state = load_workspace_state(target_path)
-                active_tools = (
-                    workspace_state.get("active_targets")
-                    or app_config.get("active_targets")
-                    or []
-                )
+                active_tools = workspace_state.get("active_targets", [])
                 if not active_tools:
                     render_banner(
                         t("no_tools_selected_warning", current_lang),
@@ -368,6 +357,7 @@ def run_interactive_loop(
             )
             if new_target:
                 target_path = new_target
+                _prompt_workspace_tools_if_needed(target_path)
 
         else:
             render_banner(t("invalid_option", current_lang), level="warning")

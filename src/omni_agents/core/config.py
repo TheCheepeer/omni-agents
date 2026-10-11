@@ -17,8 +17,8 @@ def load_app_config(
 ) -> dict[str, Any]:
     """Loads persistent application preferences from Documents or repo root."""
     def _clean(data: dict[str, Any]) -> dict[str, Any]:
-        if not data.get("tools_configured") and data.get("active_targets") == ["antigravity"]:
-            data["active_targets"] = []
+        data.pop("active_targets", None)
+        data.pop("tools_configured", None)
         return data
 
     if omni_docs_dir:

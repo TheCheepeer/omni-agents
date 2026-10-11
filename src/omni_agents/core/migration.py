@@ -8,11 +8,12 @@ ensuring a seamless transition to the 100% workspace-centric model in v1.0.3.
 
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 
 from omni_agents import __version__
-from omni_agents.core.config import load_app_config, save_app_config
+from omni_agents.core.config import save_app_config
 from omni_agents.i18n import t
 from omni_agents.targets.base import (
     is_link,
@@ -83,19 +84,25 @@ def cleanup_legacy_global_environment(
     if omni_docs_dir or repo_root:
         try:
             root = repo_root or Path.cwd()
-            cfg = load_app_config(root, omni_docs_dir=omni_docs_dir)
-            changed = False
-            if "global_rules" in cfg:
-                del cfg["global_rules"]
-                changed = True
-            if cfg.get("version") != __version__:
-                cfg["version"] = __version__
-                changed = True
-            if not cfg.get("legacy_global_cleaned"):
-                cfg["legacy_global_cleaned"] = True
-                changed = True
-            if changed:
-                save_app_config(root, cfg, omni_docs_dir=omni_docs_dir)
+            cfg_file = (omni_docs_dir / "config.json") if omni_docs_dir else (root / "config.json")
+            if cfg_file.exists():
+                try:
+                    raw_cfg = json.loads(cfg_file.read_text(encoding="utf-8"))
+                except json.JSONDecodeError:
+                    raw_cfg = {}
+                changed = False
+                for key in ("global_rules", "active_targets", "tools_configured"):
+                    if key in raw_cfg:
+                        raw_cfg.pop(key, None)
+                        changed = True
+                if raw_cfg.get("version") != __version__:
+                    raw_cfg["version"] = __version__
+                    changed = True
+                if not raw_cfg.get("legacy_global_cleaned"):
+                    raw_cfg["legacy_global_cleaned"] = True
+                    changed = True
+                if changed:
+                    save_app_config(root, raw_cfg, omni_docs_dir=omni_docs_dir)
         except OSError:
             pass
 

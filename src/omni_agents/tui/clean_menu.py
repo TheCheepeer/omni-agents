@@ -81,6 +81,7 @@ def handle_clean_workspace(
         for target in all_targets:
             target.clean_workspace(target_path, lang=lang)
         current_state["active_targets"] = []
+        current_state["tools_configured"] = False
         save_workspace_state(target_path, current_state)
         render_banner(t("clean_all_done", lang), level="success")
         press_enter_to_continue(t("press_enter", lang))
@@ -94,6 +95,8 @@ def handle_clean_workspace(
             if target.target_id in active_targets:
                 active_targets.remove(target.target_id)
                 current_state["active_targets"] = active_targets
+                if not active_targets:
+                    current_state["tools_configured"] = False
                 save_workspace_state(target_path, current_state)
             render_banner(
                 t("clean_target_done", lang, target=target.display_name),

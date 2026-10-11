@@ -134,12 +134,6 @@ def sync_workspace_cli(
                 print(
                     f"[!] Warning: No recognized tools in '{target_tool}'. Supported: {', '.join(get_available_target_ids())}"
                 )
-    if not active_tools and app_config:
-        active_tools = [
-            t_id
-            for t_id in app_config.get("active_targets", [])
-            if get_target(t_id) is not None
-        ]
     if not active_tools:
         print(f"\n[x] {t('no_tools_selected_warning', current_lang)}\n")
         sys.exit(1)
