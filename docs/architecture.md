@@ -55,7 +55,7 @@ This document details the internal architecture, design principles, component re
 
 ## 2. Layered Storage Resolution
 
-To allow users to install `omni-agents` globally without modifying repository files or losing custom personal additions across updates, the CLI uses a layered resolution architecture managed by `scripts.env_paths`.
+To allow users to install `omni-agents` globally without modifying repository files or losing custom personal additions across updates, the CLI uses a layered resolution architecture managed by `src/omni_agents/env_paths.py`.
 
 ### Storage Hierarchy
 
@@ -67,8 +67,8 @@ When resolving skills, rules, or subagents, the resolution engine inspects compo
     - Preserved across tool updates and catalog synchronization.
 
 2. **Extensions Layer (`Documents/omni-agents/ext/`)**:
-    - Holds external repositories and packages downloaded via remote sync or community contributions.
-    - Structured as `ext/<package_name>/skills/`, `ext/<package_name>/rules/`, etc.
+    - Holds external repositories and packages downloaded via remote sync, official catalog, or community Git repositories (`omni add <url>`).
+    - Structured as `ext/skills/<category>/<skill_id>/`, `ext/agents/*.md`, and `ext/rules/<profile>/`.
     - Takes precedence over bundled core items.
 
 3. **Core / Bundled Layer**:
@@ -77,7 +77,7 @@ When resolving skills, rules, or subagents, the resolution engine inspects compo
 
 ### Execution Modes
 
-The CLI automatically detects its execution context via `get_execution_mode()` in `scripts/env_paths.py`:
+The CLI automatically detects its execution context via `get_execution_mode()` in `src/omni_agents/env_paths.py`:
 
 - **Local Dev Mode (`repo`)**: Active when running directly inside the cloned `omni-agents` repository containing `.git`.
 - **User Space Mode (`documents`)**: Active when installed via pip or global installers. Configurations and extensions are read from and written to `~/Documents/omni-agents/`.

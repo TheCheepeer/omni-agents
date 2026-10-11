@@ -68,22 +68,27 @@ Any rule profile placed inside `Documents/omni-agents/custom/rules/<profile>/AGE
 
 ## 3. Remote Catalog Sync & Extensions
 
-Managed by `scripts/remote_sync.py`, `omni-agents` can fetch and inspect remote component packages hosted on GitHub:
+Managed by `src/omni_agents/remote_sync.py`, `omni-agents` can fetch and inspect remote component packages hosted on GitHub:
 
 ```python
-from scripts.remote_sync import RemoteCatalogSync
-
-syncer = RemoteCatalogSync(repo_url="https://github.com/TheCheepeer/omni-agents")
-catalog = syncer.fetch_catalog()
+from omni_agents.remote_sync import fetch_remote_tree, check_all_extensions_updates
 ```
 
 ### Extension Installation
 
-Third-party extensions downloaded from community repositories are placed into `Documents/omni-agents/ext/<package_name>/`.
+Extensions downloaded from the official catalog or external Git repositories are placed into `Documents/omni-agents/ext/`.
 
-- Each extension can contribute rules, skills, or subagents.
-- Extensions are mapped with precedence order: `custom/` > `ext/<package>/` > `bundled/`.
-- If an extension requires specific tools, its metadata is parsed and registered in the active session.
+- **Official Catalog**: Installed via `omni-agents --ext-install <component_path>` (e.g. `skills/stacks/svelte5`).
+- **External Community Skills**: Installed directly from Git/GitHub repositories via:
+  ```bash
+  omni add https://github.com/blader/humanizer --skill humanizer
+  # or shorthand:
+  omni --ext-add blader/humanizer
+  ```
+- **Manifest Tracking**: Origin metadata is saved in `Documents/omni-agents/ext/manifest.json` (recording `source_url`, `branch`, `sha`, `installed_at`, and install command).
+- **Checking Updates (`--ext-check`)**: Queries the latest remote commit without downloading the entire repository, outputting a clear status table.
+- **Applying Updates (`--ext-update`)**: Prompts for interactive confirmation (`[y/N]`) before updating installed extensions, or automatically with `-y` / `--yes`.
+- Extensions are mapped with precedence order: `custom/` > `ext/` > `bundled/`.
 
 ### Resilient Offline Mode
 

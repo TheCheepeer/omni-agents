@@ -282,6 +282,16 @@ omni-agents /ruta/al/proyecto --clean  # Remueve todas
 # Configurar subagentes, reglas y skills específicos:
 omni-agents /ruta/al/proyecto --tools antigravity,claude --agents code-reviewer --sync
 
+# Instalar skill o agente externo desde repositorio Git/GitHub comunitario:
+omni add https://github.com/blader/humanizer --skill humanizer
+omni --ext-add blader/humanizer
+
+# Comprobar actualizaciones de extensiones sin modificar archivos:
+omni --ext-check
+
+# Actualizar extensiones (con confirmación interactiva o -y en CI/scripts):
+omni --ext-update -y
+
 # Forzar idioma de la interfaz:
 omni-agents --lang es
 omni-agents --lang en
