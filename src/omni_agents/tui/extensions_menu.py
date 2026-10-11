@@ -2,6 +2,8 @@
 """
 Remote extensions management menu for omni-agents TUI.
 Rendered using modern action cards, tables, and status banners.
+Supports browsing official catalog, adding external Git skills,
+and interactive update checks with confirmation.
 """
 
 from __future__ import annotations
@@ -12,8 +14,9 @@ from typing import Any
 
 from omni_agents.i18n import t
 from omni_agents.remote_sync import (
-    check_ext_updates,
+    check_all_extensions_updates,
     fetch_remote_tree,
+    install_external_git_component,
     install_remote_component,
     load_manifest,
     save_manifest,
@@ -74,6 +77,7 @@ def handle_remote_extensions(
 
         menu_items = [
             t("ext_menu_download", lang),
+            t("ext_menu_add_external", lang),
             t("ext_menu_update", lang),
             t("ext_menu_remove", lang),
             t("ext_menu_back", lang),
@@ -255,35 +259,93 @@ def handle_remote_extensions(
                     render_banner(msg, level="success" if ok else "error")
                     press_enter_to_continue(t("press_enter", lang))
 
-        elif choice == "2":
+        elif choice in ("2", "a", "add"):
+            console.print(
+                f"\n[bold white]{escape(t('ext_prompt_enter_url', lang))}[/bold white]"
+            )
+            raw_url = get_styled_choice(t("prompt_path", lang)).strip()
+            if not raw_url or raw_url.lower() in ("v", "voltar", "volver", "q"):
+                continue
+
+            console.print(
+                f"\n[dim]{escape(t('ext_prompt_enter_skill_name', lang))}[/dim]"
+            )
+            raw_skill = get_styled_choice(t("your_choice", lang)).strip()
+            skill_id = raw_skill if raw_skill and raw_skill.lower() not in ("v", "voltar", "volver") else None
+
+            render_banner(t("ext_downloading", lang, item=raw_url), level="info")
+            result = install_external_git_component(
+                source=raw_url,
+                ext_dir=ext_dir,
+                skill_id=skill_id,
+                category="community",
+                timeout=30.0,
+            )
+            if result:
+                item_name = result.get("name") or result["id"]
+                render_banner(
+                    t("ext_download_ok", lang, item=item_name),
+                    level="success",
+                )
+            else:
+                render_banner(
+                    t("ext_download_fail", lang, item=raw_url),
+                    level="error",
+                )
+            press_enter_to_continue(t("press_enter", lang))
+
+        elif choice in ("3", "u", "update"):
             render_banner(t("ext_checking_updates", lang), level="info")
-            updates = check_ext_updates(ext_dir, config, timeout=2.0)
+            _all_statuses, updates = check_all_extensions_updates(ext_dir, config, timeout=3.5)
             if not updates:
                 render_banner(t("ext_up_to_date", lang), level="success")
             else:
                 render_banner(
                     t("ext_updates_found", lang, count=len(updates)), level="warning"
                 )
+
+                update_table = Table(box=box.ROUNDED, expand=True)
+                update_table.add_column("Extension", style="bold white")
+                update_table.add_column("Type", style="dim", width=10)
+                update_table.add_column("Current SHA", style="dim yellow", width=12)
+                update_table.add_column("New SHA", style="bold green", width=12)
+
                 for u in updates:
-                    console.print(
-                        f"    [dim]●[/dim] [white]{escape(u['key'])}[/white] [dim]({u['current_sha'][:7]} -> {u['new_sha'][:7]})[/dim]"
+                    update_table.add_row(
+                        escape(u["key"]),
+                        escape(u["type"]),
+                        escape(u["current_sha"][:7]),
+                        escape(u["new_sha"][:7]),
                     )
+
+                console.print(update_table)
+
                 up_choice = get_styled_choice(t("ext_prompt_update_all", lang), default="y")
                 if up_choice in ("", "s", "sim", "y", "yes", "si", "sí"):
                     tree = fetch_remote_tree(config, timeout=3.0)
                     for u in updates:
-                        install_remote_component(
-                            u["type"],
-                            u["id"],
-                            config,
-                            ext_dir,
-                            category=u.get("category"),
-                            tree_data=tree,
-                        )
+                        if u.get("source_type") == "git":
+                            install_external_git_component(
+                                source=u["source_url"],
+                                ext_dir=ext_dir,
+                                skill_id=u["id"],
+                                category=u.get("category", "community"),
+                            )
+                        else:
+                            install_remote_component(
+                                u["type"],
+                                u["id"],
+                                config,
+                                ext_dir,
+                                category=u.get("category"),
+                                tree_data=tree,
+                            )
                     render_banner(t("sync_success", lang), level="success")
+                else:
+                    render_banner(t("ext_update_aborted", lang), level="info")
             press_enter_to_continue(t("press_enter", lang))
 
-        elif choice == "3":
+        elif choice in ("4", "r", "remove"):
             if not installed:
                 render_banner(t("ext_none_installed", lang), level="warning")
                 press_enter_to_continue(t("press_enter", lang))

@@ -20,6 +20,7 @@ if str(_SRC_DIR) not in sys.path:
 from omni_agents.commands.clean_cmd import clean_global_cli, clean_workspace_cli
 from omni_agents.commands.diagnostics import run_update, show_info
 from omni_agents.commands.ext_cmd import (
+    check_extensions,
     install_extension,
     list_extensions,
     remove_extension,
@@ -176,6 +177,24 @@ def build_parser() -> argparse.ArgumentParser:
         help="Lists installed remote extensions and exits",
     )
     parser.add_argument(
+        "--ext-add",
+        "--add-skill",
+        dest="ext_add",
+        default=None,
+        metavar="SOURCE",
+        help="Installs a skill/agent directly from external Git repository or URL (e.g. 'https://github.com/blader/humanizer' or 'blader/humanizer')",
+    )
+    parser.add_argument(
+        "--ext-check",
+        action="store_true",
+        help="Checks for updates across installed extensions without modifying files",
+    )
+    parser.add_argument(
+        "--category",
+        default="community",
+        help="Category for installing external skills (default: 'community')",
+    )
+    parser.add_argument(
         "--ext-install",
         "--ext-download",
         dest="ext_install",
@@ -222,8 +241,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     """Main CLI execution flow."""
     _configure_terminal_encoding()
 
+    raw_args = list(sys.argv[1:]) if argv is None else list(argv)
+    if raw_args and raw_args[0].lower() in ("add", "install-external"):
+        raw_args[0] = "--ext-add"
+
     parser = build_parser()
-    args = parser.parse_args(argv)
+    args = parser.parse_args(raw_args)
 
     repo_root = find_repo_root()
     is_dev = is_dev_mode(repo_root)
@@ -322,19 +345,46 @@ def main(argv: Sequence[str] | None = None) -> int:
     # 5. Remote extensions operations
     ext_dir = (omni_docs_dir / "ext") if omni_docs_dir else None
     if args.ext_list:
-        list_extensions(ext_dir)
+        list_extensions(ext_dir, lang=current_lang)
         return 0
 
+    if args.ext_check:
+        ok = check_extensions(app_config, ext_dir, lang=current_lang)
+        return 0 if ok else 1
+
+    if args.ext_add:
+        ok = install_extension(
+            args.ext_add,
+            app_config,
+            ext_dir,
+            skill_name=args.skills,
+            category=args.category,
+            lang=current_lang,
+        )
+        return 0 if ok else 1
+
     if args.ext_install:
-        ok = install_extension(args.ext_install, app_config, ext_dir)
+        ok = install_extension(
+            args.ext_install,
+            app_config,
+            ext_dir,
+            skill_name=args.skills,
+            category=args.category,
+            lang=current_lang,
+        )
         return 0 if ok else 1
 
     if args.ext_update:
-        ok = update_extensions(app_config, ext_dir)
+        ok = update_extensions(
+            app_config,
+            ext_dir,
+            assume_yes=args.assume_yes,
+            lang=current_lang,
+        )
         return 0 if ok else 1
 
     if args.ext_remove:
-        ok = remove_extension(args.ext_remove, ext_dir)
+        ok = remove_extension(args.ext_remove, ext_dir, lang=current_lang)
         return 0 if ok else 1
 
     # Inline action path resolution
