@@ -121,17 +121,25 @@ Inspect and manage tracked workspaces configured with omni-agents across your ma
 <omni> --info
 ```
 
-### E. Remote Extensions Management
+### E. Remote Extensions & External Community Skills
 ```bash
 # List installed extensions:
 <omni> --ext-list
 
-# Install remote extension from catalog:
+# Install remote extension from official catalog:
 <omni> --ext-install agents/security-auditor.md
 <omni> --ext-install skills/stacks/svelte5
 
-# Update all extensions:
-<omni> --ext-update
+# Install external community skill or agent from Git/GitHub repository:
+<omni> add https://github.com/blader/humanizer --skill humanizer
+# or shorthand:
+<omni> --ext-add blader/humanizer
+
+# Check for updates without modifying files (status table):
+<omni> --ext-check
+
+# Update extensions (interactive confirmation or automated with -y):
+<omni> --ext-update -y
 
 # Remove extension:
 <omni> --ext-remove <extension-key>

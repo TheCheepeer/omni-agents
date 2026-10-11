@@ -52,13 +52,16 @@ Where `<omni>` can be:
 | `--list-rules` | Lists available rule profiles with descriptions and exits. |
 | `--list-skills` | Lists available modular skills grouped by category and exits. |
 
-### Remote Extensions Management
-
+### Remote Extensions & Community Skills
+ 
 | Flag | Argument | Description |
 | :--- | :--- | :--- |
 | `--ext-list` | *(none)* | Lists installed remote extensions and exits. |
-| `--ext-install` | `<ITEM>` | Installs a remote extension from catalog (e.g. `agents/code-reviewer.md` or `skills/stacks/svelte5`). Alias: `--ext-download`. |
-| `--ext-update` | *(none)* | Checks and updates all installed remote extensions. |
+| `--ext-add` | `<SOURCE>` | Installs an external skill or agent directly from a Git repository or URL (e.g. `blader/humanizer` or `https://github.com/...`). Aliases: `--add-skill`, `omni add <source>`. |
+| `--ext-check` | *(none)* | Checks for updates across installed extensions and outputs status table without modifying files. |
+| `--category` | `<CAT>` | Category for installing external skills (default: `community`). |
+| `--ext-install` | `<ITEM>` | Installs a remote extension from official catalog (e.g. `agents/code-reviewer.md` or `skills/stacks/svelte5`). Alias: `--ext-download`. |
+| `--ext-update` | *(none)* | Checks and updates installed extensions (prompts for confirmation before applying; use `-y` for headless auto-approval). |
 | `--ext-remove` | `<KEY>` | Removes an installed remote extension by key. |
 
 ### Diagnostics & Configuration
