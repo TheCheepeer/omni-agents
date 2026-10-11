@@ -5,8 +5,6 @@ and update verification lifecycle with user confirmation.
 
 from __future__ import annotations
 
-import json
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -22,8 +20,8 @@ if str(SRC_DIR) not in sys.path:
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from omni_agents.cli import build_parser, main
-from omni_agents.commands.ext_cmd import check_extensions, update_extensions
+from omni_agents.cli import build_parser
+from omni_agents.commands.ext_cmd import update_extensions
 from omni_agents.remote_sync import (
     check_all_extensions_updates,
     get_remote_git_commit,
@@ -152,14 +150,14 @@ class TestExternalSkillsManagement(unittest.TestCase):
 
         # Case 1: remote has a new commit
         mock_get_commit.return_value = "2222222222222222222222222222222222222222"
-        all_statuses, updates = check_all_extensions_updates(self.ext_dir, {})
+        _all_statuses, updates = check_all_extensions_updates(self.ext_dir, {})
         self.assertEqual(len(updates), 1)
         self.assertTrue(updates[0]["has_update"])
         self.assertEqual(updates[0]["new_sha"], "2222222222222222222222222222222222222222")
 
         # Case 2: remote is identical
         mock_get_commit.return_value = "1111111111111111111111111111111111111111"
-        all_statuses, updates = check_all_extensions_updates(self.ext_dir, {})
+        _all_statuses, updates = check_all_extensions_updates(self.ext_dir, {})
         self.assertEqual(len(updates), 0)
 
     @patch("omni_agents.commands.ext_cmd.check_all_extensions_updates")

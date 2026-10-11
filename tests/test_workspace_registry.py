@@ -4,7 +4,6 @@ Unit tests for the central workspace registry (tracking, pruning, and persistenc
 
 from __future__ import annotations
 
-import json
 import shutil
 import tempfile
 import unittest
@@ -15,7 +14,7 @@ from omni_agents.core.workspace import (
     load_tracked_workspaces,
     remove_tracked_workspace,
 )
-from omni_agents.targets.base import load_workspace_state, save_workspace_state
+from omni_agents.targets.base import save_workspace_state
 
 
 class TestWorkspaceRegistry(unittest.TestCase):
