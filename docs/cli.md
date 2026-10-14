@@ -56,7 +56,7 @@ When run without arguments, `omni-agents` automatically detects the current work
 | `--list-skills`        | Lists all available modular skills grouped by category and exits.                                            |
 | `--list-workspaces`    | Lists all tracked workspace projects across your system and exits.                                           |
 | `--ext-list`           | Lists all remote extensions currently installed in `Documents/omni-agents/ext` and exits.                    |
-| `--ext-add <source>`   | Installs an external skill or agent from Git repository/URL (e.g. `blader/humanizer` or `omni add <url>`).   |
+| `--ext-add <source>`   | Installs an external package, skill, or agent from Git repository/URL (e.g. `omni add morluto/rea`). Auto-detects all skills & agents in package mode if no `--skill` is passed. |
 | `--ext-check`          | Checks for updates across all installed extensions and outputs status table without modifying files.         |
 | `--ext-install <item>` | Installs a remote extension from GitHub catalog (e.g. `agents/code-reviewer.md` or `skills/testing/pytest`). |
 | `--ext-update`         | Checks and updates installed remote extensions (prompts for confirmation before applying).                    |
@@ -146,9 +146,10 @@ omni-agents . --tools antigravity,cursor \
   --skills testing,global/coding-standards \
   --sync
 
-# 3. Download an official extension or external community skill
+# 3. Download official extensions, community packages, or specific skills
 omni-agents --ext-install agents/accessibility-reviewer.md
-omni add https://github.com/blader/humanizer --skill humanizer
+omni add https://github.com/morluto/rea          # Installs full package (all skills/agents)
+omni add blader/humanizer --skill humanizer     # Installs specific skill
 
 # 4. Check for updates and update extensions with confirmation
 omni-agents --ext-check

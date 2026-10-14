@@ -282,9 +282,13 @@ omni-agents /ruta/al/proyecto --clean  # Remueve todas
 # Configurar subagentes, reglas y skills específicos:
 omni-agents /ruta/al/proyecto --tools antigravity,claude --agents code-reviewer --sync
 
-# Instalar skill o agente externo desde repositorio Git/GitHub comunitario:
+# Instalar paquete comunitario externo (auto-detecta e instala todas las skills y agentes del repositorio):
+omni add https://github.com/morluto/rea
+# o shorthand:
+omni add morluto/rea
+
+# Instalar skill específica de un repositorio:
 omni add https://github.com/blader/humanizer --skill humanizer
-omni --ext-add blader/humanizer
 
 # Comprobar actualizaciones de extensiones sin modificar archivos:
 omni --ext-check

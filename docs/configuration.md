@@ -100,11 +100,15 @@ from omni_agents.remote_sync import fetch_remote_tree, check_all_extensions_upda
 Extensions downloaded from the official catalog or external Git repositories are placed into `Documents/omni-agents/ext/`.
 
 - **Official Catalog**: Installed via `omni-agents --ext-install <component_path>` (e.g. `skills/stacks/svelte5`).
-- **External Community Skills**: Installed directly from Git/GitHub repositories via:
+- **External Community Skills & Packages**: Installed directly from Git/GitHub repositories via:
   ```bash
-  omni add https://github.com/blader/humanizer --skill humanizer
+  # Full package mode (auto-detects and installs all skills and agents in repository):
+  omni add https://github.com/morluto/rea
   # or shorthand:
-  omni --ext-add blader/humanizer
+  omni add morluto/rea
+
+  # Specific skill installation:
+  omni add https://github.com/blader/humanizer --skill humanizer
   ```
 - **Manifest Tracking**: Origin metadata is saved in `Documents/omni-agents/ext/manifest.json` (recording `source_url`, `branch`, `sha`, `installed_at`, and install command).
 - **Checking Updates (`--ext-check`)**: Queries the latest remote commit without downloading the entire repository, outputting a clear status table.
