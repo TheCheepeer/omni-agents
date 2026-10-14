@@ -336,85 +336,78 @@ def install_external_git_component(
             if cand_sub.exists() and cand_sub.is_dir():
                 search_root = cand_sub
 
-        root_skill_md = search_root / "SKILL.md"
+        repo_stem = Path(clone_url.rstrip("/")).stem.removesuffix(".git")
         final_id = skill_id
 
-        # Case 1: SKILL.md found directly at search root
-        if root_skill_md.exists():
-            name, desc = parse_frontmatter(root_skill_md)
-            if not final_id:
-                final_id = (
-                    slugify_id(name) if name else slugify_id(Path(clone_url).stem)
-                )
-            dest_dir = ext_dir / "skills" / category / final_id
-            if dest_dir.exists():
-                shutil.rmtree(dest_dir, ignore_errors=True)
-            dest_dir.mkdir(parents=True, exist_ok=True)
-
-            for item in search_root.iterdir():
-                if item.name == ".git":
-                    continue
-                dst_item = dest_dir / item.name
-                if item.is_dir():
-                    shutil.copytree(item, dst_item, dirs_exist_ok=True)
-                else:
-                    shutil.copy2(item, dst_item)
-
-            manifest = load_manifest(ext_dir)
-            installed = manifest.setdefault("installed", {})
-            manifest_key = f"skills/{category}/{final_id}"
-            installed[manifest_key] = {
-                "type": "skills",
-                "category": category,
-                "id": final_id,
-                "name": name or final_id,
-                "description": desc,
-                "sha": commit_sha,
-                "source_type": "git",
-                "source_url": clone_url,
-                "branch": detected_branch,
-                "installed_at": datetime.now(timezone.utc).isoformat(),
-                "command": f"omni add {source}"
-                + (f" --skill {final_id}" if skill_id else ""),
-            }
-            save_manifest(ext_dir, manifest)
-            return {
-                "key": manifest_key,
-                "type": "skills",
-                "category": category,
-                "id": final_id,
-                "name": name or final_id,
-                "sha": commit_sha,
-                "path": dest_dir,
-            }
-
-        # Case 2: Multi-skill repository (search subdirectories)
-        skill_dirs = []
+        # 1. Discover all skills in repository
+        ignored_parts = {
+            ".git",
+            "node_modules",
+            ".venv",
+            "venv",
+            "__pycache__",
+            ".tox",
+            ".idea",
+            ".pytest_cache",
+        }
+        raw_skill_dirs = []
         for path in search_root.glob("**/SKILL.md"):
-            if ".git" in path.parts:
+            if any(part in path.parts for part in ignored_parts):
                 continue
-            skill_dirs.append(path.parent)
+            raw_skill_dirs.append(path.parent)
 
-        if skill_dirs:
+        # If subdirectories have SKILL.md, avoid treating search_root as a redundant duplicate overarching skill
+        if len(raw_skill_dirs) > 1 and search_root in raw_skill_dirs:
+            skill_dirs = [sd for sd in raw_skill_dirs if sd != search_root]
+        else:
+            skill_dirs = raw_skill_dirs
+
+        # 2. Discover all agents in repository
+        agent_files = []
+        for a_dir in [search_root / "agents", search_root / ".agents" / "agents"]:
+            if a_dir.exists() and a_dir.is_dir():
+                for f in a_dir.glob("*.md"):
+                    if (
+                        f.is_file()
+                        and not f.name.startswith(".")
+                        and f.name.upper() != "README.MD"
+                    ):
+                        agent_files.append(f)
+
+        manifest = load_manifest(ext_dir)
+        installed = manifest.setdefault("installed", {})
+
+        # --- SCENARIO A: Specific component ID was explicitly requested ---
+        if final_id:
             target_skill_dir = None
-            if final_id:
-                for sd in skill_dirs:
-                    if sd.name.lower() == final_id.lower():
-                        target_skill_dir = sd
-                        break
-            if not target_skill_dir and len(skill_dirs) == 1:
-                target_skill_dir = skill_dirs[0]
+            for sd in skill_dirs:
+                name, _ = parse_frontmatter(sd / "SKILL.md")
+                clean_name = slugify_id(name) if name else ""
+                clean_dir = slugify_id(sd.name)
+                req_slug = slugify_id(final_id)
+                if (
+                    sd.name.lower() == final_id.lower()
+                    or (name and name.lower() == final_id.lower())
+                    or clean_dir == req_slug
+                    or clean_name == req_slug
+                ):
+                    target_skill_dir = sd
+                    break
 
             if target_skill_dir:
                 name, desc = parse_frontmatter(target_skill_dir / "SKILL.md")
-                final_id = final_id or slugify_id(target_skill_dir.name)
-                dest_dir = ext_dir / "skills" / category / final_id
+                resolved_id = (
+                    slugify_id(final_id)
+                    if final_id
+                    else (slugify_id(name) if name else slugify_id(target_skill_dir.name))
+                )
+                dest_dir = ext_dir / "skills" / category / resolved_id
                 if dest_dir.exists():
                     shutil.rmtree(dest_dir, ignore_errors=True)
                 dest_dir.mkdir(parents=True, exist_ok=True)
 
                 for item in target_skill_dir.iterdir():
-                    if item.name == ".git":
+                    if item.name in (".git", "node_modules", ".venv", "__pycache__"):
                         continue
                     dst_item = dest_dir / item.name
                     if item.is_dir():
@@ -422,88 +415,181 @@ def install_external_git_component(
                     else:
                         shutil.copy2(item, dst_item)
 
-                manifest = load_manifest(ext_dir)
-                installed = manifest.setdefault("installed", {})
-                manifest_key = f"skills/{category}/{final_id}"
+                manifest_key = f"skills/{category}/{resolved_id}"
                 installed[manifest_key] = {
                     "type": "skills",
                     "category": category,
-                    "id": final_id,
-                    "name": name or final_id,
+                    "id": resolved_id,
+                    "name": name or resolved_id,
                     "description": desc,
                     "sha": commit_sha,
                     "source_type": "git",
                     "source_url": clone_url,
                     "branch": detected_branch,
                     "installed_at": datetime.now(timezone.utc).isoformat(),
-                    "command": f"omni add {source}"
-                    + (f" --skill {final_id}" if skill_id else ""),
+                    "command": f"omni add {source} --skill {resolved_id}",
                 }
                 save_manifest(ext_dir, manifest)
                 return {
                     "key": manifest_key,
                     "type": "skills",
                     "category": category,
-                    "id": final_id,
-                    "name": name or final_id,
+                    "id": resolved_id,
+                    "name": name or resolved_id,
                     "sha": commit_sha,
                     "path": dest_dir,
                 }
 
-        # Case 3: Check for agents/*.md
-        agents_dir = search_root / "agents"
-        if agents_dir.exists() and agents_dir.is_dir():
-            agent_files = list(agents_dir.glob("*.md"))
-            if agent_files:
-                target_agent = None
-                if final_id:
-                    cand_name = (
-                        final_id if final_id.endswith(".md") else f"{final_id}.md"
-                    )
-                    target_agent = next(
-                        (
-                            f
-                            for f in agent_files
-                            if f.name.lower() == cand_name.lower()
-                        ),
-                        None,
-                    )
-                if not target_agent and len(agent_files) == 1:
-                    target_agent = agent_files[0]
+            # Check matching agent
+            target_agent = None
+            cand_name = final_id if final_id.endswith(".md") else f"{final_id}.md"
+            for af in agent_files:
+                if (
+                    af.name.lower() == cand_name.lower()
+                    or af.stem.lower() == final_id.lower()
+                ):
+                    target_agent = af
+                    break
 
-                if target_agent:
-                    dest_agents_dir = ext_dir / "agents"
-                    dest_agents_dir.mkdir(parents=True, exist_ok=True)
-                    dest_file = dest_agents_dir / target_agent.name
-                    shutil.copy2(target_agent, dest_file)
-                    name, desc = parse_frontmatter(target_agent)
+            if target_agent:
+                dest_agents_dir = ext_dir / "agents"
+                dest_agents_dir.mkdir(parents=True, exist_ok=True)
+                dest_file = dest_agents_dir / target_agent.name
+                shutil.copy2(target_agent, dest_file)
+                name, desc = parse_frontmatter(target_agent)
 
-                    manifest = load_manifest(ext_dir)
-                    installed = manifest.setdefault("installed", {})
-                    manifest_key = f"agents/{target_agent.name}"
-                    installed[manifest_key] = {
-                        "type": "agents",
-                        "id": target_agent.name,
-                        "name": name or target_agent.name,
-                        "description": desc,
-                        "sha": commit_sha,
-                        "source_type": "git",
-                        "source_url": clone_url,
-                        "branch": detected_branch,
-                        "installed_at": datetime.now(timezone.utc).isoformat(),
-                        "command": f"omni add {source}",
-                    }
-                    save_manifest(ext_dir, manifest)
-                    return {
-                        "key": manifest_key,
-                        "type": "agents",
-                        "id": target_agent.name,
-                        "name": name or target_agent.name,
-                        "sha": commit_sha,
-                        "path": dest_file,
-                    }
+                manifest_key = f"agents/{target_agent.name}"
+                installed[manifest_key] = {
+                    "type": "agents",
+                    "id": target_agent.name,
+                    "name": name or target_agent.name,
+                    "description": desc,
+                    "sha": commit_sha,
+                    "source_type": "git",
+                    "source_url": clone_url,
+                    "branch": detected_branch,
+                    "installed_at": datetime.now(timezone.utc).isoformat(),
+                    "command": f"omni add {source}",
+                }
+                save_manifest(ext_dir, manifest)
+                return {
+                    "key": manifest_key,
+                    "type": "agents",
+                    "id": target_agent.name,
+                    "name": name or target_agent.name,
+                    "sha": commit_sha,
+                    "path": dest_file,
+                }
 
-        return None
+            return None
+
+        # --- SCENARIO B: Auto-detect / Package mode (install all discovered components) ---
+        installed_items: list[dict[str, Any]] = []
+
+        # 1. Install all skills
+        for sd in skill_dirs:
+            name, desc = parse_frontmatter(sd / "SKILL.md")
+            s_id = slugify_id(name) if name else slugify_id(sd.name)
+            if s_id in ("skills", "custom-skill") and sd == search_root:
+                s_id = slugify_id(repo_stem)
+
+            dest_dir = ext_dir / "skills" / category / s_id
+            if dest_dir.exists():
+                shutil.rmtree(dest_dir, ignore_errors=True)
+            dest_dir.mkdir(parents=True, exist_ok=True)
+
+            for item in sd.iterdir():
+                if item.name in (".git", "node_modules", ".venv", "__pycache__"):
+                    continue
+                dst_item = dest_dir / item.name
+                if item.is_dir():
+                    shutil.copytree(item, dst_item, dirs_exist_ok=True)
+                else:
+                    shutil.copy2(item, dst_item)
+
+            manifest_key = f"skills/{category}/{s_id}"
+            installed[manifest_key] = {
+                "type": "skills",
+                "category": category,
+                "id": s_id,
+                "name": name or s_id,
+                "description": desc,
+                "sha": commit_sha,
+                "source_type": "git",
+                "source_url": clone_url,
+                "branch": detected_branch,
+                "installed_at": datetime.now(timezone.utc).isoformat(),
+                "command": f"omni add {source} --skill {s_id}",
+            }
+            installed_items.append({
+                "key": manifest_key,
+                "type": "skills",
+                "category": category,
+                "id": s_id,
+                "name": name or s_id,
+                "path": dest_dir,
+            })
+
+        # 2. Install all agents
+        for af in agent_files:
+            dest_agents_dir = ext_dir / "agents"
+            dest_agents_dir.mkdir(parents=True, exist_ok=True)
+            dest_file = dest_agents_dir / af.name
+            shutil.copy2(af, dest_file)
+            name, desc = parse_frontmatter(af)
+
+            manifest_key = f"agents/{af.name}"
+            installed[manifest_key] = {
+                "type": "agents",
+                "id": af.name,
+                "name": name or af.name,
+                "description": desc,
+                "sha": commit_sha,
+                "source_type": "git",
+                "source_url": clone_url,
+                "branch": detected_branch,
+                "installed_at": datetime.now(timezone.utc).isoformat(),
+                "command": f"omni add {source}",
+            }
+            installed_items.append({
+                "key": manifest_key,
+                "type": "agents",
+                "id": af.name,
+                "name": name or af.name,
+                "path": dest_file,
+            })
+
+        if not installed_items:
+            return None
+
+        save_manifest(ext_dir, manifest)
+
+        # Single item return
+        if len(installed_items) == 1:
+            single = installed_items[0]
+            return {
+                "key": single["key"],
+                "type": single["type"],
+                "category": single.get("category", category),
+                "id": single["id"],
+                "name": single["name"],
+                "sha": commit_sha,
+                "path": single["path"],
+                "installed_items": installed_items,
+            }
+
+        # Multi-item bundle/package return
+        item_names = [it["id"] for it in installed_items]
+        return {
+            "key": f"package/{repo_stem}",
+            "type": "package",
+            "category": category,
+            "id": repo_stem,
+            "name": f"{repo_stem} ({len(installed_items)} items: {', '.join(item_names)})",
+            "sha": commit_sha,
+            "path": ext_dir,
+            "installed_items": installed_items,
+        }
 
 
 def install_remote_component(

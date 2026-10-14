@@ -282,11 +282,29 @@ def handle_remote_extensions(
                 timeout=30.0,
             )
             if result:
-                item_name = result.get("name") or result["id"]
-                render_banner(
-                    t("ext_download_ok", lang, item=item_name),
-                    level="success",
-                )
+                items = result.get("installed_items", [])
+                if len(items) > 1:
+                    pkg_table = Table(
+                        box=box.ROUNDED,
+                        border_style="dim cyan",
+                        title=f"[bold white]Package: {escape(result.get('id', 'community'))}[/bold white]",
+                    )
+                    pkg_table.add_column("Type", style="cyan", width=12)
+                    pkg_table.add_column("Component ID", style="bold white")
+                    pkg_table.add_column("Location", style="dim")
+                    for it in items:
+                        pkg_table.add_row(it["type"], escape(it["id"]), escape(f"ext/{it['key']}"))
+                    console.print(pkg_table)
+                    render_banner(
+                        t("ext_download_ok", lang, item=f"{result.get('id', 'Package')} ({len(items)} items)"),
+                        level="success",
+                    )
+                else:
+                    item_name = result.get("name") or result["id"]
+                    render_banner(
+                        t("ext_download_ok", lang, item=item_name),
+                        level="success",
+                    )
             else:
                 render_banner(
                     t("ext_download_fail", lang, item=raw_url),

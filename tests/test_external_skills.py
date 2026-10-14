@@ -130,6 +130,98 @@ class TestExternalSkillsManagement(unittest.TestCase):
         self.assertEqual(info["category"], "community")
         self.assertTrue(len(info["sha"]) >= 7)
 
+    def test_install_external_git_component_package_mode(self):
+        # Create a mock multi-skill repository
+        src_repo_dir = Path(self.temp_dir.name) / "mock_package_repo"
+        src_repo_dir.mkdir(parents=True, exist_ok=True)
+
+        subprocess.run(["git", "init"], cwd=str(src_repo_dir), check=True, capture_output=True)
+        subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=str(src_repo_dir), check=True)
+        subprocess.run(["git", "config", "user.name", "Test User"], cwd=str(src_repo_dir), check=True)
+
+        # Create two skills in .agents/skills/
+        skill1_dir = src_repo_dir / ".agents" / "skills" / "skill-alpha"
+        skill1_dir.mkdir(parents=True, exist_ok=True)
+        (skill1_dir / "SKILL.md").write_text(
+            "---\nname: skill-alpha\ndescription: First Alpha Skill\n---\n# Alpha",
+            encoding="utf-8",
+        )
+
+        skill2_dir = src_repo_dir / ".agents" / "skills" / "skill-beta"
+        skill2_dir.mkdir(parents=True, exist_ok=True)
+        (skill2_dir / "SKILL.md").write_text(
+            "---\nname: skill-beta\ndescription: Second Beta Skill\n---\n# Beta",
+            encoding="utf-8",
+        )
+
+        # Also add an agent
+        agent_dir = src_repo_dir / "agents"
+        agent_dir.mkdir(parents=True, exist_ok=True)
+        (agent_dir / "helper-agent.md").write_text(
+            "---\nname: Helper Agent\ndescription: Helpful agent persona\n---\n# Helper",
+            encoding="utf-8",
+        )
+
+        subprocess.run(["git", "add", "."], cwd=str(src_repo_dir), check=True)
+        subprocess.run(["git", "commit", "-m", "Package commit"], cwd=str(src_repo_dir), check=True)
+
+        # Install without specifying skill_id (Package Mode)
+        res = install_external_git_component(
+            source=str(src_repo_dir),
+            ext_dir=self.ext_dir,
+            skill_id=None,
+            category="community",
+        )
+
+        self.assertIsNotNone(res)
+        self.assertEqual(res["type"], "package")
+        self.assertIn("installed_items", res)
+        self.assertEqual(len(res["installed_items"]), 3)
+
+        # Verify filesystem
+        self.assertTrue((self.ext_dir / "skills" / "community" / "skill-alpha" / "SKILL.md").exists())
+        self.assertTrue((self.ext_dir / "skills" / "community" / "skill-beta" / "SKILL.md").exists())
+        self.assertTrue((self.ext_dir / "agents" / "helper-agent.md").exists())
+
+        # Verify manifest.json tracks all components
+        manifest = load_manifest(self.ext_dir)
+        self.assertIn("skills/community/skill-alpha", manifest["installed"])
+        self.assertIn("skills/community/skill-beta", manifest["installed"])
+        self.assertIn("agents/helper-agent.md", manifest["installed"])
+
+    def test_install_external_git_component_multi_skill_specific(self):
+        # Create a mock multi-skill repository
+        src_repo_dir = Path(self.temp_dir.name) / "mock_multi_repo"
+        src_repo_dir.mkdir(parents=True, exist_ok=True)
+
+        subprocess.run(["git", "init"], cwd=str(src_repo_dir), check=True, capture_output=True)
+        subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=str(src_repo_dir), check=True)
+        subprocess.run(["git", "config", "user.name", "Test User"], cwd=str(src_repo_dir), check=True)
+
+        s1 = src_repo_dir / "skills" / "s1"
+        s1.mkdir(parents=True, exist_ok=True)
+        (s1 / "SKILL.md").write_text("---\nname: s1\ndescription: Skill One\n---\n# S1", encoding="utf-8")
+
+        s2 = src_repo_dir / "skills" / "s2"
+        s2.mkdir(parents=True, exist_ok=True)
+        (s2 / "SKILL.md").write_text("---\nname: s2\ndescription: Skill Two\n---\n# S2", encoding="utf-8")
+
+        subprocess.run(["git", "add", "."], cwd=str(src_repo_dir), check=True)
+        subprocess.run(["git", "commit", "-m", "Multi commit"], cwd=str(src_repo_dir), check=True)
+
+        # Install specifically s2
+        res = install_external_git_component(
+            source=str(src_repo_dir),
+            ext_dir=self.ext_dir,
+            skill_id="s2",
+            category="community",
+        )
+
+        self.assertIsNotNone(res)
+        self.assertEqual(res["id"], "s2")
+        self.assertTrue((self.ext_dir / "skills" / "community" / "s2" / "SKILL.md").exists())
+        self.assertFalse((self.ext_dir / "skills" / "community" / "s1").exists())
+
     @patch("omni_agents.remote_sync.get_remote_git_commit")
     def test_check_all_extensions_updates(self, mock_get_commit):
         manifest = {

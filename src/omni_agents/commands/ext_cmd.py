@@ -108,8 +108,17 @@ def add_external_extension(
         comp_id = result["id"]
         key = result["key"]
         sha = result.get("sha", "")[:7]
-        print(f"[OK] Successfully installed {comp_type}: '{comp_id}' in ext/{key} (sha: {sha})")
-        print("     Origin saved in ext/manifest.json. Available for all workspaces.")
+        items = result.get("installed_items", [])
+        if len(items) > 1:
+            print(
+                f"[OK] Successfully installed package '{comp_id}' with {len(items)} components (sha: {sha}):"
+            )
+            for it in items:
+                print(f"     + [{it['type']}] {it['id']} -> ext/{it['key']}")
+            print("     Origin saved in ext/manifest.json. Available for all workspaces.")
+        else:
+            print(f"[OK] Successfully installed {comp_type}: '{comp_id}' in ext/{key} (sha: {sha})")
+            print("     Origin saved in ext/manifest.json. Available for all workspaces.")
         return True
     else:
         print(f"[x] Error: Failed to clone or install external component from '{source}'.")
