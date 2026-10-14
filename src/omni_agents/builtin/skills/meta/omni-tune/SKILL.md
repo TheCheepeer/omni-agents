@@ -121,7 +121,7 @@ Inspect and manage tracked workspaces configured with omni-agents across your ma
 <omni> --info
 ```
 
-### E. Remote Extensions & External Community Skills
+### E. Remote Extensions, Community Skills & Packages
 ```bash
 # List installed extensions:
 <omni> --ext-list
@@ -130,10 +130,13 @@ Inspect and manage tracked workspaces configured with omni-agents across your ma
 <omni> --ext-install agents/security-auditor.md
 <omni> --ext-install skills/stacks/svelte5
 
-# Install external community skill or agent from Git/GitHub repository:
+# Install external package (auto-detects and installs ALL skills/agents in repository):
+<omni> add https://github.com/morluto/rea
+# or GitHub shorthand:
+<omni> add morluto/rea
+
+# Install specific skill from a multi-skill repository:
 <omni> add https://github.com/blader/humanizer --skill humanizer
-# or shorthand:
-<omni> --ext-add blader/humanizer
 
 # Check for updates without modifying files (status table):
 <omni> --ext-check

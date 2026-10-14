@@ -57,7 +57,7 @@ Where `<omni>` can be:
 | Flag | Argument | Description |
 | :--- | :--- | :--- |
 | `--ext-list` | *(none)* | Lists installed remote extensions and exits. |
-| `--ext-add` | `<SOURCE>` | Installs an external skill or agent directly from a Git repository or URL (e.g. `blader/humanizer` or `https://github.com/...`). Aliases: `--add-skill`, `omni add <source>`. |
+| `--ext-add` | `<SOURCE>` | Installs an external package, skill, or agent directly from a Git repository or URL (e.g. `morluto/rea` or `https://github.com/...`). Auto-detects all skills and agents if no specific `--skill` is passed. Aliases: `--add-skill`, `omni add <source>`. |
 | `--ext-check` | *(none)* | Checks for updates across installed extensions and outputs status table without modifying files. |
 | `--category` | `<CAT>` | Category for installing external skills (default: `community`). |
 | `--ext-install` | `<ITEM>` | Installs a remote extension from official catalog (e.g. `agents/code-reviewer.md` or `skills/stacks/svelte5`). Alias: `--ext-download`. |
