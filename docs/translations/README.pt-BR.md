@@ -12,14 +12,14 @@ O sistema unifica a gestão de contexto e exporta automaticamente para os format
 
 | Ferramenta             | Identificador | Escopo             | Arquivos e Destinos Gerados                                           |
 | :--------------------- | :------------ | :----------------- | :-------------------------------------------------------------------- |
-| **Google Antigravity** | `antigravity` | Workspace          | `.agents/` (`skills.json`, `rules/`, `agents/`)                       |
+| **Google Antigravity** | `antigravity` | Workspace          | `.agents/` (`skills/`, `rules/`, `agents/`)                           |
 | **Claude Code**        | `claude`      | Workspace          | `CLAUDE.md` na raiz do projeto e `.claude/skills/`                     |
-| **Cursor IDE**         | `cursor`      | Workspace          | `.cursor/rules/*.mdc` (com metadados de globs e alwaysApply)          |
-| **GitHub Copilot**     | `copilot`     | Workspace          | `.github/copilot-instructions.md` consolidado                         |
-| **Universal**          | `universal`   | Workspace          | `AGENTS.md` padronizado na raiz do projeto                            |
-| **Kiro**               | `kiro`        | Workspace          | `AGENTS.md` e pasta `.kiro/`                                          |
-| **OpenCode**           | `opencode`    | Workspace          | `AGENTS.md` e pasta `.opencode/`                                      |
-| **Codex (OpenAI)**     | `codex`       | Workspace          | `AGENTS.md` otimizado para o ecossistema Codex                        |
+| **Cursor IDE**         | `cursor`      | Workspace          | `.cursor/rules/*.mdc` e `.cursor/skills/`                             |
+| **GitHub Copilot**     | `copilot`     | Workspace          | `.github/copilot-instructions.md` e `.github/skills/`                 |
+| **Universal**          | `universal`   | Workspace          | `AGENTS.md` na raiz do projeto e `.agents/skills/`                    |
+| **Kiro**               | `kiro`        | Workspace          | `AGENTS.md` e `.kiro/` (`skills/`)                                    |
+| **OpenCode**           | `opencode`    | Workspace          | `AGENTS.md` e `.opencode/` (`skills/`)                                |
+| **Codex (OpenAI)**     | `codex`       | Workspace          | `AGENTS.md` e `.agents/skills/` otimizado para Codex                  |
 
 ---
 

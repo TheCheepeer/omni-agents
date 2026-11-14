@@ -139,26 +139,26 @@ class BaseTarget(ABC):
     - Workspace destination: `.agents/`
     - Subagents: `.agents/agents/*.md`
     - Rules: `.agents/rules/*.md`
-    - Skills: `.agents/skills.json` declarative manifest
+    - Skills: `.agents/skills/<skill_id>/` (real workspace-local copies)
     - Driver: Bundles `omni-tune` as mandatory built-in skill
 
 2. **Cursor (`src/omni_agents/targets/cursor.py`)**:
-    - Workspace destination: `.cursor/rules/*.mdc`
+    - Workspace destination: `.cursor/rules/*.mdc` and `.cursor/skills/<skill_id>/`
     - Rules & metadata: Formatted with `globs` and `alwaysApply` frontmatter
 
 3. **Claude Code (`src/omni_agents/targets/claude.py`)**:
     - Workspace destination: `CLAUDE.md` in project root
-    - Skills: Integrated into `.claude/skills/`
+    - Skills: Integrated into `.claude/skills/<skill_id>/`
 
 4. **GitHub Copilot (`src/omni_agents/targets/copilot.py`)**:
-    - Workspace destination: `.github/copilot-instructions.md`
+    - Workspace destination: `.github/copilot-instructions.md` and `.github/skills/<skill_id>/`
     - Rules & guidelines: Consolidated project instructions
 
 5. **Universal Ecosystem (`src/omni_agents/targets/universal.py`)**:
-    - **Universal**: `AGENTS.md` in workspace root
-    - **Kiro**: `AGENTS.md` and `.kiro/steering/`
-    - **OpenCode**: `AGENTS.md` and `.opencode/rules/`
-    - **Codex**: `AGENTS.md` optimized for OpenAI Codex
+    - **Universal**: `AGENTS.md` and `.agents/skills/<skill_id>/`
+    - **Kiro**: `AGENTS.md` and `.kiro/skills/<skill_id>/`
+    - **OpenCode**: `AGENTS.md` and `.opencode/skills/<skill_id>/`
+    - **Codex**: `AGENTS.md` and `.agents/skills/<skill_id>/` optimized for OpenAI Codex
 
 ### Central Workspace Registry
 

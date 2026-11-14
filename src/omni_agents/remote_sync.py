@@ -258,7 +258,7 @@ def install_external_git_component(
     ext_dir: Path,
     skill_id: str | None = None,
     category: str = "community",
-    timeout: float = 30.0,
+    timeout: float = 60.0,
 ) -> dict[str, Any] | None:
     """
     Downloads an external skill or agent repository via Git (shallow clone)
@@ -394,12 +394,26 @@ def install_external_git_component(
                     target_skill_dir = sd
                     break
 
+            if not target_skill_dir and skill_dirs:
+                req_slug = slugify_id(final_id)
+                cand_skills = [
+                    sd
+                    for sd in skill_dirs
+                    if req_slug in slugify_id(sd.name)
+                    or (
+                        parse_frontmatter(sd / "SKILL.md")[0]
+                        and req_slug in slugify_id(parse_frontmatter(sd / "SKILL.md")[0])
+                    )
+                ]
+                if len(cand_skills) == 1:
+                    target_skill_dir = cand_skills[0]
+                elif len(skill_dirs) == 1 and not agent_files:
+                    target_skill_dir = skill_dirs[0]
+
             if target_skill_dir:
                 name, desc = parse_frontmatter(target_skill_dir / "SKILL.md")
                 resolved_id = (
-                    slugify_id(final_id)
-                    if final_id
-                    else (slugify_id(name) if name else slugify_id(target_skill_dir.name))
+                    slugify_id(name) if name else slugify_id(target_skill_dir.name)
                 )
                 dest_dir = ext_dir / "skills" / category / resolved_id
                 if dest_dir.exists():
@@ -451,6 +465,22 @@ def install_external_git_component(
                     target_agent = af
                     break
 
+            if not target_agent and agent_files:
+                req_slug = slugify_id(final_id)
+                cand_agents = [
+                    af
+                    for af in agent_files
+                    if req_slug in slugify_id(af.stem)
+                    or (
+                        parse_frontmatter(af)[0]
+                        and req_slug in slugify_id(parse_frontmatter(af)[0])
+                    )
+                ]
+                if len(cand_agents) == 1 and not skill_dirs:
+                    target_agent = cand_agents[0]
+                elif len(agent_files) == 1 and not skill_dirs:
+                    target_agent = agent_files[0]
+
             if target_agent:
                 dest_agents_dir = ext_dir / "agents"
                 dest_agents_dir.mkdir(parents=True, exist_ok=True)
@@ -481,7 +511,13 @@ def install_external_git_component(
                     "path": dest_file,
                 }
 
-            return None
+            # If no single component matched, but repository has components:
+            # Check if requested ID represents the repository/package itself
+            # (e.g. 'rea' for 'morluto/rea', or 'package', 'all', or a common prefix/match)
+            if not (skill_dirs or agent_files):
+                return None
+            # Otherwise, fall through to Scenario B (Package Mode) so all discovered
+            # components are installed instead of failing.
 
         # --- SCENARIO B: Auto-detect / Package mode (install all discovered components) ---
         installed_items: list[dict[str, Any]] = []

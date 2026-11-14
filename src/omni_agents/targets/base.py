@@ -341,12 +341,15 @@ def load_workspace_state(target_path: Path) -> dict[str, Any]:
         if skills_file.exists():
             try:
                 data = json.loads(skills_file.read_text(encoding="utf-8"))
-                for entry in data.get("entries", []):
-                    cat_name = Path(entry.get("path", "")).name
+                entries = data.get("entries", []) if isinstance(data, dict) else []
+                for entry in entries:
+                    if not isinstance(entry, dict):
+                        continue
+                    cat_name = Path(str(entry.get("path", ""))).name
                     include_only = entry.get("include_only", [])
-                    if cat_name and include_only:
-                        selected_skills[cat_name] = set(include_only)
-            except (json.JSONDecodeError, OSError):
+                    if cat_name and isinstance(include_only, list) and include_only:
+                        selected_skills[cat_name] = {str(s) for s in include_only if s}
+            except (json.JSONDecodeError, OSError, TypeError, ValueError):
                 pass
 
         return {
@@ -437,6 +440,101 @@ def find_skill_file(
         return repo_candidate
 
     return builtin_candidate
+
+
+SKILL_COPY_IGNORE = shutil.ignore_patterns(
+    ".git",
+    "__pycache__",
+    "*.pyc",
+    "*.pyo",
+    ".venv",
+    "venv",
+    "node_modules",
+    ".pytest_cache",
+    ".idea",
+    ".tox",
+    ".DS_Store",
+)
+
+
+def _resolve_unique_skill_dir_name(
+    cat_name: str, skill_id: str, used_names: set[str]
+) -> str:
+    """Returns a collision-free directory name for a skill inside a workspace skills folder."""
+    if skill_id not in used_names:
+        return skill_id
+    safe_cat = cat_name.replace("/", "-").replace("\\", "-").strip("-")
+    base_name = f"{safe_cat}-{skill_id}" if safe_cat else skill_id
+    candidate = base_name
+    counter = 2
+    while candidate in used_names:
+        candidate = f"{base_name}-{counter}"
+        counter += 1
+    return candidate
+
+
+def sync_skills_directory(
+    skills_dest: Path,
+    repo_root: Path,
+    scanned: dict[str, Any],
+    skills_by_cat: dict[str, set[str] | list[str]],
+) -> list[dict[str, Any]]:
+    """
+    Copies full directories of selected skills into a workspace-local skills folder
+    using real files (no symlinks) and prunes any unselected skills.
+    """
+    planned: list[dict[str, Any]] = []
+    seen_sources: dict[Path, dict[str, Any]] = {}
+    active_dir_names: set[str] = set()
+
+    for cat_name in sorted(skills_by_cat.keys()):
+        skill_ids = skills_by_cat[cat_name]
+        if not skill_ids:
+            continue
+        for s_id in sorted(skill_ids):
+            s_file = find_skill_file(repo_root, scanned, cat_name, s_id)
+            if not s_file.exists() or not s_file.parent.is_dir():
+                continue
+            src_dir = s_file.parent.resolve()
+            if src_dir in seen_sources:
+                continue
+            dir_name = _resolve_unique_skill_dir_name(cat_name, s_id, active_dir_names)
+            active_dir_names.add(dir_name)
+            entry = {
+                "cat_name": cat_name,
+                "id": s_id,
+                "dir_name": dir_name,
+                "src_dir": src_dir,
+                "skill_file": s_file,
+                "dest_dir": skills_dest / dir_name,
+            }
+            seen_sources[src_dir] = entry
+            planned.append(entry)
+
+    if not planned:
+        safe_remove_tree(skills_dest)
+        return []
+
+    if is_link(skills_dest):
+        remove_dir_link(skills_dest)
+    skills_dest.mkdir(parents=True, exist_ok=True)
+
+    for existing in list(skills_dest.iterdir()):
+        if existing.name not in active_dir_names:
+            safe_remove_tree(existing)
+
+    for entry in planned:
+        dest_dir = entry["dest_dir"]
+        safe_remove_tree(dest_dir)
+        shutil.copytree(
+            entry["src_dir"],
+            dest_dir,
+            symlinks=False,
+            ignore=SKILL_COPY_IGNORE,
+            ignore_dangling_symlinks=True,
+        )
+
+    return planned
 
 
 class BaseTarget:

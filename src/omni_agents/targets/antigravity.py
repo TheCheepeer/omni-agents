@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """
 Adapter for Google Antigravity.
-Configures subagents, rules, and skills.json in .agents/ workspace directory
-and links global core to ~/.gemini/config/.
+Configures subagents, rules, and workspace-local skills in .agents/ directory
+and supports global configuration in ~/.gemini/config/.
 """
 
 from __future__ import annotations
 
-import json
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -15,12 +14,12 @@ from typing import Any
 from .base import (
     BaseTarget,
     create_dir_link,
-    find_skill_file,
     is_link,
     remove_dir_link,
     safe_remove_dir_if_empty,
     safe_remove_file,
     safe_remove_tree,
+    sync_skills_directory,
     t_target,
     update_gitignore,
 )
@@ -30,7 +29,7 @@ class AntigravityTarget(BaseTarget):
     target_id = "antigravity"
     display_name = "Google Antigravity"
     description = (
-        "Configuration via .agents/ and skills manifest in workspace"
+        "Configuration via .agents/ (skills/, rules/, agents/) in workspace"
     )
     supports_global = False
 
@@ -48,58 +47,58 @@ class AntigravityTarget(BaseTarget):
         agents_dir.mkdir(parents=True, exist_ok=True)
 
         # 1. Subagents
+        subagents_dest = agents_dir / "agents"
         if agents:
-            subagents_dest = agents_dir / "agents"
+            if is_link(subagents_dest):
+                remove_dir_link(subagents_dest)
             subagents_dest.mkdir(parents=True, exist_ok=True)
+            active_agent_names = set()
             for a in agents:
-                dest_file = subagents_dest / a["id"]
+                agent_name = a["id"] if a["id"].endswith(".md") else f"{a['id']}.md"
+                active_agent_names.add(agent_name)
+                dest_file = subagents_dest / agent_name
+                if is_link(dest_file):
+                    safe_remove_tree(dest_file)
                 dest_file.write_text(
                     Path(a["path"]).read_text(encoding="utf-8"), encoding="utf-8"
                 )
+            for item in list(subagents_dest.iterdir()):
+                if item.name not in active_agent_names or not item.is_file() or is_link(item):
+                    safe_remove_tree(item)
             print(f"  [+] {t_target('antigravity_agents', lang, count=len(agents))}")
+        else:
+            safe_remove_tree(subagents_dest)
 
         # 2. Rules
         rules_dest = agents_dir / "rules"
         if rules:
+            if is_link(rules_dest):
+                remove_dir_link(rules_dest)
             rules_dest.mkdir(parents=True, exist_ok=True)
             active_names = set()
             for r in rules:
                 rule_name = r["id"] if r["id"].endswith(".md") else f"{r['id']}.md"
                 active_names.add(rule_name)
                 dest_file = rules_dest / rule_name
+                if is_link(dest_file):
+                    safe_remove_tree(dest_file)
                 dest_file.write_text(
                     Path(r["path"]).read_text(encoding="utf-8"), encoding="utf-8"
                 )
-            if rules_dest.exists():
-                for f in list(rules_dest.iterdir()):
-                    if f.is_file() and f.name not in active_names:
-                        f.unlink()
+            for f in list(rules_dest.iterdir()):
+                if f.name not in active_names or not f.is_file() or is_link(f):
+                    safe_remove_tree(f)
             print(f"  [+] {t_target('antigravity_rules', lang, count=len(rules))}")
         else:
             safe_remove_tree(rules_dest)
 
-        # 3. Skills Manifest
-        entries = []
-        total_skills = 0
-        for cat_name in sorted(skills_by_cat.keys()):
-            skill_ids = skills_by_cat[cat_name]
-            if skill_ids:
-                cat_dirs: dict[str, list[str]] = {}
-                for s_id in skill_ids:
-                    s_file = find_skill_file(repo_root, scanned, cat_name, s_id)
-                    parent_dir = s_file.parent.parent.resolve().as_posix()
-                    cat_dirs.setdefault(parent_dir, []).append(s_id)
-                for cat_path, ids in sorted(cat_dirs.items()):
-                    entries.append({"path": cat_path, "include_only": sorted(ids)})
-                total_skills += len(skill_ids)
-
-        skills_json_path = agents_dir / "skills.json"
-        manifest = {"entries": entries}
-        skills_json_path.write_text(
-            json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
-            encoding="utf-8",
+        # 3. Workspace-local Skills (real copies inside .agents/skills/, no external paths)
+        safe_remove_file(agents_dir / "skills.json")
+        skills_dest = agents_dir / "skills"
+        synced_skills = sync_skills_directory(
+            skills_dest, repo_root, scanned, skills_by_cat
         )
-        print(f"  [+] {t_target('antigravity_skills', lang, count=total_skills)}")
+        print(f"  [+] {t_target('antigravity_skills', lang, count=len(synced_skills))}")
 
         update_gitignore(target_path, [".agents/"], lang=lang)
         return True

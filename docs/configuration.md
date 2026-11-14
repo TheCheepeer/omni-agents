@@ -107,7 +107,7 @@ Extensions downloaded from the official catalog or external Git repositories are
   # or shorthand:
   omni add morluto/rea
 
-  # Specific skill installation:
+  # Specific skill installation (supports exact, partial, or repo-stem package fallback):
   omni add https://github.com/blader/humanizer --skill humanizer
   ```
 - **Manifest Tracking**: Origin metadata is saved in `Documents/omni-agents/ext/manifest.json` (recording `source_url`, `branch`, `sha`, `installed_at`, and install command).

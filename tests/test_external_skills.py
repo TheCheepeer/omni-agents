@@ -222,6 +222,68 @@ class TestExternalSkillsManagement(unittest.TestCase):
         self.assertTrue((self.ext_dir / "skills" / "community" / "s2" / "SKILL.md").exists())
         self.assertFalse((self.ext_dir / "skills" / "community" / "s1").exists())
 
+    def test_install_external_git_component_repo_stem_fallback(self):
+        # When user provides repo stem (e.g. 'rea' or 'mock_package_repo') as the skill ID,
+        # but no individual skill is named after the repo stem, it falls back to package mode.
+        src_repo_dir = Path(self.temp_dir.name) / "mock_package_stem_repo"
+        src_repo_dir.mkdir(parents=True, exist_ok=True)
+
+        subprocess.run(["git", "init"], cwd=str(src_repo_dir), check=True, capture_output=True)
+        subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=str(src_repo_dir), check=True)
+        subprocess.run(["git", "config", "user.name", "Test User"], cwd=str(src_repo_dir), check=True)
+
+        s1 = src_repo_dir / "skills" / "skill-foo"
+        s1.mkdir(parents=True, exist_ok=True)
+        (s1 / "SKILL.md").write_text("---\nname: skill-foo\ndescription: Skill Foo\n---\n# Foo", encoding="utf-8")
+
+        s2 = src_repo_dir / "skills" / "skill-bar"
+        s2.mkdir(parents=True, exist_ok=True)
+        (s2 / "SKILL.md").write_text("---\nname: skill-bar\ndescription: Skill Bar\n---\n# Bar", encoding="utf-8")
+
+        subprocess.run(["git", "add", "."], cwd=str(src_repo_dir), check=True)
+        subprocess.run(["git", "commit", "-m", "Stem commit"], cwd=str(src_repo_dir), check=True)
+
+        # Pass repo stem as skill_id
+        res = install_external_git_component(
+            source=str(src_repo_dir),
+            ext_dir=self.ext_dir,
+            skill_id="mock_package_stem_repo",
+            category="community",
+        )
+
+        self.assertIsNotNone(res)
+        self.assertEqual(res["type"], "package")
+        self.assertEqual(len(res["installed_items"]), 2)
+        self.assertTrue((self.ext_dir / "skills" / "community" / "skill-foo" / "SKILL.md").exists())
+        self.assertTrue((self.ext_dir / "skills" / "community" / "skill-bar" / "SKILL.md").exists())
+
+    def test_install_external_git_component_partial_match(self):
+        src_repo_dir = Path(self.temp_dir.name) / "mock_partial_repo"
+        src_repo_dir.mkdir(parents=True, exist_ok=True)
+
+        subprocess.run(["git", "init"], cwd=str(src_repo_dir), check=True, capture_output=True)
+        subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=str(src_repo_dir), check=True)
+        subprocess.run(["git", "config", "user.name", "Test User"], cwd=str(src_repo_dir), check=True)
+
+        s1 = src_repo_dir / "skills" / "reverse-engineer-anything"
+        s1.mkdir(parents=True, exist_ok=True)
+        (s1 / "SKILL.md").write_text("---\nname: reverse-engineer-anything\ndescription: REA\n---\n# REA", encoding="utf-8")
+
+        subprocess.run(["git", "add", "."], cwd=str(src_repo_dir), check=True)
+        subprocess.run(["git", "commit", "-m", "Partial commit"], cwd=str(src_repo_dir), check=True)
+
+        # Pass partial name 'reverse-engineer'
+        res = install_external_git_component(
+            source=str(src_repo_dir),
+            ext_dir=self.ext_dir,
+            skill_id="reverse-engineer",
+            category="community",
+        )
+
+        self.assertIsNotNone(res)
+        self.assertEqual(res["id"], "reverse-engineer-anything")
+        self.assertTrue((self.ext_dir / "skills" / "community" / "reverse-engineer-anything" / "SKILL.md").exists())
+
     @patch("omni_agents.remote_sync.get_remote_git_commit")
     def test_check_all_extensions_updates(self, mock_get_commit):
         manifest = {

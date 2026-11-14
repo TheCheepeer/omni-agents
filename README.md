@@ -12,14 +12,14 @@ A centralized, tool-agnostic hub to version, manage, and distribute specialized 
 
 | Tool                   | Target ID     | Scope              | Generated Files & Destinations                                          |
 | :--------------------- | :------------ | :----------------- | :---------------------------------------------------------------------- |
-| **Google Antigravity** | `antigravity` | Workspace          | `.agents/` (`skills.json`, `rules/`, `agents/`)                         |
+| **Google Antigravity** | `antigravity` | Workspace          | `.agents/` (`skills/`, `rules/`, `agents/`)                             |
 | **Claude Code**        | `claude`      | Workspace          | `CLAUDE.md` in project root and `.claude/skills/`                       |
-| **Cursor IDE**         | `cursor`      | Workspace          | `.cursor/rules/*.mdc` (with `globs` and `alwaysApply` metadata)         |
-| **GitHub Copilot**     | `copilot`     | Workspace          | Consolidated `.github/copilot-instructions.md`                          |
-| **Universal**          | `universal`   | Workspace          | Standardized `AGENTS.md` in project root                                |
-| **Kiro**               | `kiro`        | Workspace          | Root `AGENTS.md` and `.kiro/` directory                                 |
-| **OpenCode**           | `opencode`    | Workspace          | Root `AGENTS.md` and `.opencode/` directory                             |
-| **Codex (OpenAI)**     | `codex`       | Workspace          | Root `AGENTS.md` tailored for Codex                                     |
+| **Cursor IDE**         | `cursor`      | Workspace          | `.cursor/rules/*.mdc` and `.cursor/skills/`                             |
+| **GitHub Copilot**     | `copilot`     | Workspace          | `.github/copilot-instructions.md` and `.github/skills/`                 |
+| **Universal**          | `universal`   | Workspace          | `AGENTS.md` in project root and `.agents/skills/`                       |
+| **Kiro**               | `kiro`        | Workspace          | Root `AGENTS.md` and `.kiro/` (`skills/`)                               |
+| **OpenCode**           | `opencode`    | Workspace          | Root `AGENTS.md` and `.opencode/` (`skills/`)                           |
+| **Codex (OpenAI)**     | `codex`       | Workspace          | Root `AGENTS.md` and `.agents/skills/` tailored for Codex               |
 
 ---
 

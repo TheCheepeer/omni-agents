@@ -263,7 +263,7 @@ def handle_remote_extensions(
             console.print(
                 f"\n[bold white]{escape(t('ext_prompt_enter_url', lang))}[/bold white]"
             )
-            raw_url = get_styled_choice(t("prompt_path", lang)).strip()
+            raw_url = get_styled_choice(t("your_choice", lang)).strip()
             if not raw_url or raw_url.lower() in ("v", "voltar", "volver", "q"):
                 continue
 
@@ -279,7 +279,7 @@ def handle_remote_extensions(
                 ext_dir=ext_dir,
                 skill_id=skill_id,
                 category="community",
-                timeout=30.0,
+                timeout=60.0,
             )
             if result:
                 items = result.get("installed_items", [])

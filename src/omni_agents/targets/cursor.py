@@ -12,12 +12,12 @@ from typing import Any
 
 from .base import (
     BaseTarget,
-    find_skill_file,
     parse_frontmatter,
     safe_remove_dir_if_empty,
     safe_remove_file,
     safe_remove_tree,
     safe_write_text,
+    sync_skills_directory,
     t_target,
 )
 
@@ -121,10 +121,14 @@ class CursorTarget(BaseTarget):
             dest_agent = cursor_rules_dir / "subagents.mdc"
             safe_write_text(dest_agent, "\n".join(subagent_sections).strip() + "\n")
             count += 1
+        else:
+            safe_remove_file(cursor_rules_dir / "subagents.mdc")
 
-        # 3. Skills catalog rule
-        total_skills = sum(len(v) for v in skills_by_cat.values())
-        if total_skills > 0:
+        # 3. Skills (real workspace-local copies in .cursor/skills/ + catalog rule)
+        synced_skills = sync_skills_directory(
+            target_path / ".cursor" / "skills", repo_root, scanned, skills_by_cat
+        )
+        if synced_skills:
             skill_sections = [
                 "---",
                 'description: "Catalog of modular skills and operating procedures"',
@@ -135,25 +139,25 @@ class CursorTarget(BaseTarget):
                 "# Operating Procedures & Modular Skills",
                 "",
             ]
-            for cat_name in sorted(skills_by_cat.keys()):
-                skill_ids = skills_by_cat[cat_name]
-                if not skill_ids:
-                    continue
+            by_cat: dict[str, list[dict[str, Any]]] = {}
+            for entry in synced_skills:
+                by_cat.setdefault(entry["cat_name"], []).append(entry)
+            for cat_name in sorted(by_cat.keys()):
                 skill_sections.append(f"### Category: {cat_name.upper()}")
-                for s_id in sorted(skill_ids):
-                    skill_file = find_skill_file(repo_root, scanned, cat_name, s_id)
-                    if skill_file.exists():
-                        _, s_desc = parse_frontmatter(skill_file)
-                        desc_str = f" - {s_desc}" if s_desc else ""
-                        skill_sections.append(f"- **{s_id}**{desc_str}")
-                        skill_sections.append(
-                            f"  *Path:* `{skill_file.resolve().as_posix()}`"
-                        )
+                for entry in by_cat[cat_name]:
+                    _, s_desc = parse_frontmatter(entry["skill_file"])
+                    desc_str = f" - {s_desc}" if s_desc else ""
+                    skill_sections.append(f"- **{entry['id']}**{desc_str}")
+                    skill_sections.append(
+                        f"  *Path:* `.cursor/skills/{entry['dir_name']}/SKILL.md`"
+                    )
                 skill_sections.append("")
 
             dest_skill = cursor_rules_dir / "skills.mdc"
             safe_write_text(dest_skill, "\n".join(skill_sections).strip() + "\n")
             count += 1
+        else:
+            safe_remove_file(cursor_rules_dir / "skills.mdc")
 
         print(f"  [+] {t_target('cursor_generated', lang, count=count)}")
         return True
@@ -164,6 +168,7 @@ class CursorTarget(BaseTarget):
         safe_remove_file(cursorrules_file)
         if cursor_dir.exists():
             safe_remove_tree(cursor_dir / "rules")
+            safe_remove_tree(cursor_dir / "skills")
             safe_remove_dir_if_empty(cursor_dir)
         print(f"  [-] {t_target('cursor_clean_done', lang)}")
         return True

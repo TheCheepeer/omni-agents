@@ -100,7 +100,7 @@ def add_external_extension(
         ext_dir=ext_dir,
         skill_id=skill_name,
         category=category,
-        timeout=30.0,
+        timeout=60.0,
     )
 
     if result:

@@ -30,7 +30,7 @@ When run without arguments, `omni-agents` automatically detects the current work
 | Option            | Shorthand    | Description                                                                                                    |
 | :---------------- | :----------- | :------------------------------------------------------------------------------------------------------------- |
 | `target`          | _Positional_ | Target project directory path (default: current working directory `.`).                                        |
-| `--tools <list>`  | `-t <list>`  | Target tool adapter(s), comma-separated (`antigravity`, `cursor`, `claude`, `copilot`, `universal`, or `all`). |
+| `--tools <list>`  | `-t <list>`  | Target tool adapter(s), comma-separated (`antigravity`, `cursor`, `claude`, `copilot`, `universal`, `kiro`, `opencode`, `codex`, or `all`). |
 | `--agents <list>` | `-a <list>`  | Subagent ID(s) to activate, comma-separated (e.g. `code-reviewer,security-auditor`, or `all`, `none`).         |
 | `--rules <list>`  | `-r <list>`  | Rule profile(s) to apply, comma-separated (e.g. `general,pt-br-dev`, or `all`, `none`).                        |
 | `--skills <list>` | `-s <list>`  | Skill ID(s) or categories to activate (e.g. `testing,git/commit-helper`, or `all`, `none`).                    |
@@ -113,7 +113,7 @@ The menu supports commands and shortcuts in English, Portuguese, and Spanish:
 
 Option `[2] Workspace Rules` provides an interactive screen where users select which architecture guidelines and rule profiles apply to the project:
 
-- **100% Workspace-Scoped**: Rules are applied directly to the active project folder (e.g. `.agents/rules/`, `.cursor/rules/`, `CLAUDE.md`, or `AGENTS.md`).
+- **100% Workspace-Scoped**: Rules and skills are copied directly into the active project folder (e.g. `.agents/rules/` and `.agents/skills/`, `.cursor/rules/` and `.cursor/skills/`, `CLAUDE.md` and `.claude/skills/`, or `AGENTS.md`).
 - **Granular Toggle & Commands**:
     - `<num>`: Toggle rule selection in workspace
     - `all`: Select all available rules

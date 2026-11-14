@@ -13,11 +13,12 @@ from typing import Any
 
 from .base import (
     BaseTarget,
-    find_skill_file,
     parse_frontmatter,
+    safe_remove_dir_if_empty,
     safe_remove_file,
     safe_remove_tree,
     safe_write_text,
+    sync_skills_directory,
     t_target,
 )
 
@@ -92,27 +93,30 @@ class ClaudeTarget(BaseTarget):
                 except OSError:
                     pass
 
-        # 3. Skills
-        total_skills = sum(len(v) for v in skills_by_cat.values())
-        if total_skills > 0:
+        # 3. Skills (real workspace-local copies in .claude/skills/)
+        claude_dir = target_path / ".claude"
+        synced_skills = sync_skills_directory(
+            claude_dir / "skills", repo_root, scanned, skills_by_cat
+        )
+        if not synced_skills:
+            safe_remove_dir_if_empty(claude_dir)
+        else:
             sections.append("## Operating Procedures & Skills")
             sections.append("")
             sections.append("Modular procedures to be followed when applicable:")
             sections.append("")
-            for cat_name in sorted(skills_by_cat.keys()):
-                skill_ids = skills_by_cat[cat_name]
-                if not skill_ids:
-                    continue
+            by_cat: dict[str, list[dict[str, Any]]] = {}
+            for entry in synced_skills:
+                by_cat.setdefault(entry["cat_name"], []).append(entry)
+            for cat_name in sorted(by_cat.keys()):
                 sections.append(f"### Category: {cat_name.upper()}")
-                for s_id in sorted(skill_ids):
-                    skill_file = find_skill_file(repo_root, scanned, cat_name, s_id)
-                    if skill_file.exists():
-                        _, s_desc = parse_frontmatter(skill_file)
-                        desc_str = f" - {s_desc}" if s_desc else ""
-                        sections.append(f"- **{s_id}**{desc_str}")
-                        sections.append(
-                            f"  *Location:* `{skill_file.resolve().as_posix()}`"
-                        )
+                for entry in by_cat[cat_name]:
+                    _, s_desc = parse_frontmatter(entry["skill_file"])
+                    desc_str = f" - {s_desc}" if s_desc else ""
+                    sections.append(f"- **{entry['id']}**{desc_str}")
+                    sections.append(
+                        f"  *Location:* `.claude/skills/{entry['dir_name']}/SKILL.md`"
+                    )
                 sections.append("")
 
         output_text = "\n".join(sections).strip() + "\n"

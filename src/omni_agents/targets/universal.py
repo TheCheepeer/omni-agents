@@ -15,11 +15,13 @@ from typing import Any
 
 from .base import (
     BaseTarget,
-    find_skill_file,
+    load_workspace_state,
     parse_frontmatter,
+    safe_remove_dir_if_empty,
     safe_remove_file,
     safe_remove_tree,
     safe_write_text,
+    sync_skills_directory,
     t_target,
 )
 
@@ -29,6 +31,7 @@ class UniversalTarget(BaseTarget):
     display_name = "Universal (AGENTS.md)"
     description = "Generates standardized AGENTS.md in project root"
     supports_global = False
+    skills_rel_dir = ".agents/skills"
 
     def generate_agents_md(
         self,
@@ -89,27 +92,26 @@ class UniversalTarget(BaseTarget):
                 except OSError:
                     pass
 
-        # 3. Skills
-        total_skills = sum(len(v) for v in skills_by_cat.values())
-        if total_skills > 0:
+        # 3. Skills (real workspace-local copies inside target skills directory)
+        skills_dest = target_path / self.skills_rel_dir
+        synced_skills = sync_skills_directory(
+            skills_dest, repo_root, scanned, skills_by_cat
+        )
+        if synced_skills:
             sections.append("## Operating Procedures & Modular Skills")
             sections.append("")
-            for cat_name in sorted(skills_by_cat.keys()):
-                skill_ids = skills_by_cat[cat_name]
-                if not skill_ids:
-                    continue
+            by_cat: dict[str, list[dict[str, Any]]] = {}
+            for entry in synced_skills:
+                by_cat.setdefault(entry["cat_name"], []).append(entry)
+            for cat_name in sorted(by_cat.keys()):
                 sections.append(f"### Category: {cat_name.upper()}")
-                for s_id in sorted(skill_ids):
-                    skill_file = find_skill_file(
-                        repo_root, scanned or {}, cat_name, s_id
+                for entry in by_cat[cat_name]:
+                    _, s_desc = parse_frontmatter(entry["skill_file"])
+                    desc_str = f" - {s_desc}" if s_desc else ""
+                    sections.append(f"- **{entry['id']}**{desc_str}")
+                    sections.append(
+                        f"  *Path:* `{self.skills_rel_dir}/{entry['dir_name']}/SKILL.md`"
                     )
-                    if skill_file.exists():
-                        _, s_desc = parse_frontmatter(skill_file)
-                        desc_str = f" - {s_desc}" if s_desc else ""
-                        sections.append(f"- **{s_id}**{desc_str}")
-                        sections.append(
-                            f"  *Path:* `{skill_file.resolve().as_posix()}`"
-                        )
                 sections.append("")
 
         output_text = "\n".join(sections).strip() + "\n"
@@ -140,6 +142,14 @@ class UniversalTarget(BaseTarget):
     def clean_workspace(self, target_path: Path, lang: str = "en") -> bool:
         agents_md = target_path / "AGENTS.md"
         safe_remove_file(agents_md)
+        if self.skills_rel_dir == ".agents/skills":
+            active = set(load_workspace_state(target_path).get("active_targets", []))
+            other_agents_users = (active & {"antigravity", "universal", "codex"}) - {
+                self.target_id
+            }
+            if not other_agents_users:
+                safe_remove_tree(target_path / ".agents" / "skills")
+                safe_remove_dir_if_empty(target_path / ".agents")
         print(f"  [-] {t_target('universal_clean_done', lang)}")
         return True
 
@@ -149,6 +159,7 @@ class KiroTarget(UniversalTarget):
     display_name = "Kiro"
     description = "Generates AGENTS.md and support structure in .kiro/"
     supports_global = False
+    skills_rel_dir = ".kiro/skills"
 
     def configure_workspace(
         self,
@@ -187,6 +198,7 @@ class OpenCodeTarget(UniversalTarget):
     display_name = "OpenCode"
     description = "Generates AGENTS.md and support structure in .opencode/"
     supports_global = False
+    skills_rel_dir = ".opencode/skills"
 
     def configure_workspace(
         self,

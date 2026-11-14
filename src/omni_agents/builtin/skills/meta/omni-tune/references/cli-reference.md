@@ -79,11 +79,11 @@ Where `<omni>` can be:
 
 | Target Tool | Tool ID | Workspace Output Destination | Global Output Destination |
 | :--- | :--- | :--- | :--- |
-| Google Antigravity | `antigravity` | `.agents/` (`skills.json`, `rules/`, `agents/`) | `~/.gemini/config/` (`skills/`, `rules/`, `agents/`) |
-| Claude Code | `claude` | `CLAUDE.md` in workspace root | `~/.claude/CLAUDE.md` |
-| Cursor IDE | `cursor` | `.cursor/rules/*.mdc` | N/A (Workspace only) |
-| GitHub Copilot | `copilot` | `.github/copilot-instructions.md` | N/A (Workspace only) |
-| Universal | `universal` | `AGENTS.md` in workspace root | N/A (Workspace only) |
-| Kiro | `kiro` | `AGENTS.md` and `.kiro/` | N/A (Workspace only) |
-| OpenCode | `opencode` | `AGENTS.md` and `.opencode/` | N/A (Workspace only) |
-| Codex (OpenAI) | `codex` | `AGENTS.md` tailored for Codex | N/A (Workspace only) |
+| Google Antigravity | `antigravity` | `.agents/` (`skills/`, `rules/`, `agents/`) | `~/.gemini/config/` (`skills/`, `rules/`, `agents/`) |
+| Claude Code | `claude` | `CLAUDE.md` and `.claude/skills/` | `~/.claude/CLAUDE.md` |
+| Cursor IDE | `cursor` | `.cursor/rules/*.mdc` and `.cursor/skills/` | N/A (Workspace only) |
+| GitHub Copilot | `copilot` | `.github/copilot-instructions.md` and `.github/skills/` | N/A (Workspace only) |
+| Universal | `universal` | `AGENTS.md` and `.agents/skills/` | N/A (Workspace only) |
+| Kiro | `kiro` | `AGENTS.md` and `.kiro/` (`skills/`) | N/A (Workspace only) |
+| OpenCode | `opencode` | `AGENTS.md` and `.opencode/` (`skills/`) | N/A (Workspace only) |
+| Codex (OpenAI) | `codex` | `AGENTS.md` and `.agents/skills/` | N/A (Workspace only) |

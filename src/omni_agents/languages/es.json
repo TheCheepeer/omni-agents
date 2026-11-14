@@ -224,7 +224,7 @@
         "removed_gitignore": "Removido de .gitignore: {entries}",
         "antigravity_agents": "Antigravity: {count} subagente(s) copiado(s) a .agents/agents/",
         "antigravity_rules": "Antigravity: {count} regla(s) copiada(s) a .agents/rules/",
-        "antigravity_skills": "Antigravity: manifiesto skills.json generado ({count} skills)",
+        "antigravity_skills": "Antigravity: {count} skill(s) copiada(s) a .agents/skills/",
         "antigravity_clean_nothing": "Antigravity: nada para limpiar en el workspace.",
         "antigravity_clean_done": "Antigravity: configuraciones removidas de .agents/",
         "antigravity_global_agents": "Antigravity Global: subagentes vinculados en ~/.gemini/config/agents",
@@ -259,7 +259,7 @@
     "target_descriptions": {
         "antigravity": {
             "display_name": "Google Antigravity",
-            "description": "Configuración mediante .agents/ y manifiesto de skills en el espacio de trabajo"
+            "description": "Configuración mediante .agents/ (skills/, rules/, agents/) en el espacio de trabajo"
         },
         "claude": {
             "display_name": "Claude Code (Anthropic)",
